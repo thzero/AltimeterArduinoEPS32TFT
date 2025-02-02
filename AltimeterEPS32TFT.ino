@@ -57,7 +57,6 @@ struct loopStateMachine {
   enum loopStates current = GROUND;
 } _loopState;
 
-bool _drawSplash = true;
 unsigned long _timestamp;
 
 void drawTftFlight(unsigned long timestamp, unsigned long delta) {
@@ -291,9 +290,6 @@ String drawTftSplashPad(float value, int width, char * format) {
 void drawTftSplash() {
   Serial.println("Display splash on tft...");
 
-  _tft.setRotation(0);
-  _tft.fillScreen(TFT_BLACK);
-
   int row = 125;
 
   _tft.pushImage(6, 0, 128, 128, thzero_altimeters128x128);
@@ -346,6 +342,12 @@ void drawTftSplash() {
   Serial.println("...display splash on tft successful.");
 }
 
+void drawTftReset() {
+  _tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  _tft.fillScreen(TFT_BLACK);
+  _tft.setRotation(0);
+}
+
 /*
   This will turn off the altimeter
 */
@@ -353,8 +355,7 @@ void sleepDevice() {
   setupButtonDeninit();
   setupNeoPixelBlinkerDeninit();
 
-  _tft.fillScreen(TFT_BLACK);
-  _tft.setRotation(0);
+  drawTftReset();
   _tft.drawString("turning off...", 6, 185);
 
   // digitalWrite(4, LOW);
@@ -423,7 +424,7 @@ float loopStateAIRBORNE(unsigned long currentTimestamp, long diffTime) {
 
 loopThrottle _throttleAirborneAscent;
 void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaIn) {
-  int delta = _throttleAirborneAscent.determine(timestamp, (int)SAMPLE_RATE_AIRBORNE_ASCENT);
+  int delta = _throttleAirborneAscent.determine(deltaIn, (int)SAMPLE_RATE_AIRBORNE_ASCENT);
   if (delta == 0)
     return;
 
@@ -487,7 +488,6 @@ void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaIn) {
       // Detected apogee.
       _flightLogger.data.altitudeApogee = _flightLogger.data.altitudeLast;
       _flightLogger.data.timestampApogee = currentTimestamp;
-      // DESCENT
       // _loopState.current = AIRBORNE_DESCENT;
       debug("DESCENT!!!!");
       loopStateAIRBORNE_ASCENTToAIRBORNE_DESCENT();
@@ -534,6 +534,7 @@ void loopStateAIRBORNEToAbort(char message1[], char message2[]) {
   // To avoid battery drain, etc. user should choose to turn on networking...
   // setupNetwork();
 
+  drawTftReset();
   drawTftSplash();
 }
 
@@ -548,12 +549,13 @@ void loopStateAIRBORNEToGROUND() {
   // To avoid battery drain, etc. user should choose to turn on networking...
   // setupNetwork();
 
+  drawTftReset();
   drawTftSplash();
 }
 
 loopThrottle _throttleAirborneDescent;
 void loopStateAIRBORNE_DESCENT(unsigned long timestamp, unsigned long deltaIn) {
-  int delta = _throttleAirborneDescent.determine(timestamp, (int)SAMPLE_RATE_AIRBORNE_DESCENT);
+  int delta = _throttleAirborneDescent.determine(deltaIn, (int)SAMPLE_RATE_AIRBORNE_DESCENT);
   if (delta == 0)
     return;
 
@@ -619,24 +621,24 @@ void loopStateGROUND(unsigned long timestamp, unsigned long deltaIn) {
   if (readSerial(timestamp, deltaIn))
     interpretCommandBuffer();  // TODO: It'd be nice to kick this to the other processor...
 
-  // // Determine the ground loop time delay based on sampling rate.
-  // int delta = _throttleGround.determine(timestamp, (int)SAMPLE_RATE_GROUND);
-  // if (delta == 0)
-  //   return;
+  // Determine the ground loop time delay based on sampling rate.
+  int delta = _throttleGround.determine(deltaIn, (int)SAMPLE_RATE_GROUND);
+  if (delta == 0)
+    return;
 
-  // // Functionality that happen on the tick goes here:
+  // Functionality that happen on the tick goes here:
 
-  // debug("stateGROUND...processing, delta", delta);
+  debug("stateGROUND...processing, delta", delta);
 
-  // // Get the current altitude and determine the delta from initial.
-  // // float altitude = 0;
-  // float altitude = readSensorAltitude();
-  // debug("stateGROUND...altitude", altitude);
-  // debug("stateGROUND...altitudeInitial", _flightLogger.data.altitudeInitial);
-  // float altitudeDelta = altitude - _flightLogger.data.altitudeInitial;
-  // debug("stateGROUND...altitudeDelta", altitudeDelta);
-  // _flightLogger.data.altitudeCurrent = altitude;
-  // debug("stateGROUND...altitudeCurrent", _flightLogger.data.altitudeCurrent);
+  // Get the current altitude and determine the delta from initial.
+  // float altitude = 0;
+  float altitude = readSensorAltitude();
+  debug("stateGROUND...altitude", altitude);
+  debug("stateGROUND...altitudeInitial", _flightLogger.data.altitudeInitial);
+  float altitudeDelta = altitude - _flightLogger.data.altitudeInitial;
+  debug("stateGROUND...altitudeDelta", altitudeDelta);
+  _flightLogger.data.altitudeCurrent = altitude;
+  debug("stateGROUND...altitudeCurrent", _flightLogger.data.altitudeCurrent);
 
   // // Check for whether we've left the ground
   // // If the delta altitude is less than the specified liftoff altitude, then its on the ground.
@@ -649,24 +651,10 @@ void loopStateGROUND(unsigned long timestamp, unsigned long deltaIn) {
   //   loopStateGROUNDToAIRBORNE_ASCENT(timestamp);
   //   return;
   // }
-
-  // // // If displaying the graph...
-  // // if (_displayGraph) {
-  // //   _drawSplash = true;
-  // //   drawTftGraphForlightNbr(_flightLogger.instance.geFlightNbrLast(), _drawGraphCurveType);
-  // //   return;
-  // // }
-
-  // // if (_drawSplash) {
-  // //   _drawSplash = false;
-  // //   drawTftSplash();
-  // // }
 }
 
 void loopStateGROUNDToAIRBORNE_ASCENT(unsigned long timestamp) {
   // _loopState.current = AIRBORNE_ASCENT; // TODO!
-
-  _displayGraph = false;
 
   // Turn off wifi, we don't need it in the air...
   setupNetworkDisable();
@@ -677,6 +665,8 @@ void loopStateGROUNDToAIRBORNE_ASCENT(unsigned long timestamp) {
   // _flightLogger.data.altitudeLast = 0;
   // _flightLogger.data.measures = 0;
   // _flightLogger.instance.initFlight();
+
+  drawTftReset();
 }
 
 void loop() {
@@ -776,7 +766,7 @@ void setupTft() {
   delay(10);
 
   _tft.init();
-  _tft.fillScreen(TFT_BLACK);
+  drawTftReset();
   _tft.setSwapBytes(true);
 
   drawTftSplash();

@@ -136,7 +136,9 @@ float sensorBME::readSensorAltitude(atmosphereValues values) {
    // TODO: This really should be based on the temperature that at this altitude... using a static temp reduces precision
   float altitude = EnvironmentCalculations::Altitude(values.pressure, envAltUnit, pressureReference, temperatureOutdoor, envTempUnit);
 #if defined(DEBUG_SENSOR)
-  Serial.print(F("altitude="));
+  Serial.print(F("\tpressure="));
+  Serial.println(values.pressure);
+  Serial.print(F("\taltitude="));
   Serial.println(altitude);
 #endif
   values.altitude = altitude;

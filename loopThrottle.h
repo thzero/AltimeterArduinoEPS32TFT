@@ -9,7 +9,7 @@ class loopThrottle {
     
   private:
     int _count;
-    int _timestamp;
+    int _delta;
 };
 
 #endif
