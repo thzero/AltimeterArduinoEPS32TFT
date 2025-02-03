@@ -1,11 +1,6 @@
 #include <Arduino.h>
-#include <Adafruit_NeoPixel.h>
-#include <Button2.h>
 #include <esp_sleep.h>
 #include <Preferences.h>
-#include <SPI.h>
-#include <TFT_eSPI.h>
-#include <TFT_eWidget.h>
 #include <Wire.h>
 
 // #include "ble.h"
