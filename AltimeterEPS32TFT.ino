@@ -45,28 +45,29 @@ unsigned long _timestamp;
 
 /*
   This will turn off the altimeter
-*/
-void sleepDevice() {
+*/void sleepDevice() {
   setupButtonDeninit();
   setupNeoPixelBlinkerDeninit();
 
   drawTftReset();
-  _tft.drawString("turning off...", 6, 185);
+  drawTftSleep();
 
   // digitalWrite(4, LOW);
   // delay(2000);
 
   // neilrbowen...
-  pinMode(TFT_BACKLITE, OUTPUT);
-  pinMode(TFT_I2C_POWER, OUTPUT);
-  pinMode(4, OUTPUT);
-  digitalWrite(TFT_BACKLITE, LOW);
-  digitalWrite(TFT_I2C_POWER, LOW);
+  // pinMode(TFT_BACKLITE, OUTPUT);
+  // pinMode(TFT_I2C_POWER, OUTPUT);
+  // pinMode(4, OUTPUT);
+  // digitalWrite(TFT_BACKLITE, LOW);
+  // digitalWrite(TFT_I2C_POWER, LOW);
+  sleepTft();
   delay(100);
 
   gpio_deep_sleep_hold_en();
-  gpio_hold_en((gpio_num_t)TFT_BACKLITE);
-  gpio_hold_en((gpio_num_t)TFT_I2C_POWER);
+  // gpio_hold_en((gpio_num_t)TFT_BACKLITE);
+  // gpio_hold_en((gpio_num_t)TFT_I2C_POWER);
+  sleepTft2();
   delay(2000);
   // ...neilrbowen
 

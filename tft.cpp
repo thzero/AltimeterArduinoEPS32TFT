@@ -224,6 +224,10 @@ void drawTftSensorImu() {
   // }
 }
 
+void drawTftSleep() {
+  _tft.drawString("turning off...", 6, 185);
+}
+
 String drawTftSplashPad(float value, int width, char * format) {
   char buffer[20];
   // Convert float to string
@@ -329,4 +333,21 @@ void setupTft() {
   drawTftSplash();
 
   Serial.println("...TFT successful.");
+}
+
+void sleepTft() {
+  // neilrbowen...
+  pinMode(TFT_BACKLITE, OUTPUT);
+  pinMode(TFT_I2C_POWER, OUTPUT);
+  pinMode(4, OUTPUT);
+  digitalWrite(TFT_BACKLITE, LOW);
+  digitalWrite(TFT_I2C_POWER, LOW);
+  // neilrbowen...
+}
+
+void sleepTft2() {
+  // neilrbowen...
+  gpio_hold_en((gpio_num_t)TFT_BACKLITE);
+  gpio_hold_en((gpio_num_t)TFT_I2C_POWER);
+  // neilrbowen...
 }

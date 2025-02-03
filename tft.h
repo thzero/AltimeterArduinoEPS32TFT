@@ -17,10 +17,16 @@ extern void drawTftSensorImu();
 
 extern String drawTftSplashPad(float value, int width, char * format);
 
+extern void drawTftSleep();
+
 extern void drawTftSplash();
 
 extern void drawTftReset();
 
 extern void setupTft();
+
+extern void sleepTft();
+
+extern void sleepTft2();
 
 #endif
