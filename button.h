@@ -2,6 +2,7 @@
 #define _BUTTON_H
 
 #include <Arduino.h>
+#include <Button2.h>
 #include <driver/rtc_io.h>
 
 #include "flightLogger.h"
