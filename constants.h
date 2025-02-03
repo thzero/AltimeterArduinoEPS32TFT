@@ -1,14 +1,14 @@
 #ifndef _CONSTANTS_H
 #define _CONSTANTS_H
 
+#define BOARD_NAME "AltimeterEPS32TFT"
+#define BOARD_FIRMWARE "AltimeterEPS32TFT"
+
 #define COPYRIGHT "(C) thZero.com"
 #define COPYRIGHT_YEARS "2024-2024"
 
 #define MAJOR_VERSION 0
 #define MINOR_VERSION 1
-
-#define BOARD_NAME "AltimeterEPS32TFT"
-#define BOARD_FIRMWARE "AltimeterEPS32TFT"
 
 //////////////////////////////////////////////////////////////////////
 // Constants
@@ -23,6 +23,10 @@
 #define SAMPLE_RATE_GROUND 20
 #define SAMPLE_RATE_AIRBORNE_ASCENT 20
 #define SAMPLE_RATE_AIRBORNE_DESCENT 2
+
+// #define KALMAN
+// #define KALMAN_ALTITUDE
+// #define KALMAN_PRESSURE
 
 #define DEBUG
 // #define DEBUG_SENSOR
