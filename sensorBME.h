@@ -26,6 +26,7 @@ class sensorBME {
     // BME280_Arduino_I2C _bme;
     int _count;
     kalman _kalmanAltitude;
+    kalman _kalmanPressure;
 };
 
 #endif
