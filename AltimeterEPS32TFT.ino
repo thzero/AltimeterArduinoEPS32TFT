@@ -56,17 +56,10 @@ unsigned long _timestamp;
   // delay(2000);
 
   // neilrbowen...
-  // pinMode(TFT_BACKLITE, OUTPUT);
-  // pinMode(TFT_I2C_POWER, OUTPUT);
-  // pinMode(4, OUTPUT);
-  // digitalWrite(TFT_BACKLITE, LOW);
-  // digitalWrite(TFT_I2C_POWER, LOW);
   sleepTft();
   delay(100);
 
   gpio_deep_sleep_hold_en();
-  // gpio_hold_en((gpio_num_t)TFT_BACKLITE);
-  // gpio_hold_en((gpio_num_t)TFT_I2C_POWER);
   sleepTft2();
   delay(2000);
   // ...neilrbowen
@@ -448,27 +441,6 @@ void setupNetworkDisable() {
   // _ble.disable();
   _wifi.disable();
 }
-
-// void setupTft() {
-//   Serial.println("Setup TFT...");
-
-//   // turn on backlite
-//   pinMode(TFT_BACKLITE, OUTPUT);
-//   digitalWrite(TFT_BACKLITE, HIGH);
-
-//   // turn on the TFT / I2C power supply
-//   pinMode(TFT_I2C_POWER, OUTPUT);
-//   digitalWrite(TFT_I2C_POWER, HIGH);
-//   delay(10);
-
-//   _tft.init();
-//   drawTftReset();
-//   _tft.setSwapBytes(true);
-
-//   drawTftSplash();
-
-//   Serial.println("...TFT successful.");
-// }
 
 void setup() {
   // put your setup code here, to run once:
