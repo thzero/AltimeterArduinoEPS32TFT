@@ -45,7 +45,8 @@ unsigned long _timestamp;
 
 /*
   This will turn off the altimeter
-*/void sleepDevice() {
+*/
+void sleepDevice() {
   setupButtonDeninit();
   setupNeoPixelBlinkerDeninit();
 
