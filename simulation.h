@@ -12,7 +12,7 @@ struct simulationConfig {
   double MotorExhaustVelocity = 2485.796;   // m/s // from OR 3" rocket  
   double CrossSection = 4.56e-3;            // m^20.0762 // from OR 3" rocket
   double DragCoefficient = 0.87;            // from OR 3" rocket
-  int sampleRate = 1;
+  int sampleRate = 50;
 };
 
 // Very simple, and not very realistic, simulation only on the X and Y axis.
@@ -48,7 +48,8 @@ class simulation {
 
     void evaluateTimestep(double K, double deltaT, double Mr, double Me, double G, double Ft, double *x);
     void outputPrint(double delta, double thrust, double mass, double height);
-    void loopStep(double deltaT);
+    void outputPrintHeader();
+    void loopStep(double deltaT, bool output);
     void simulationTask();
     static void simulationTaskW(void * parameter);
 };

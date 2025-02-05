@@ -208,6 +208,12 @@ void drawTftGraphForlightNbr(int flightNbr, int curveType) {
   }
 }
 
+void drawTftReset() {
+  _tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  _tft.fillScreen(TFT_BLACK);
+  _tft.setRotation(0);
+}
+
 void drawTftSensorImu() {
   // if (!_qmi.instance.getDataReady())
   //   return;
@@ -308,10 +314,15 @@ void drawTftSplash() {
   Serial.println(F("...display splash on tft successful."));
 }
 
-void drawTftReset() {
-  _tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  _tft.fillScreen(TFT_BLACK);
-  _tft.setRotation(0);
+void drawTftSplashSim() {
+  _tft.fillScreen(TFT_RED);
+  _tft.setTextColor(TFT_WHITE, TFT_RED);
+  drawTftSplash();
+}
+
+void drawTftSplashSimStop() {
+  drawTftReset();
+  drawTftSplash();
 }
 
 void setupTft() {

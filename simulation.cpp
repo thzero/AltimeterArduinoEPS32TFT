@@ -2,6 +2,7 @@
 
 #include "debug.h"
 #include "simulation.h"
+#include "tft.h"
 
 struct simulationConfig simulationConfigDefault;
 
@@ -18,8 +19,8 @@ void simulation::evaluateTimestep(double K, double deltaT, double Mr, double Me,
   _trace[0] += deltaT * _trace[1];
   // Compute the total force
   double F = -G * Me * Mr / (_trace[0] * _trace[0]);
-  double DragSign = (_trace[1] < 0) ? 1.0 : -1.0;
-  F += 0.5 * K * (_trace[1] * _trace[1]) * DragSign;
+  double dragSign = (_trace[1] < 0) ? 1.0 : -1.0;
+  F += 0.5 * K * (_trace[1] * _trace[1]) * dragSign;
   F += Ft;
   // Apply acceleration
   _trace[1] += deltaT * F / Mr;
@@ -43,10 +44,14 @@ void simulation::outputPrint(double delta, double thrust, double mass, double he
   Serial.print(F("\t"));
   Serial.print(height);
   Serial.print(F("\t"));
-  Serial.println(_airborne);
+  Serial.println(_airborne ? "true" : "false");
 }
 
-void simulation::loopStep(double deltaT) {
+void simulation::outputPrintHeader() {
+  Serial.println(F("sim -\tTime\tDelta\tThrust\tMass\tVelocity\tStarting Altitude\tPosition\tHeight\tAirborne"));
+}
+
+void simulation::loopStep(double deltaT, bool output) {
   deltaT = deltaT / 1000;
 
   if (_airborne && _trace[0] <= _startingAltitude) {
@@ -72,7 +77,8 @@ void simulation::loopStep(double deltaT) {
     thrust = _motorThrust; // N
   }
 
-  outputPrint(deltaT, thrust, mass, height);
+  if (output)
+    outputPrint(deltaT, thrust, mass, height);
 
   evaluateTimestep(drag, deltaT, mass, EarthMass, GravConstant, thrust, _trace);
   // TODO: Introduce some  point - recommendation seems to be to use Simplex noise from FastLED
@@ -94,19 +100,28 @@ void simulation::simulationTaskW(void * parameter) {
 }
 
 void simulation::simulationTask() {
-  _simulationTimestamp = millis();
-  // debug(F("Simulation task..."), _running);
+  drawTftSplashSim();
+  Serial.println(F("Simulation task..."));
+  Serial.print(F("sim -\tSample Rate="));
+  Serial.println(_config.sampleRate);
+
+  unsigned long start = millis();
+  int count = 0;
+  int countHeader = 0;
   int settle = 0;
   while(_running) {
     // debug(F("Simulation _simulationTimestamp...", _simulationTimestamp);
     unsigned long current = millis();
     // debug(F("Simulation current..."), current);
-    // debug(F("Simulation SAMPLE_SIMULATION..."), SAMPLE_SIMULATION);
 
     // unsigned long deltaT = current - _simulationTimestamp;
     // debug(F("Simulation deltaT..."), deltaT);
 
-    int delta = _simulationThrottle.determine(_simulationTimestamp, _config.sampleRate);
+    bool output = false;
+    bool outputHeader = false;
+
+    int deltaElapsed = current - _simulationTimestamp;
+    int delta = _simulationThrottle.determine(deltaElapsed, _config.sampleRate);
     // debug(F("Simulation delta..."), delta);
     if (delta != 0) {
       // debug(F("Simulation settle..."), settle);
@@ -116,12 +131,41 @@ void simulation::simulationTask() {
         continue;
       }
 
+      if (count % 100 == 0) {
+        count = 0;
+        output = true;
+        if (countHeader % 10 == 0) {
+          countHeader = 0;
+          countHeader++;
+          outputHeader = true;
+        }
+        countHeader++;
+      }
+      count++;
+
+      if (outputHeader)
+        outputPrintHeader();
+
       // debug(F("Simulation sim!!!"), delta);
-      loopStep(delta);
+      loopStep(delta, output);
     }
 
     _simulationTimestamp = current;
   }
+  
+  unsigned long stop = millis();
+  unsigned long runtime = stop - start;
+  Serial.print(F("sim -\tStart="));
+  Serial.println(start);
+  Serial.print(F("sim -\tStop="));
+  Serial.println(stop);
+  Serial.print(F("sim -\tRuntime (ms)="));
+  Serial.println(runtime);
+  Serial.print(F("sim -\tRuntime (s)="));
+  Serial.println(runtime / 1000);
+
+  drawTftSplashSimStop();
+
   // Delete the task...
   vTaskDelete(NULL);
 }
@@ -129,7 +173,7 @@ void simulation::simulationTask() {
 void simulation::start(simulationConfig startConfig, long initialAltitude) {
   _config = startConfig;
   Serial.println(F(""));
-  Serial.println(F("Simulation\tStarted"));
+  Serial.println(F("Simulation Started"));
   if (_running) {
     Serial.println(F("\tAlready running."));
     return;
@@ -145,7 +189,7 @@ void simulation::start(simulationConfig startConfig, long initialAltitude) {
   _trace[0] = _startingAltitude; // Initial position
   _trace[1] = 0.0; // Initial velocity
 
-  Serial.println(F("sim -\tTime\tDelta\tThrust\tMass\tVelocity\tStarting Altitude\tPosition\tHeight\tAirborne"));
+  // Serial.println(F("sim -\tTime\tDelta\tThrust\tMass\tVelocity\tStarting Altitude\tPosition\tHeight\tAirborne"));
 
   _running = true;
   // Serial.println(F("Simulation\tCreating task..."));

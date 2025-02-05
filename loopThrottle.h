@@ -6,9 +6,13 @@ class loopThrottle {
     loopThrottle();
     int determine(unsigned long timestamp, byte sampleRate);
     void reset();
+    bool signal();
     
   private:
-    int _count;
+    int _countDebug;
+// #ifdef DEBUG
+    // int _countDebugI;
+// #endif
     int _delta;
 };
 

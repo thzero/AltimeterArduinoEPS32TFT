@@ -113,8 +113,8 @@ float loopStateAIRBORNE(unsigned long currentTimestamp, long diffTime) {
 }
 
 loopThrottle _throttleAirborneAscent;
-void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaIn) {
-  int delta = _throttleAirborneAscent.determine(deltaIn, (int)SAMPLE_RATE_AIRBORNE_ASCENT);
+void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaElapsed) {
+  int delta = _throttleAirborneAscent.determine(deltaElapsed, (int)SAMPLE_RATE_AIRBORNE_ASCENT);
   if (delta == 0)
     return;
 
@@ -158,10 +158,10 @@ void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaIn) {
   // _flightLogger.data.timestampPrevious = currentTimestamp;
   // _flightLogger.data.altitudeLast = altitude;
 
-  // // sendTelemetry(timestamp - _flightLogger.data.timestampInitial , atmosphere, accelerometer, gryoscope, altitude, deltaIn);
+  // // sendTelemetry(timestamp - _flightLogger.data.timestampInitial , atmosphere, accelerometer, gryoscope, altitude, deltaElapsed);
 
   // // Draw the output...
-  // drawTftFlightAirborne(timestamp, deltaIn);
+  // drawTftFlightAirborne(timestamp, deltaElapsed);
 
   long currentTimestamp = millis() - _flightLogger.data.timestampLaunch;
 
@@ -244,8 +244,8 @@ void loopStateAIRBORNEToGROUND() {
 }
 
 loopThrottle _throttleAirborneDescent;
-void loopStateAIRBORNE_DESCENT(unsigned long timestamp, unsigned long deltaIn) {
-  int delta = _throttleAirborneDescent.determine(deltaIn, (int)SAMPLE_RATE_AIRBORNE_DESCENT);
+void loopStateAIRBORNE_DESCENT(unsigned long timestamp, unsigned long deltaElapsed) {
+  int delta = _throttleAirborneDescent.determine(deltaElapsed, (int)SAMPLE_RATE_AIRBORNE_DESCENT);
   if (delta == 0)
     return;
 
@@ -267,9 +267,9 @@ void loopStateAIRBORNE_DESCENT(unsigned long timestamp, unsigned long deltaIn) {
   // //   }
   // // }
 
-  // // sendTelemetry(timestamp - _flightLogger.data.timestampInitial , atmosphere, accelerometer, gryoscope, altitude, deltaIn);
+  // // sendTelemetry(timestamp - _flightLogger.data.timestampInitial , atmosphere, accelerometer, gryoscope, altitude, deltaElapsed);
 
-  // drawTftFlightAirborne(timestamp, deltaIn);
+  // drawTftFlightAirborne(timestamp, deltaElapsed);
 
   long currentTimestamp = millis() - _flightLogger.data.timestampLaunch;
 
@@ -300,7 +300,7 @@ void loopStateAIRBORNE_DESCENT(unsigned long timestamp, unsigned long deltaIn) {
 }
 
 loopThrottle _throttleGround;
-void loopStateGROUND(unsigned long timestamp, unsigned long deltaIn) {
+void loopStateGROUND(unsigned long timestamp, unsigned long deltaElapsed) {
   // Query the button handler to check for button press activity.
   handleButtonLoop();
 
@@ -308,27 +308,28 @@ void loopStateGROUND(unsigned long timestamp, unsigned long deltaIn) {
   _wifi.loop();
 
   // Capture the command buffer.
-  if (readSerial(timestamp, deltaIn))
+  if (readSerial(timestamp, deltaElapsed))
     interpretCommandBuffer();  // TODO: It'd be nice to kick this to the other processor...
 
-  // Determine the ground loop time delay based on sampling rate.
-  int delta = _throttleGround.determine(deltaIn, (int)SAMPLE_RATE_GROUND);
-  if (delta == 0)
-    return;
+  // // Determine the ground loop time delay based on sampling rate.
+  // int delta = _throttleGround.determine(deltaElapsed, (int)SAMPLE_RATE_GROUND);
+  // if (delta == 0)
+  //   return;
 
-  // Functionality that happen on the tick goes here:
+  // // Functionality that happen on the tick goes here:
 
-  debug("stateGROUND...processing, delta", delta);
+  // // Get the current altitude and determine the delta from initial.
+  // float altitude = readSensorAltitude();
+  // float altitudeDelta = altitude - _flightLogger.data.altitudeInitial;
+  // _flightLogger.data.altitudeCurrent = altitude;
 
-  // Get the current altitude and determine the delta from initial.
-  // float altitude = 0;
-  float altitude = readSensorAltitude();
-  debug("stateGROUND...altitude", altitude);
-  debug("stateGROUND...altitudeInitial", _flightLogger.data.altitudeInitial);
-  float altitudeDelta = altitude - _flightLogger.data.altitudeInitial;
-  debug("stateGROUND...altitudeDelta", altitudeDelta);
-  _flightLogger.data.altitudeCurrent = altitude;
-  debug("stateGROUND...altitudeCurrent", _flightLogger.data.altitudeCurrent);
+  // if (_throttleGround.signal()) {
+  //   debug("stateGROUND...processing, delta", delta);
+  //   debug("stateGROUND...altitude", altitude);
+  //   debug("stateGROUND...altitudeInitial", _flightLogger.data.altitudeInitial);
+  //   debug("stateGROUND...altitudeDelta", altitudeDelta);
+  //   debug("stateGROUND...altitudeCurrent", _flightLogger.data.altitudeCurrent);
+  // }
 
   // // Check for whether we've left the ground
   // // If the delta altitude is less than the specified liftoff altitude, then its on the ground.
