@@ -8,23 +8,8 @@
 
 int _readIndex;
 char commandbuffer[100];
-void interpretCommandBufferI() {
-  char command = commandbuffer[0];
-  char command1 = commandbuffer[1];
 
-// #ifdef DEBUG
-//   debug(F("interpretCommandBufferI.command"), command);
-//   Serial.print(F("interpretCommandBufferI.commandBuffer="));
-//   for (int i = 0; i < _readIndex; i++) {
-//     Serial.print(commandbuffer[i]);
-//     // Serial.printf("%c", commandbuffer[i]);
-//     // Serial.printf("%d", commandbuffer[i]);
-//   }
-//   Serial.println(F(""));
-// #endif  
-
-  // write altimeter config
-  if (command == 'h') {
+void interpretCommandBufferHelp() {
     Serial.println(F(""));
     Serial.print(BOARD_NAME);
     Serial.println(F(" help..."));
@@ -47,29 +32,71 @@ void interpretCommandBufferI() {
     Serial.println(F("s;\tsimulation"));
     Serial.println(F("st;\tsimulation stop"));
 #endif
+    Serial.println(F("")); 
+
+#ifdef DEBUG
     Serial.println(F(""));
-    return;
-  }
-#ifdef DEV
-  if (command == 'i') {
-    i2CScanner();
-    return;
-  }
+    Serial.println(F(""));
+    Serial.println(F(""));
+    Serial.println(F(""));
+    Serial.println(F(""));
 #endif
-#ifdef DEV_SIM
-  if (command == 's') {
+}
+
+void interpretCommandBufferI2CScanner() {
+    i2CScanner();
+}
+
+void interpretCommandBufferSimulation(char command1) {
     if (command1 == 't') {
       _simulation.stop();
       return;
     }
 
     _simulation.start(simulationConfigDefault, _flightLogger.data.altitudeInitial);
-    return;
-  }
+}
+
+void interpretCommandBufferI() {
+  char command = commandbuffer[0];
+  char command1 = commandbuffer[1];
+
+// #ifdef DEBUG
+//   debug(F("interpretCommandBufferI.command"), command);
+//   Serial.print(F("interpretCommandBufferI.commandBuffer="));
+//   for (int i = 0; i < _readIndex; i++) {
+//     Serial.print(commandbuffer[i]);
+//     // Serial.printf("%c", commandbuffer[i]);
+//     // Serial.printf("%d", commandbuffer[i]);
+//   }
+//   Serial.println(F(""));
+// #endif  
+
+#ifdef DEBUG
+    Serial.println(F(""));
+    Serial.println(F(""));
+    Serial.println(F(""));
+    Serial.println(F(""));
+    Serial.println(F(""));
 #endif
 
-  Serial.print(F("$UNKNOWN command: "));
-  Serial.println(commandbuffer);
+  // write altimeter config
+  if (command == 'h') {
+    interpretCommandBufferHelp();
+  }
+#ifdef DEV
+  else if (command == 'i') {
+    interpretCommandBufferI2CScanner();
+  }
+#endif
+#ifdef DEV_SIM
+  else if (command == 's') {
+    interpretCommandBufferSimulation(command1);
+  }
+#endif
+  else {
+    Serial.print(F("$UNKNOWN command: "));
+    Serial.println(commandbuffer);
+  }
 }
 
 void resetCommandBuffer() {

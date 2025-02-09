@@ -4,13 +4,12 @@
 #include "sensorData.h"
 
 extern atmosphereValues initializeSensorsAtmosphere();
-
 extern float readSensorAltitude();
 extern float readSensorAltitude(atmosphereValues values);
 extern atmosphereValues readSensorAtmosphere();
 extern accelerometerValues readSensorAccelerometer();
 extern gyroscopeValues readSensorGyroscope();
-
+extern void sleepSensors();
 extern void setupSensors();
 extern void setupSensorsCompleted();
 

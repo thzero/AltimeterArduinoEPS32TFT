@@ -14,6 +14,8 @@ extern void debug(char str[]);
 
 extern void debug(char str[], char value[]);
 
+extern void debug(char str[], double value);
+
 extern void debug(char str[], float value);
 
 extern void debug(char str[], long value);
@@ -33,6 +35,8 @@ extern void debug(const __FlashStringHelper *ifsh);
 
 extern void debug(const __FlashStringHelper *ifsh, char value[]);
 
+extern void debug(const __FlashStringHelper *ifsh, double value);
+
 extern void debug(const __FlashStringHelper *ifsh, float value);
 
 extern void debug(const __FlashStringHelper *ifsh, int value);
@@ -51,6 +55,8 @@ extern void debug(const __FlashStringHelper *ifsh, unsigned long value);
 extern void debug(String str);
 
 extern void debug(String str, char value[]);
+
+extern void debug(String str, double value);
 
 extern void debug(String str, float value);
 

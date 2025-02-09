@@ -58,6 +58,15 @@ gyroscopeValues sensorIMU::readSensorGyroscope() {
     return values;
 }
 
+void sensorIMU::sleepSensors() {
+  Serial.println(F("\tSleep sensor IMU..."));
+  
+  _qmi.disableGyroscope();
+  _qmi.disableAccelerometer();
+
+  Serial.println(F("\t...sensor IMU sleep successful."));
+}
+
 void sensorIMU::setupSensors() {
   Serial.println(F("\tSetup sensor IMU..."));
   

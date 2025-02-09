@@ -74,21 +74,12 @@ atmosphereValues sensorBME::initializeSensors() {
   float altitudeInitial = (sum / samples);
   debug(F("altitudeInitial"), altitudeInitial);
   Serial.println(F("\t...initializeSensors"));
-  // return altitudeInitial;
   values.altitude = altitudeInitial;
   return values;
 }
 
 atmosphereValues sensorBME::readSensor() {
   atmosphereValues values;
-
-#ifdef DEV_SIM
-  if (_simulation.isRunning() && _initialized) { 
-    // values.altitude = simulationValueAltitude();
-    values.altitude = _simulation.valueAltitude();
-    return values;
-  }
-#endif
 
   float temperature(NAN), humidity(NAN), pressure(NAN);
 
@@ -99,14 +90,6 @@ atmosphereValues sensorBME::readSensor() {
   values.humidity = humidity;
   values.pressure = pressure;
   values.temperature = temperature;
-
-  // BME280Data* data = _bme.read();
-  // if (data == nullptr) {
-  //   Serial.println(F("uhhhh!"));
-  // }
-  // values.humidity = data->humidity;
-  // values.pressure = data->pressure;
-  // values.temperature = data->temperature;
 
 #if defined(DEBUG_SENSOR)
   Serial.print(F("refPres="));
@@ -133,10 +116,24 @@ float sensorBME::readSensorAltitude() {
 float sensorBME::readSensorAltitude(atmosphereValues values) {
   EnvironmentCalculations::AltitudeUnit envAltUnit = EnvironmentCalculations::AltitudeUnit_Meters;
   EnvironmentCalculations::TempUnit envTempUnit = EnvironmentCalculations::TempUnit_Celsius;
-   // TODO: This really should be based on the temperature that at this altitude... using a static temp reduces precision
-  float altitude = EnvironmentCalculations::Altitude(values.pressure, envAltUnit, pressureReference, temperatureOutdoor, envTempUnit);
+
+  float pressure = values.pressure;
+
+#if defined(KALMAN) && defined(KALMAN_ALTITUDE)
+  float pressureK = _kalmanPressure.kalmanCalc(altitude);
 #if defined(DEBUG_SENSOR)
-  Serial.print(F("altitude="));
+  Serial.print(F("__kalmanPressure="));
+  Serial.println(pressureK);
+#endif
+  pressure = pressureK;
+#endif
+
+   // TODO: This really should be based on the temperature that at this altitude... using a static temp reduces precision
+  float altitude = EnvironmentCalculations::Altitude(pressure, envAltUnit, pressureReference, temperatureOutdoor, envTempUnit);
+#if defined(DEBUG_SENSOR)
+  Serial.print(F("\tpressure="));
+  Serial.println(values.pressure);
+  Serial.print(F("\taltitude="));
   Serial.println(altitude);
 #endif
   values.altitude = altitude;
@@ -154,14 +151,30 @@ float sensorBME::readSensorAltitude(atmosphereValues values) {
 //   Serial.println(altitude2);
 // #endif
 
-//   float altitudeK = _kalmanAltitude.kalmanCalc(altitude);
-// #if defined(DEBUG_SENSOR)
-//   Serial.print(F("_kalmanAltitude="));
-//   Serial.println(altitudeK);
-// #endif
-//   values.altitude = altitudeK;
+#ifdef DEV_SIM
+  if (_simulation.isRunning() && _initialized) { 
+    // values.altitude = simulationValueAltitude();
+    values.altitude = _simulation.valueAltitude();
+    debug("sim.altitude", values.altitude);
+  }
+#endif
+
+#if defined(KALMAN) && defined(KALMAN_ALTITUDE)
+  float altitudeK = _kalmanAltitude.kalmanCalc(altitude);
+#if defined(DEBUG_SENSOR)
+  Serial.print(F("_kalmanAltitude="));
+  Serial.println(altitudeK);
+#endif
+  values.altitude = altitudeK;
+#endif
 
   return values.altitude;
+}
+
+void sensorBME::sleepSensors() {
+  Serial.println(F("\tSleep sensor atmosphere..."));
+
+  Serial.println(F("\t...sensor atmosphere sleep successful."));
 }
 
 void sensorBME::setupSensors() {
@@ -180,15 +193,18 @@ void sensorBME::setupSensors() {
   Serial.println(F("\t...BME280 initialized."));
 
   Serial.println(F("\t\tSetup Kalman filter..."));
-  // let's do some dummy altitude reading
-  // to initialise the Kalman filter
+
+  // let's do some dummy altitude reading to initialise the Kalman filter
+#if defined(KALMAN)
   for (int i = 0; i < 50; i++) {
 // #ifdef DEBUG
 //   Serial.print(F("Reading atmosphere...");
 //   Serial.println(i);
-//     readSensorAtmosphere();
 // #endif
+//   readSensor();
   }
+#endif
+
   Serial.println(F("\t\t...Kalman filter initialized."));
 
   Serial.println(F("\t...sensor atmosphere successful."));

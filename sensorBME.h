@@ -15,17 +15,19 @@ class sensorBME {
     sensorBME();
     // void init(BME280I2C bme);
     atmosphereValues initializeSensors();
+    void initSensors();
     atmosphereValues readSensor();
     float readSensorAltitude();
     float readSensorAltitude(atmosphereValues values);
+    void sleepSensors();
     void setupSensors();
-    void initSensors();
     
   private:
     BME280I2C _bme;
     // BME280_Arduino_I2C _bme;
     int _count;
     kalman _kalmanAltitude;
+    kalman _kalmanPressure;
 };
 
 #endif

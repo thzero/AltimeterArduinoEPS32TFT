@@ -17,6 +17,14 @@ void debug(char str[], char value[]) {
 #endif
 }
 
+void debug(char str[], double value) {
+#if defined(DEBUG) || defined(DEBUG_INTERNAL)
+  Serial.print(str);
+  Serial.print(F("="));
+  Serial.println(value);
+#endif
+}
+
 void debug(char str[], float value) {
 #if defined(DEBUG) || defined(DEBUG_INTERNAL)
   Serial.print(str);
@@ -82,6 +90,14 @@ void debug(const __FlashStringHelper *ifsh, char value[]) {
 #endif
 }
 
+void debug(const __FlashStringHelper *ifsh, double value) {
+#if defined(DEBUG) || defined(DEBUG_INTERNAL)
+  Serial.print(reinterpret_cast<const char *>(ifsh));
+  Serial.print(F("="));
+  Serial.println(value);
+#endif
+}
+
 void debug(const __FlashStringHelper *ifsh, float value) {
 #if defined(DEBUG) || defined(DEBUG_INTERNAL)
   Serial.print(reinterpret_cast<const char *>(ifsh));
@@ -136,6 +152,14 @@ void debug(const __FlashStringHelper *ifsh, unsigned long value) {
 void debug(String str) {
 #if defined(DEBUG) || defined(DEBUG_INTERNAL)
   Serial.println(str);
+#endif
+}
+
+void debug(String str, double value) {
+#if defined(DEBUG) || defined(DEBUG_INTERNAL)
+  Serial.print(str);
+  Serial.print(F("="));
+  Serial.println(value);
 #endif
 }
 

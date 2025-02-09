@@ -25,6 +25,7 @@ struct qmiData {
 class sensorIMU {
   public:
     sensorIMU();
+    void sleepSensors();
     void setupSensors();
     accelerometerValues readSensorAccelerometer();
     gyroscopeValues readSensorGyroscope();

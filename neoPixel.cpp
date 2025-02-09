@@ -102,6 +102,14 @@ int cycleNeoPixel(Adafruit_NeoPixel pixels, int hexIn) {
   return hex;
 }
 
+void sleepNeoPixel() {
+  pinMode(NEOPIXEL_POWER, OUTPUT);
+}
+
+void sleepNeoPixelHold() {
+  gpio_hold_en((gpio_num_t)NEOPIXEL_POWER);
+}
+
 void setupNeoPixel(Adafruit_NeoPixel pixels) {
   pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
   pixels.setBrightness(25);
