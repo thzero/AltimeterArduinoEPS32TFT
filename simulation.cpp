@@ -146,7 +146,7 @@ void simulation::simulationTask() {
       if (outputHeader)
         outputPrintHeader();
 
-      // debug(F("Simulation sim!!!"), delta);
+      // debug(F("Simulation, delta"), delta);
       loopStep(delta, output);
     }
 
