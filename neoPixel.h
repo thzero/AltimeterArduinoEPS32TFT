@@ -26,6 +26,8 @@ class neoPixelBlinker {
 extern neoPixelBlinker _neoPixelBlinker;
 extern void setupNeoPixelBlinker();
 extern void setupNeoPixelBlinkerDeninit();
+extern void sleepNeoPixel();
+extern void sleepNeoPixelHold();
 extern void setupNeoPixel(Adafruit_NeoPixel pixels);
 extern void setupNeoPixel(Adafruit_NeoPixel pixels, int brightness);
 extern void turnOfNeoPixel(Adafruit_NeoPixel pixels);

@@ -15,11 +15,12 @@ class sensorBME {
     sensorBME();
     // void init(BME280I2C bme);
     atmosphereValues initializeSensors();
+    void initSensors();
     atmosphereValues readSensor();
     float readSensorAltitude();
     float readSensorAltitude(atmosphereValues values);
+    void sleepSensors();
     void setupSensors();
-    void initSensors();
     
   private:
     BME280I2C _bme;

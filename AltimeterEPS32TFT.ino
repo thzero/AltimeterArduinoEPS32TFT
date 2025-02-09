@@ -53,17 +53,41 @@ void sleepDevice() {
   drawTftReset();
   drawTftSleep();
 
-  // digitalWrite(4, LOW);
-  // delay(2000);
+  sleepSensors();
 
-  // neilrbowen...
   sleepTft();
+
+  sleepNeoPixel();
+
+  pinMode(41, OUTPUT);
+  pinMode(42, OUTPUT);
+  pinMode(26, OUTPUT);
+  pinMode(7, OUTPUT);
+
   delay(100);
+  digitalWrite(4, LOW);
+
+  // SDA SDL pins to the Stemma QT need to be set high as they have physical pull up resistors (2x10K)
+  // PS Ram CS and TFT CS should be high.
+  digitalWrite(41, HIGH);
+  digitalWrite(42, HIGH);
+  digitalWrite(26, HIGH);
+  digitalWrite(7, HIGH);
+  delay(10);
+
+  sleepTft();
 
   gpio_deep_sleep_hold_en();
-  sleepTft2();
+
+  sleepTftHold();
+  
+  sleepNeoPixelHold();
+  
+  gpio_hold_en((gpio_num_t)41);
+  gpio_hold_en((gpio_num_t)42);
+  gpio_hold_en((gpio_num_t)26);
+  gpio_hold_en((gpio_num_t)7);
   delay(2000);
-  // ...neilrbowen
 
   esp_deep_sleep_start();
 }

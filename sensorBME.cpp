@@ -171,6 +171,12 @@ float sensorBME::readSensorAltitude(atmosphereValues values) {
   return values.altitude;
 }
 
+void sensorBME::sleepSensors() {
+  Serial.println(F("\tSleep sensor atmosphere..."));
+
+  Serial.println(F("\t...sensor atmosphere sleep successful."));
+}
+
 void sensorBME::setupSensors() {
   Serial.println(F("\tSetup sensor atmosphere..."));
 

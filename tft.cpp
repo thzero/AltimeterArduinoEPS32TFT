@@ -356,7 +356,7 @@ void sleepTft() {
   // neilrbowen...
 }
 
-void sleepTft2() {
+void sleepTftHold() {
   // neilrbowen...
   gpio_hold_en((gpio_num_t)TFT_BACKLITE);
   gpio_hold_en((gpio_num_t)TFT_I2C_POWER);

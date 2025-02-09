@@ -31,6 +31,19 @@ gyroscopeValues readSensorGyroscope() {
   return _imuSensor.readSensorGyroscope();
 }
 
+void sleepSensors() {
+  if (_initialized)
+    return;
+
+  Serial.println(F("Sleep sensors..."));
+
+  _bmeSensor.sleepSensors();
+  
+  _imuSensor.sleepSensors();
+
+  Serial.println(F("...sensors sleep successful."));
+}
+
 void setupSensors() {
   if (_initialized)
     return;

@@ -31,6 +31,6 @@ extern void setupTft();
 
 extern void sleepTft();
 
-extern void sleepTft2();
+extern void sleepTftHold();
 
 #endif
