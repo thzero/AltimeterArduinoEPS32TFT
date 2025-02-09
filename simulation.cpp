@@ -2,7 +2,6 @@
 
 #include "debug.h"
 #include "simulation.h"
-#include "tft.h"
 
 struct simulationConfig simulationConfigDefault;
 
@@ -27,6 +26,7 @@ void simulation::evaluateTimestep(double K, double deltaT, double Mr, double Me,
 }
 
 void simulation::outputPrint(double delta, double thrust, double mass, double altitude) {
+#ifdef DEBUG_SIM
   Serial.print(F("sim -\t"));
   Serial.print(_elapsedTime);
   Serial.print(F("\t"));
@@ -45,16 +45,20 @@ void simulation::outputPrint(double delta, double thrust, double mass, double al
   Serial.print(altitude);
   Serial.print(F("\t\t"));
   Serial.println(_airborne ? "true" : "false");
+#endif
 }
 
 void simulation::outputPrintHeader() {
+#ifdef DEBUG_SIM
   Serial.println(F("sim -\tTime\tDelta\tThrust\tMass\tVelocity\tStarting Altitude\tPosition\tAltitude\tAirborne"));
+#endif
 }
 
 void simulation::loopStep(double deltaT, bool output) {
   deltaT = deltaT / 1000;
 
   if (_airborne && _trace[0] <= _startingAltitude) {
+#ifdef DEBUG_SIM
     outputPrint(deltaT, 0, 0, 0);
     Serial.println(F("sim -\tLANDED"));
     Serial.print(F("sim -\tMax. Height="));
@@ -62,7 +66,18 @@ void simulation::loopStep(double deltaT, bool output) {
     Serial.print(F("sim -\tMax. Velocity="));
     Serial.println(_maxVelocity);
     Serial.println(F(""));
-    _running = false;
+    Serial.println(_maxVelocity);
+    Serial.print(F("final countdown..."));
+    Serial.println(_finalCountdown);
+#endif
+
+    if (_finalCountdown >= finalCountdown) {
+      _finalCountdown++;
+      _running = false;
+      return;
+    }
+
+    _finalCountdown++;
     return;
   }
 
@@ -100,7 +115,6 @@ void simulation::simulationTaskW(void * parameter) {
 }
 
 void simulation::simulationTask() {
-  drawTftSplashSim();
   Serial.println(F("Simulation task..."));
   Serial.print(F("sim -\tSample Rate="));
   Serial.println(_config.sampleRate);
@@ -164,8 +178,6 @@ void simulation::simulationTask() {
   Serial.print(F("sim -\tRuntime (s)="));
   Serial.println(runtime / 1000);
 
-  drawTftSplashSimStop();
-
   // Delete the task...
   vTaskDelete(NULL);
 }
@@ -182,6 +194,7 @@ void simulation::start(simulationConfig startConfig, long initialAltitude) {
   _airborne = false;
   _burnoutTime = _config.MotorFuelMass / _config.MotorFuelBurnRate; // s
   _elapsedTime = 0.0;
+  _finalCountdown = 0;
   _maxHeight = 0;
   _maxVelocity = 0;
   _motorThrust = _config.MotorExhaustVelocity * _config.MotorFuelBurnRate; // N
@@ -222,6 +235,7 @@ void simulation::stop() {
 double simulation::valueAltitude() {
   if (!_running)
     return 0;
+
   double altitude = _trace[0] - _startingAltitude;
   debug("simulation.altitude", altitude);
   return altitude;

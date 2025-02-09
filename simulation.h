@@ -12,7 +12,7 @@ struct simulationConfig {
   double MotorExhaustVelocity = 2485.796;   // m/s // from OR 3" rocket  
   double CrossSection = 4.56e-3;            // m^20.0762 // from OR 3" rocket
   double DragCoefficient = 0.87;            // from OR 3" rocket
-  int sampleRate = 50;
+  int sampleRate = 100;
 };
 
 // Very simple, and not very realistic, simulation only on the X and Y axis.
@@ -30,6 +30,7 @@ class simulation {
     double EarthMass = 5.97e24;       // kg
     double GravConstant = 6.67e-11;   // m^3/kg/s^2;
     double EarthRadius = 6.3e6;       // m
+    int finalCountdown = 100;
 
     bool _airborne = false;
     double _burnoutTime;  // s
@@ -39,6 +40,7 @@ class simulation {
     bool _running = false;
     double _startingAltitude;
     double _trace[2];  // _t
+    int _finalCountdown;
     
     double _maxHeight;
     double _maxVelocity;

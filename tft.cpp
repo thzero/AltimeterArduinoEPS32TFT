@@ -6,6 +6,7 @@
 #include "debug.h"
 #include "flightLogger.h"
 #include "tft.h"
+#include "simulation.h"
 #include "utilities.h"
 #include "wifi.h"
 #include "images/thzero_altimeters128x128.h"
@@ -21,51 +22,37 @@ TraceWidget _graphTraceAccelY = TraceWidget(&_graphWidget);
 TraceWidget _graphTraceAccelZ = TraceWidget(&_graphWidget);
 TraceWidget _graphTraceHumidity = TraceWidget(&_graphWidget);
 
-void drawTftFlight(unsigned long timestamp, unsigned long delta) {
-  if (_tft.getRotation() == 1) {
-    _tft.setRotation(0);
-    _tft.fillScreen(TFT_BLACK);
-  }
-
+void drawTftFlightAirborne(unsigned long timestamp, unsigned long delta) {
   _tft.setCursor(0, STATUS_HEIGHT_BAR);
-  _tft.println(F("                                     "));
-
-  char altitude[40];
-  sprintf(altitude, "Int. Alt. = %.2f m    ", _flightLogger.data.altitudeInitial);
-  _tft.println(altitude);
 
   if (_flightLogger.aborted) {
     _tft.println(F("ABORTED!!!"));
     return;
   }
 
-  sprintf(altitude, "Cur. Alt. = %.2f m    ", _flightLogger.data.altitudeCurrent);
+  _tft.println(F("Recording in progress ....."));
+  _tft.println(F(""));
+
+  char altitude[40];
+  _tft.println("Altitude");
+  sprintf(altitude, "Initial: %.2fm", _flightLogger.data.altitudeInitial);
+  _tft.println(altitude);
+
+  sprintf(altitude, "Current: %f.2m", _flightLogger.data.altitudeCurrent);
   _tft.println(altitude);
 
   drawTftSensorImu();
 }
 
-void drawTftFlightAirborne(unsigned long timestamp, unsigned long delta) {
-  if (_tft.getRotation() == 1) {
-    _tft.setRotation(0);
-    _tft.fillScreen(TFT_BLACK);
-  }
-
-  _tft.setCursor(0, STATUS_HEIGHT_BAR);
-  _tft.println(F("Recording in progress ....."));
-
-  char altitude[40];
-  sprintf(altitude, "Int. Alt. = %i m    ", _flightLogger.data.altitudeInitial);
-  _tft.println(altitude);
-
-  if (_flightLogger.aborted) {
-    _tft.println(F("ABORTED!!!"));
-    return;
-  }
-  sprintf(altitude, "Cur. Alt. = %i m    ", _flightLogger.data.altitudeCurrent);
-  _tft.println(altitude);
-
-  drawTftSensorImu();
+void drawTftFlightAirborneStart() {
+#ifdef DEV_SIM
+  _tft.fillScreen(TFT_RED);
+  _tft.setTextColor(TFT_WHITE, TFT_RED);
+#else
+  _tft.fillScreen(TFT_BLACK);
+  _tft.setTextColor(TFT_WHITE, TFT_BLACK);
+#endif
+  _tft.setRotation(1);
 }
 
 void drawTftGraphAxesXY(float minX, float maxX, float minY, float maxY, int flightNbr, char *curveName) {
@@ -312,17 +299,6 @@ void drawTftSplash() {
   }
 
   Serial.println(F("...display splash on tft successful."));
-}
-
-void drawTftSplashSim() {
-  _tft.fillScreen(TFT_RED);
-  _tft.setTextColor(TFT_WHITE, TFT_RED);
-  drawTftSplash();
-}
-
-void drawTftSplashSimStop() {
-  drawTftReset();
-  drawTftSplash();
 }
 
 void setupTft() {

@@ -34,7 +34,9 @@
 
 #define DEBUG
 #define DEBUG_INTERNAL
+#define DEBUG_ALTIMETER
 // #define DEBUG_SENSOR
+// #define DEBUG_SIM
 
 #define DEV
 #define DEV_SIM

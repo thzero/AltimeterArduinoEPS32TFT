@@ -5,9 +5,9 @@
 
 extern TFT_eSPI _tft;
 
-extern void drawTftFlight(unsigned long timestamp, unsigned long delta);
-
 extern void drawTftFlightAirborne(unsigned long timestamp, unsigned long delta);
+
+extern void drawTftFlightAirborneStart();
 
 extern void drawTftGraphAxesXY(float minX, float maxX, float minY, float maxY, int flightNbr, char *curveName);
 
