@@ -1,6 +1,6 @@
 #include "utilities.h"
 
-unsigned int msgChk( char * buffer, long length) {
+unsigned int msgChk(char * buffer, long length) {
   long index;
   unsigned int checksum;
 

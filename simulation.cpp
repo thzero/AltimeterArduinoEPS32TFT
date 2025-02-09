@@ -26,7 +26,7 @@ void simulation::evaluateTimestep(double K, double deltaT, double Mr, double Me,
   _trace[1] += deltaT * F / Mr;
 }
 
-void simulation::outputPrint(double delta, double thrust, double mass, double height) {
+void simulation::outputPrint(double delta, double thrust, double mass, double altitude) {
   Serial.print(F("sim -\t"));
   Serial.print(_elapsedTime);
   Serial.print(F("\t"));
@@ -42,13 +42,13 @@ void simulation::outputPrint(double delta, double thrust, double mass, double he
   Serial.print(F("\t\t"));
   Serial.print(_trace[0]);
   Serial.print(F("\t"));
-  Serial.print(height);
+  Serial.print(altitude);
   Serial.print(F("\t"));
   Serial.println(_airborne ? "true" : "false");
 }
 
 void simulation::outputPrintHeader() {
-  Serial.println(F("sim -\tTime\tDelta\tThrust\tMass\tVelocity\tStarting Altitude\tPosition\tHeight\tAirborne"));
+  Serial.println(F("sim -\tTime\tDelta\tThrust\tMass\tVelocity\tStarting Altitude\tPosition\tAltitude\tAirborne"));
 }
 
 void simulation::loopStep(double deltaT, bool output) {
@@ -131,7 +131,7 @@ void simulation::simulationTask() {
         continue;
       }
 
-      if (count % 100 == 0) {
+      if (count % 25 == 0) {
         count = 0;
         output = true;
         if (countHeader % 10 == 0) {
@@ -189,7 +189,7 @@ void simulation::start(simulationConfig startConfig, long initialAltitude) {
   _trace[0] = _startingAltitude; // Initial position
   _trace[1] = 0.0; // Initial velocity
 
-  // Serial.println(F("sim -\tTime\tDelta\tThrust\tMass\tVelocity\tStarting Altitude\tPosition\tHeight\tAirborne"));
+  // Serial.println(F("sim -\tTime\tDelta\tThrust\tMass\tVelocity\tStarting Altitude\tPosition\tAltitude\tAirborne"));
 
   _running = true;
   // Serial.println(F("Simulation\tCreating task..."));
@@ -220,9 +220,11 @@ void simulation::stop() {
 }
 
 double simulation::valueAltitude() {
-  if (_running)
+  if (!_running)
     return 0;
-  return _trace[0];
+  double altitude = _trace[0] - _startingAltitude;
+  debug("simulation.altitude", altitude);
+  return altitude;
 }
 
 simulation _simulation;

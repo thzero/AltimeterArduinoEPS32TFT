@@ -25,8 +25,8 @@
 float altitudeBarometer = 1650.3;  // meters ... map readings + barometer position
 byte altitudeOffsetLiftoff = 20;
 int altitudeOffsetGround = altitudeOffsetLiftoff / 2;
-int timeoutRecording = 300 * 1000;
-int timeOutTimeToApogee = 2000;
+int timeoutRecording = 300 * 10000;
+int timeOutTimeToApogee = 20000;
 
 //////////////////////////////////////////////////////////////////////
 // Global variables
@@ -79,6 +79,7 @@ float loopStateAIRBORNE(unsigned long currentTimestamp, long diffTime) {
   float altitudeDelta = altitude - _flightLogger.data.altitudeLast;
   debug("loopStateAIRBORNE...altitudeDelta", altitudeDelta);
   _flightLogger.data.altitudeCurrent = altitude;
+  debug("loopStateAIRBORNE...altitudeCurrent", _flightLogger.data.altitudeCurrent);
 
   // Log the flight altitude...
   _flightLogger.instance.setFlightTime(diffTime);
@@ -122,6 +123,47 @@ void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaElapse
 
   // atmosphereValues atmosphere = readSensorAtmosphere();
   // float altitude = readSensorAltitude(atmosphere);
+  // debug("loopStateAIRBORNE_ASCENT...altitude", altitude);
+  // float altitudeDelta = altitude - _flightLogger.data.altitudeLast;
+  // debug("loopStateAIRBORNE_ASCENT...altitudeDelta", altitudeDelta);
+  // _flightLogger.data.altitudeCurrent = altitude;
+
+  // long currentTimestamp = millis() - _flightLogger.data.timestampLaunch;
+
+  // // Determine different in time between the last step...
+  // long diffTime = currentTimestamp - _flightLogger.data.timestampPrevious;
+
+  // // Log the flight altitude...
+  // _flightLogger.instance.setFlightTime(diffTime);
+  // _flightLogger.instance.setFlightAltitude(_flightLogger.data.altitudeCurrent);
+
+  // // Log the flight temperature and pressure...
+  // double temperature, pressure;
+  // atmosphereValues val = readSensorAtmosphere();
+  // _flightLogger.instance.setFlightHumidity((long)val.temperature);
+  // _flightLogger.instance.setFlightTemperature((long)val.temperature);
+  // _flightLogger.instance.setFlightPressure((long)val.pressure);
+
+  // // Log the flight x, y, and z accelerations...
+  // // if (_qmi.instance.getDataReady()) {
+  // //   if (_qmi.instance.getAccelerometer(_qmi.acc.x, _qmi.acc.y, _qmi.acc.z)) {
+  // //     _flightLogger.instance.setFlightAccelX(_qmi.acc.x);
+  // //     _flightLogger.instance.setFlightAccelY(_qmi.acc.y);
+  // //     _flightLogger.instance.setFlightAccelZ(_qmi.acc.z);
+  // //   }
+  // // }
+
+  // // Add to the set data to the current flight.
+  // _flightLogger.instance.addToCurrentFlight();
+
+  // _flightLogger.data.timestampPrevious = currentTimestamp;
+  // _flightLogger.data.altitudeLast = altitude;
+
+  // sendTelemetry(timestamp - _flightLogger.data.timestampInitial , atmosphere, accelerometer, gryoscope, altitude, deltaElapsed);
+
+  // // Draw the output...
+  // drawTftFlightAireValues atmosphere = readSensorAtmosphere();
+  // float altitude = readSensorAltitude(atmosphere);
   // debug("loopStateAIRBORNE_DESCENT...altitude", altitude);
   // float altitudeDelta = altitude - _flightLogger.data.altitudeLast;
   // debug("loopStateAIRBORNE_DESCENT...altitudeDelta", altitudeDelta);
@@ -163,7 +205,9 @@ void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaElapse
   // // Draw the output...
   // drawTftFlightAirborne(timestamp, deltaElapsed);
 
-  long currentTimestamp = millis() - _flightLogger.data.timestampLaunch;
+  debug("loopStateAIRBORNE_ASCENT...timestamp", timestamp);
+  long currentTimestamp = timestamp - _flightLogger.data.timestampLaunch;
+  debug("loopStateAIRBORNE_ASCENT...currentTimestamp", currentTimestamp);
 
   // Determine different in time between the last step...
   long diffTime = currentTimestamp - _flightLogger.data.timestampPrevious;
@@ -172,15 +216,19 @@ void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaElapse
 
   // Detect apogee by taking X number of measures as long as the current is less
   // than the last recorded altitude.
-  if (_flightLogger.data.altitudeCurrent < _flightLogger.data.altitudeLast) {
+  debug("loopStateAIRBORNE_ASCENT...altitudeLast", _flightLogger.data.altitudeLast);
+  debug("loopStateAIRBORNE_ASCENT...measures", _flightLogger.data.measures);
+  bool descentCheck = _flightLogger.data.altitudeCurrent < _flightLogger.data.altitudeLast;
+  debug("loopStateAIRBORNE_ASCENT...descentCheck", descentCheck);
+  if (descentCheck) {
     _flightLogger.data.measures = _flightLogger.data.measures - 1;
     if (_flightLogger.data.measures == 0) {
       // Detected apogee.
       _flightLogger.data.altitudeApogee = _flightLogger.data.altitudeLast;
       _flightLogger.data.timestampApogee = currentTimestamp;
       // _loopState.current = AIRBORNE_DESCENT;
-      debug("DESCENT!!!!");
-      loopStateAIRBORNE_ASCENTToAIRBORNE_DESCENT();
+      debug("loopStateAIRBORNE_ASCENT...DESCENT!!!!");
+      // loopStateAIRBORNE_ASCENTToAIRBORNE_DESCENT();
       return;
     }
   } 
@@ -192,17 +240,21 @@ void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaElapse
   }
 
   // Check for timeouts...
-  bool timestampApogeeCheck = (millis() - _flightLogger.data.timestampApogee) > timeOutTimeToApogee;
+  debug("loopStateAIRBORNE_ASCENT...timeOutTimeToApogee", timeOutTimeToApogee);
+  debug("loopStateAIRBORNE_ASCENT...currentTimestamp", currentTimestamp);
+  bool timestampApogeeCheck = currentTimestamp > timeOutTimeToApogee;
   debug("loopStateAIRBORNE_ASCENT...timestampApogeeCheck", timestampApogeeCheck);
-  bool timeoutRecordingCheck = (millis() - _flightLogger.data.timestampLaunch) > timeoutRecording;
-  debug("loopStateAIRBORNE_ASCENT...timeoutRecordingCheck", timeoutRecordingCheck);
-
   if (timestampApogeeCheck) {
     // Something went wrong and apogee was never found, so abort!
     loopStateAIRBORNEToAbort("Time to apogee threshold exceeded!", "AIRBORNE_ASCENT aborted, returning to GROUND!!!!");
     return;
   }
 
+  debug("loopStateAIRBORNE_ASCENT...timestampLaunch", _flightLogger.data.timestampLaunch);
+  debug("loopStateAIRBORNE_ASCENT...timeoutRecording", timeoutRecording);
+  debug("loopStateAIRBORNE_ASCENT...currentTimestamp", currentTimestamp);
+  bool timeoutRecordingCheck = currentTimestamp > timeoutRecording;
+  debug("loopStateAIRBORNE_ASCENT...timeoutRecordingCheck", timeoutRecordingCheck);
   if (timeoutRecordingCheck) {
     // Something went wrong., so abort!
     loopStateAIRBORNEToAbort("Time to apogee threshold exceeded!", "AIRBORNE_ASCENT aborted, returning to GROUND!!!!");
@@ -307,48 +359,56 @@ void loopStateGROUND(unsigned long timestamp, unsigned long deltaElapsed) {
   // check wifi...
   _wifi.loop();
 
+  // battery
+  // voltage = analogReadMilliVolts(10)/500;
+  // memmove(&voltage[0], &voltage[1], (voltage_array_capacity - 1) * sizeof(voltage[0]));
+  // voltage[voltage_array_capacity - 1] = analogReadMilliVolts(10)/500;
+
   // Capture the command buffer.
   if (readSerial(timestamp, deltaElapsed))
     interpretCommandBuffer();  // TODO: It'd be nice to kick this to the other processor...
 
-  // // Determine the ground loop time delay based on sampling rate.
-  // int delta = _throttleGround.determine(deltaElapsed, (int)SAMPLE_RATE_GROUND);
-  // if (delta == 0)
-  //   return;
+  // Determine the ground loop time delay based on sampling rate.
+  int delta = _throttleGround.determine(deltaElapsed, (int)SAMPLE_RATE_GROUND);
+  if (delta == 0)
+    return;
 
-  // // Functionality that happen on the tick goes here:
+  // Functionality that happen on the tick goes here:
 
-  // // Get the current altitude and determine the delta from initial.
-  // float altitude = readSensorAltitude();
-  // float altitudeDelta = altitude - _flightLogger.data.altitudeInitial;
-  // _flightLogger.data.altitudeCurrent = altitude;
+  debug("stateGROUND...timestamp", timestamp);
 
-  // if (_throttleGround.signal()) {
-  //   debug("stateGROUND...processing, delta", delta);
-  //   debug("stateGROUND...altitude", altitude);
-  //   debug("stateGROUND...altitudeInitial", _flightLogger.data.altitudeInitial);
-  //   debug("stateGROUND...altitudeDelta", altitudeDelta);
-  //   debug("stateGROUND...altitudeCurrent", _flightLogger.data.altitudeCurrent);
-  // }
+  // Get the current altitude and determine the delta from initial.
+  float altitude = readSensorAltitude();
+  float altitudeDelta = altitude - _flightLogger.data.altitudeInitial;
+  _flightLogger.data.altitudeCurrent = altitude;
 
-  // // Check for whether we've left the ground
-  // // If the delta altitude is less than the specified liftoff altitude, then its on the ground.
-  // // Lift altitude is a measurement of the difference between the initial altitude and current altitude.
-  // debug("stateGROUND...altitudeOffsetLiftoff", altitudeOffsetLiftoff);
-  // if (altitudeDelta > altitudeOffsetLiftoff) {
-  //   // left the ground...
-  //   debug("AIRBORNE!!!!");
-  //   // Transition to the AIRBORNE_ASCENT ascent stage.
-  //   loopStateGROUNDToAIRBORNE_ASCENT(timestamp);
-  //   return;
-  // }
+  if (_throttleGround.signal()) {
+    // debug("stateGROUND...processing, delta", delta);
+    // debug("stateGROUND...processing, deltaElapsed", deltaElapsed);
+    debug("stateGROUND...altitude", altitude);
+    debug("stateGROUND...altitudeInitial", _flightLogger.data.altitudeInitial);
+    debug("stateGROUND...altitudeDelta", altitudeDelta);
+    debug("stateGROUND...altitudeCurrent", _flightLogger.data.altitudeCurrent);
+  }
+
+  // Check for whether we've left the ground
+  // If the delta altitude is less than the specified liftoff altitude, then its on the ground.
+  // Lift altitude is a measurement of the difference between the initial altitude and current altitude.
+  debug("stateGROUND...altitudeOffsetLiftoff", altitudeOffsetLiftoff);
+  if (altitudeDelta > altitudeOffsetLiftoff) {
+    // left the ground...
+    debug("stateGROUND...AIRBORNE!!!!");
+    // Transition to the AIRBORNE_ASCENT ascent stage.
+    loopStateGROUNDToAIRBORNE_ASCENT(timestamp);
+    return;
+  }
 }
 
 void loopStateGROUNDToAIRBORNE_ASCENT(unsigned long timestamp) {
-  // _loopState.current = AIRBORNE_ASCENT; // TODO!
-
   // Turn off wifi, we don't need it in the air...
   setupNetworkDisable();
+
+  _loopState.current = AIRBORNE_ASCENT; // TODO!
 
   // Re-initialize the flight...
   _flightLogger.initFlight(timestamp);
@@ -372,21 +432,21 @@ void loop() {
   // Serial.println(_loopState.current);
   // Ground state
   if (_loopState.current == GROUND) {
-    // Serial.println("state...GROUND");
+    // Serial.println(F("state...GROUND"));
     // Only blink while on the ground!
     _neoPixelBlinker.blink(current, 500);
     // Run the ground state algorithms
     loopStateGROUND(current, delta);
   }
   if (_loopState.current == AIRBORNE_ASCENT) {
-    // Serial.println("state...AIRBORNE_ASCENT");
+    // Serial.println(F("state...AIRBORNE_ASCENT"));
     // Only blink while on the ground!
     _neoPixelBlinker.off();
     // Run the airborne ascent state algorithms
     loopStateAIRBORNE_ASCENT(current, delta);
   }
   if (_loopState.current == AIRBORNE_DESCENT) {
-    // Serial.println("state...AIRBORNE_DESCENT");
+    // Serial.println(F("state...AIRBORNE_DESCENT"));
     // Only blink while on the ground!
     _neoPixelBlinker.off();
     // Run the airborne descent state algorithms
@@ -476,6 +536,15 @@ void setup() {
   setupNetworkDisable();
 
   turnOffLedBuiltin();
+
+  // battery
+  /*
+   .. Setup 1:1 ratio voltage divider from VBAT -> Pin 10 -> Pin 6
+    analogReadResolution(12);
+    pinMode(10,INPUT);   
+    pinMode(6, OUTPUT);
+    digitalWrite(6, LOW);
+  */
 
   drawTftSplash();
 

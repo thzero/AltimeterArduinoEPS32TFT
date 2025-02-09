@@ -81,14 +81,6 @@ atmosphereValues sensorBME::initializeSensors() {
 atmosphereValues sensorBME::readSensor() {
   atmosphereValues values;
 
-#ifdef DEV_SIM
-  if (_simulation.isRunning() && _initialized) { 
-    // values.altitude = simulationValueAltitude();
-    values.altitude = _simulation.valueAltitude();
-    return values;
-  }
-#endif
-
   float temperature(NAN), humidity(NAN), pressure(NAN);
 
   BME280::TempUnit temperatureUnit(BME280::TempUnit_Celsius);
@@ -158,6 +150,14 @@ float sensorBME::readSensorAltitude(atmosphereValues values) {
 //   Serial.print(F("altitude2="));
 //   Serial.println(altitude2);
 // #endif
+
+#ifdef DEV_SIM
+  if (_simulation.isRunning() && _initialized) { 
+    // values.altitude = simulationValueAltitude();
+    values.altitude = _simulation.valueAltitude();
+    debug("sim.altitude", values.altitude);
+  }
+#endif
 
 #if defined(KALMAN) && defined(KALMAN_ALTITUDE)
   float altitudeK = _kalmanAltitude.kalmanCalc(altitude);

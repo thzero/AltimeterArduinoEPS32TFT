@@ -20,8 +20,8 @@
 
 // Based on Eggtimer Quantum documentation
 // https://eggtimerrocketry.com/wp-content/uploads/2024/02/Eggtimer-Quantum-1_09G.pdf, page 25
-#define SAMPLE_RATE_GROUND 10
-#define SAMPLE_RATE_AIRBORNE_ASCENT 20
+#define SAMPLE_RATE_GROUND 2
+#define SAMPLE_RATE_AIRBORNE_ASCENT 2
 #define SAMPLE_RATE_AIRBORNE_DESCENT 2
 
 // #define KALMAN
@@ -29,6 +29,7 @@
 // #define KALMAN_PRESSURE
 
 #define DEBUG
+#define DEBUG_INTERNAL
 // #define DEBUG_SENSOR
 #define DEV
 #define DEV_SIM
