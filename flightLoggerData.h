@@ -4,6 +4,7 @@
 struct flightLoggerData {
   bool airborne;
   float altitudeApogee;
+  float altitudeApogeeFirstMeasure;
   float altitudeCurrent;
   float altitudeInitial;
   float altitudeLast;
@@ -15,8 +16,10 @@ struct flightLoggerData {
   float temperatureInitial;
   bool touchdown;
   unsigned long timestampLaunch = 0;
+  unsigned long timestampCurrent = 0;
   unsigned long timestampPrevious = 0;
   unsigned long timestampApogee = 0;
+  unsigned long timestampApogeeFirstMeasure = 0;
   unsigned long timestampTouchdown = 0;
 };
 

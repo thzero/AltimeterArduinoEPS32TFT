@@ -2,21 +2,11 @@
 #include <LittleFS.h>
 
 #include "flightLoggerLFS.h"
+#include "utilities.h"
 
 flightLoggerLFS::flightLoggerLFS() {
   _flightData = nullptr;
   _dataPos = 0;
-}
-
-bool flightLoggerLFS::addToCurrentFlight() {
-  flightDataStruct* newFlightData = (flightDataStruct*)realloc(_flightData, (_dataPos + 1) * sizeof(flightDataStruct));
-  if (!newFlightData)
-    return false;
-
-  _flightData = newFlightData;
-  _flightData[_dataPos] = _currentRecord;
-  _dataPos++;
-  return true;
 }
 
 bool flightLoggerLFS::clearFlightList() {
@@ -340,6 +330,17 @@ void flightLoggerLFS::setFlightAccelZ(float accelZ) {
 
 void flightLoggerLFS::setFlightAltitude(float altitude) {
   _currentRecord.altitude = altitude;
+}
+
+bool flightLoggerLFS::setFlightData() {
+  flightDataStruct* newFlightData = (flightDataStruct*)realloc(_flightData, (_dataPos + 1) * sizeof(flightDataStruct));
+  if (!newFlightData)
+    return false;
+
+  _flightData = newFlightData;
+  _flightData[_dataPos] = _currentRecord;
+  _dataPos++;
+  return true;
 }
 
 void flightLoggerLFS::setFlightHumidity(float humidity) {

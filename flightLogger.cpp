@@ -1,3 +1,4 @@
+#include "constants.h"
 #include "flightLoggerBase.h"
 #include "flightLogger.h"
 
@@ -12,13 +13,15 @@ void flightLogger::initFlight(unsigned long timestamp) {
 
   data.airborne = true;
   data.altitudeApogee = 0;
+  data.altitudeApogeeFirstMeasure = 0;
   data.altitudeCurrent = 0;
   data.altitudeLaunch = 0;
   data.altitudeLast = 0;
   data.altitudeTouchdown = 0;
-  data.measures = 0;
+  data.measures = SAMPLE_MEASURES_APOGEE;
   data.temperatureInitial = 0;
   data.timestampApogee = 0;
+  data.timestampApogeeFirstMeasure = 0;
   data.timestampLaunch = timestamp;
   data.timestampPrevious = 0;
   data.timestampTouchdown = 0;
@@ -38,7 +41,7 @@ void flightLogger::reset() {
   data.altitudeLaunch = 0;
   data.altitudeLast = 0;
   data.altitudeTouchdown = 0;
-  data.measures = 0;
+  data.measures = SAMPLE_MEASURES_APOGEE;
   data.temperatureInitial = 0;
   data.timestampApogee = 0;
   data.timestampLaunch = 0;

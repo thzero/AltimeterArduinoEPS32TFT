@@ -5,7 +5,6 @@
 
 class flightLoggerBase {
   public:
-    virtual bool addToCurrentFlight();
     virtual bool clearFlightList();
     virtual long getFlightDuration();
     virtual void determineFlightMinAndMax(int flightNbr);
@@ -36,8 +35,9 @@ class flightLoggerBase {
     virtual void setFlightAccelY(float accelY);
     virtual void setFlightAccelZ(float accelZ);
     virtual void setFlightAltitude(float altitude);
-    virtual void setFlightPressure(float pressure);
+    virtual bool setFlightData();
     virtual void setFlightHumidity(float humidity);
+    virtual void setFlightPressure(float pressure);
     virtual void setFlightTemperature(float temperature);
     virtual void setFlightVelocity(float velocity);
     virtual void setFlightTime(long diffTime);
@@ -49,7 +49,6 @@ class flightLoggerBase {
     int _dataPos;
     flightDataStruct* _flightData;
     flightMinAndMaxStruct _flightMinAndMax;
-    unsigned int msgChk(char * buffer, long length);
 };
 
 #endif

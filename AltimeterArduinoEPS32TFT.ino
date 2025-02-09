@@ -104,6 +104,7 @@ float loopStateAIRBORNE(unsigned long currentTimestamp, long diffTime) {
   debug("loopStateAIRBORNE...altitudeDelta", altitudeDelta);
   _flightLogger.data.altitudeCurrent = altitude;
   debug("loopStateAIRBORNE...altitudeCurrent", _flightLogger.data.altitudeCurrent);
+  _flightLogger.data.timestampCurrent = currentTimestamp;
 
   // Log the flight altitude...
   _flightLogger.instance.setFlightTime(diffTime);
@@ -124,8 +125,8 @@ float loopStateAIRBORNE(unsigned long currentTimestamp, long diffTime) {
   //   }
   // }
 
-  // Add to the set data to the current flight.
-  _flightLogger.instance.addToCurrentFlight();
+  // Add to the set data to the flight.
+  _flightLogger.instance.setFlightData();
 
   _flightLogger.data.timestampPrevious = currentTimestamp;
   _flightLogger.data.altitudeLast = altitude;
@@ -134,7 +135,7 @@ float loopStateAIRBORNE(unsigned long currentTimestamp, long diffTime) {
 
   drawTftFlightAirborne(currentTimestamp, diffTime);
 
-  return altitude;
+  return altitudeDelta;
 }
 
 loopThrottle _throttleAirborneAscent;
@@ -236,31 +237,39 @@ void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaElapse
   // Determine different in time between the last step...
   long diffTime = currentTimestamp - _flightLogger.data.timestampPrevious;
 
-  float altitude = loopStateAIRBORNE(currentTimestamp, diffTime);
+  float altitudeDelta = loopStateAIRBORNE(currentTimestamp, diffTime);
 
   // Detect apogee by taking X number of measures as long as the current is less
   // than the last recorded altitude.
   debug("loopStateAIRBORNE_ASCENT...altitudeLast", _flightLogger.data.altitudeLast);
-  debug("loopStateAIRBORNE_ASCENT...measures", _flightLogger.data.measures);
-  bool descentCheck = _flightLogger.data.altitudeCurrent < _flightLogger.data.altitudeLast;
-  debug("loopStateAIRBORNE_ASCENT...descentCheck", descentCheck);
-  if (descentCheck) {
+  debug("loopStateAIRBORNE_ASCENT...altitudeDelta", altitudeDelta);
+  if (altitudeDelta < 0) {
+    if (_flightLogger.data.measures == SAMPLE_MEASURES_APOGEE) {
+      // Detected apogee.
+      _flightLogger.data.altitudeApogeeFirstMeasure = _flightLogger.data.altitudeLast;
+      _flightLogger.data.timestampApogeeFirstMeasure = currentTimestamp;
+    }
     _flightLogger.data.measures = _flightLogger.data.measures - 1;
+    debug("loopStateAIRBORNE_ASCENT...measures", _flightLogger.data.measures);
     if (_flightLogger.data.measures == 0) {
       // Detected apogee.
-      _flightLogger.data.altitudeApogee = _flightLogger.data.altitudeLast;
-      _flightLogger.data.timestampApogee = currentTimestamp;
-      // _loopState.current = AIRBORNE_DESCENT;
+      _flightLogger.data.altitudeApogee = _flightLogger.data.altitudeApogeeFirstMeasure;
+      _flightLogger.data.timestampApogee = _flightLogger.data.timestampApogeeFirstMeasure;
       debug("loopStateAIRBORNE_ASCENT...DESCENT!!!!");
-      // loopStateAIRBORNE_ASCENTToAIRBORNE_DESCENT();
+      loopStateAIRBORNE_ASCENTToAIRBORNE_DESCENT();
       return;
     }
   } 
   else {
-    // If the curent is greater than the last, then reset as it was potentially
-    // a false positive.
-    _flightLogger.data.altitudeLast = _flightLogger.data.altitudeCurrent;
-    _flightLogger.data.measures = 5;
+    if (_flightLogger.data.measures < SAMPLE_MEASURES_APOGEE) {
+      debug("loopStateAIRBORNE_ASCENT...measures", "reset");
+      // If the curent is greater than the last, then reset as it was potentially
+      // a false positive.
+      _flightLogger.data.altitudeApogeeFirstMeasure = 0;
+      _flightLogger.data.timestampApogeeFirstMeasure = 0;
+      _flightLogger.data.altitudeLast = _flightLogger.data.altitudeCurrent;
+      _flightLogger.data.measures = SAMPLE_MEASURES_APOGEE;
+    }
   }
 
   // Check for timeouts...
@@ -352,7 +361,7 @@ void loopStateAIRBORNE_DESCENT(unsigned long timestamp, unsigned long deltaElaps
   // Determine different in time between the last step...
   long diffTime = currentTimestamp - _flightLogger.data.timestampPrevious;
 
-  float altitude = loopStateAIRBORNE(currentTimestamp, diffTime);
+  float altitudeDelta = loopStateAIRBORNE(currentTimestamp, diffTime);
 
   debug("loopStateAIRBORNE_DESCENT...altitudeOffsetGround", altitudeOffsetGround);
   bool altitudeCheck = _flightLogger.data.altitudeCurrent < altitudeOffsetGround;
@@ -438,7 +447,7 @@ void loopStateGROUNDToAIRBORNE_ASCENT(unsigned long timestamp) {
   _flightLogger.initFlight(timestamp);
   // _flightLogger.aborted = false;
   // _flightLogger.data.altitudeLast = 0;
-  // _flightLogger.data.measures = 0;
+  // _flightLogger.data.measures = SAMPLE_MEASURES_APOGEE;
   // _flightLogger.instance.initFlight();
 
   drawTftReset();

@@ -9,7 +9,6 @@
 class flightLoggerLFS : public flightLoggerBase {
   public:
     flightLoggerLFS();
-    bool addToCurrentFlight();
     bool clearFlightList();
     long getFlightDuration();
     void determineFlightMinAndMax(int flightNbr);
@@ -40,8 +39,9 @@ class flightLoggerLFS : public flightLoggerBase {
     void setFlightAccelY(float accelY);
     void setFlightAccelZ(float accelZ);
     void setFlightAltitude(float altitude);
-    void setFlightPressure(float pressure);
+    bool setFlightData();
     void setFlightHumidity(float humidity);
+    void setFlightPressure(float pressure);
     void setFlightTemperature(float temperature);
     void setFlightVelocity(float velocity);
     void setFlightTime(long diffTime);

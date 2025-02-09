@@ -43,7 +43,7 @@ void simulation::outputPrint(double delta, double thrust, double mass, double al
   Serial.print(_trace[0]);
   Serial.print(F("\t"));
   Serial.print(altitude);
-  Serial.print(F("\t"));
+  Serial.print(F("\t\t"));
   Serial.println(_airborne ? "true" : "false");
 }
 

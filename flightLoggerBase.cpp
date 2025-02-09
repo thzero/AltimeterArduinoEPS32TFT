@@ -1,10 +1,5 @@
 #include "flightLoggerBase.h"
 
-
-bool flightLoggerBase::addToCurrentFlight() {
-  return false;
-}
-
 bool flightLoggerBase::clearFlightList() {
   return false;
 }
@@ -119,6 +114,10 @@ void flightLoggerBase::setFlightAccelZ(float accelZ) {
 void flightLoggerBase::setFlightAltitude(float altitude) {
 }
 
+bool flightLoggerBase::setFlightData() {
+  return false;
+}
+
 void flightLoggerBase::setFlightHumidity(float humidity) {
 }
 
@@ -140,12 +139,4 @@ bool flightLoggerBase::readFlight(int flightNbr) {
 
 bool flightLoggerBase::writeFlight(int flightNbr) {
   return false;
-}
-
-unsigned int flightLoggerBase::msgChk( char * buffer, long length) {
-  long index;
-  unsigned int checksum;
-
-  for ( index = 0L, checksum = 0; index < length; checksum += (unsigned int) buffer[index++]);
-  return (unsigned int) (checksum % 256);
 }
