@@ -495,6 +495,7 @@ void setupNetworkDisable() {
 void setup() {
   // put your setup code here, to run once:
   Serial.println(F("Setup..."));
+  Serial.println("");
 
   setupLedBuiltin();
 
@@ -546,7 +547,21 @@ void setup() {
 #if defined(DEV) || defined(DEV_SIM)
   Serial.println(F(" (DEV)"));
 #endif
+  Serial.println("");
 
+  Serial.println(F("Memory Available"));
+  Serial.print(F("\tFree Heap"));
+  Serial.print(F("\tFree Internal Heap"));
+  Serial.println(F("\tFree Minimum Heap"));
+  Serial.print(F("\t"));
+  Serial.print(esp_get_free_heap_size() / 1000);
+  Serial.print(F("kb\t\t"));
+  Serial.print(esp_get_free_internal_heap_size() / 1000);
+  Serial.print(F("kb\t\t\t"));
+  Serial.print(esp_get_minimum_free_heap_size() / 1000);
+  Serial.println(F("kb"));
+
+  Serial.println("");
   Serial.println(F("...finished."));
   Serial.println(F(""));
 }
