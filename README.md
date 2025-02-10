@@ -43,7 +43,7 @@ In ArduinoIDE, under Tools->Manage Libraries, add the following libraries
 
 * Adafruit NeoPixel
 * ArduinoJson
-* BME280
+* BMP280 (dvarrel ver 1.0.3)
 * Button2
 * LittleFS_esp2
 * SensorLib (used for the QMI8658 sensor)
