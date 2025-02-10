@@ -1,5 +1,3 @@
-#include <EnvironmentCalculations.h>
-
 #include "debug.h"
 #include "constants.h"
 #include "sensor.h"
@@ -106,12 +104,12 @@ float sensorBMP::readSensorAltitude(atmosphereValues values) {
 
   // float altitude = _sensor.calAltitude(pressure, pressureReference);
   float altitude = 44330 * (1.0 - pow(pressure / 100.0 / pressureReference, 0.1903));
-// #if defined(DEBUG_SENSOR)
+#if defined(DEBUG_SENSOR)
   Serial.print(F("\tpressure="));
   Serial.println(values.pressure);
   Serial.print(F("\taltitude="));
   Serial.println(altitude);
-// #endif
+#endif
   values.altitude = altitude;
 
 //   // alternate to compare...
