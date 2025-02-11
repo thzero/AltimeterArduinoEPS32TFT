@@ -96,17 +96,17 @@ void loopStateAIRBORNE_ASCENTToAIRBORNE_DESCENT() {
   _flightLogger.data.altitudeApogee = _flightLogger.data.altitudeApogeeFirstMeasure;
   _flightLogger.data.timestampApogee = _flightLogger.data.timestampApogeeFirstMeasure;
 
-  debug("");
-  debug("");
-  debug("");
-  debug("");
-  debug("...DESCENT!!!!");
-  debug("...DESCENT!!!!");
-  debug("...DESCENT!!!!");
-  debug("");
-  debug("");
-  debug("");
-  debug("");
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F("...DESCENT!!!!"));
+  debug(F("...DESCENT!!!!"));
+  debug(F("...DESCENT!!!!"));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
 
   _loopState.current = AIRBORNE_DESCENT;  // TODO!
 }
@@ -117,9 +117,9 @@ float loopStateAIRBORNE(unsigned long currentTimestamp, long diffTime) {
   float altitudeDelta = altitude - _flightLogger.data.altitudeLast;
   _flightLogger.data.altitudeCurrent = altitude;
 #ifdef DEBUG_ALTIMETER
-  debug("loopStateAIRBORNE...altitude", altitude);
-  debug("loopStateAIRBORNE...altitudeDelta", altitudeDelta);
-  debug("loopStateAIRBORNE...altitudeCurrent", _flightLogger.data.altitudeCurrent);
+  debug(F("loopStateAIRBORNE...altitude"), altitude);
+  debug(F("loopStateAIRBORNE...altitudeDelta"), altitudeDelta);
+  debug(F("loopStateAIRBORNE...altitudeCurrent"), _flightLogger.data.altitudeCurrent);
 #endif
   _flightLogger.data.timestampCurrent = currentTimestamp;
 
@@ -163,8 +163,8 @@ void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaElapse
 
   long currentTimestamp = timestamp - _flightLogger.data.timestampLaunch;
 #ifdef DEBUG_ALTIMETER
-  debug("loopStateAIRBORNE_ASCENT...timestamp", timestamp);
-  debug("loopStateAIRBORNE_ASCENT...currentTimestamp", currentTimestamp);
+  debug(F("loopStateAIRBORNE_ASCENT...timestamp"), timestamp);
+  debug(F("loopStateAIRBORNE_ASCENT...currentTimestamp"), currentTimestamp);
 #endif
 
   // Determine different in time between the last step...
@@ -175,8 +175,8 @@ void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaElapse
   // Detect apogee by taking X number of measures as long as the current is less
   // than the last recorded altitude.
 #ifdef DEBUG_ALTIMETER
-  debug("loopStateAIRBORNE_ASCENT...altitudeLast", _flightLogger.data.altitudeLast);
-  debug("loopStateAIRBORNE_ASCENT...altitudeDelta", altitudeDelta);
+  debug(F("loopStateAIRBORNE_ASCENT...altitudeLast"), _flightLogger.data.altitudeLast);
+  debug(F("loopStateAIRBORNE_ASCENT...altitudeDelta"), altitudeDelta);
 #endif
   if (altitudeDelta < 0) {
     if (_flightLogger.data.measures == SAMPLE_MEASURES_APOGEE) {
@@ -186,7 +186,7 @@ void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaElapse
     }
     _flightLogger.data.measures = _flightLogger.data.measures - 1;
 #ifdef DEBUG_ALTIMETER
-    debug("loopStateAIRBORNE_ASCENT...measures", _flightLogger.data.measures);
+    debug(F("loopStateAIRBORNE_ASCENT...measures"), _flightLogger.data.measures);
 #endif
     if (_flightLogger.data.measures == 0) {
       // Detected apogee.
@@ -197,7 +197,7 @@ void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaElapse
   else {
     if (_flightLogger.data.measures < SAMPLE_MEASURES_APOGEE) {
 #ifdef DEBUG_ALTIMETER
-      debug("loopStateAIRBORNE_ASCENT...measures", "reset");
+      debug(F("loopStateAIRBORNE_ASCENT...measures"), F("reset"));
 #endif
       // If the curent is greater than the last, then reset as it was potentially
       // a false positive.
@@ -211,9 +211,9 @@ void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaElapse
   // Check for timeouts...
   bool timestampApogeeCheck = currentTimestamp > timeOutTimeToApogee;
 #ifdef DEBUG_ALTIMETER
-  debug("loopStateAIRBORNE_ASCENT...timeOutTimeToApogee", timeOutTimeToApogee);
-  debug("loopStateAIRBORNE_ASCENT...currentTimestamp", currentTimestamp);
-  debug("loopStateAIRBORNE_ASCENT...timestampApogeeCheck", timestampApogeeCheck);
+  debug(F("loopStateAIRBORNE_ASCENT...timeOutTimeToApogee"), timeOutTimeToApogee);
+  debug(F("loopStateAIRBORNE_ASCENT...currentTimestamp"), currentTimestamp);
+  debug(F("loopStateAIRBORNE_ASCENT...timestampApogeeCheck"), timestampApogeeCheck);
 #endif
   if (timestampApogeeCheck) {
     // Something went wrong and apogee was never found, so abort!
@@ -223,10 +223,10 @@ void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaElapse
 
   bool timeoutRecordingCheck = currentTimestamp > timeoutRecording;
 #ifdef DEBUG_ALTIMETER
-  debug("loopStateAIRBORNE_ASCENT...timestampLaunch", _flightLogger.data.timestampLaunch);
-  debug("loopStateAIRBORNE_ASCENT...timeoutRecording", timeoutRecording);
-  debug("loopStateAIRBORNE_ASCENT...currentTimestamp", currentTimestamp);
-  debug("loopStateAIRBORNE_ASCENT...timeoutRecordingCheck", timeoutRecordingCheck);
+  debug(F("loopStateAIRBORNE_ASCENT...timestampLaunch"), _flightLogger.data.timestampLaunch);
+  debug(F("loopStateAIRBORNE_ASCENT...timeoutRecording"), timeoutRecording);
+  debug(F("loopStateAIRBORNE_ASCENT...currentTimestamp"), currentTimestamp);
+  debug(F("loopStateAIRBORNE_ASCENT...timeoutRecordingCheck"), timeoutRecordingCheck);
 #endif
   if (timeoutRecordingCheck) {
     // Something went wrong., so abort!
@@ -244,19 +244,19 @@ void loopStateAIRBORNEToAbort(char message1[], char message2[]) {
   _flightLogger.recording = false;
   _flightLogger.data.touchdown = true;
 
-  debug("");
-  debug("");
-  debug("");
-  debug("");
-  debug("...ABORTED!!!!");
-  debug("...ABORTED!!!!");
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F("...ABORTED!!!!"));
+  debug(F("...ABORTED!!!!"));
   Serial.println(message1);
   Serial.println(message2);
-  debug("...ABORTED!!!!");
-  debug("");
-  debug("");
-  debug("");
-  debug("");
+  debug(F("...ABORTED!!!!"));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
 
   // To avoid battery drain, etc. user should choose to turn on networking...
   // setupNetwork();
@@ -267,7 +267,7 @@ void loopStateAIRBORNEToAbort(char message1[], char message2[]) {
 
 void loopStateAIRBORNEToGROUND() {
   // Complete the flight
-  Serial.println("Flight has ended!!!");
+  Serial.println(F("Flight has ended!!!"));
 
   _loopState.current = GROUND; // TODO
   _flightLogger.data.airborne = false;
@@ -276,17 +276,17 @@ void loopStateAIRBORNEToGROUND() {
   // To avoid battery drain, etc. user should choose to turn on networking...
   // setupNetwork();
 
-  debug("");
-  debug("");
-  debug("");
-  debug("");
-  debug("...LANDED!!!!");
-  debug("...LANDED!!!!");
-  debug("...LANDED!!!!");
-  debug("");
-  debug("");
-  debug("");
-  debug("");
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F("...LANDED!!!!"));
+  debug(F("...LANDED!!!!"));
+  debug(F("...LANDED!!!!"));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
 
   drawTftReset();
   drawTftSplash();
@@ -310,9 +310,9 @@ void loopStateAIRBORNE_DESCENT(unsigned long timestamp, unsigned long deltaElaps
   bool altitudeCheck = _flightLogger.data.altitudeCurrent < altitudeOffsetGround;
   bool timeoutRecordingCheck = ((timestamp - _flightLogger.data.timestampLaunch) > timeoutRecording);
 #ifdef DEBUG_ALTIMETER
-  debug("loopStateAIRBORNE_DESCENT...altitudeOffsetGround", altitudeOffsetGround);
-  debug("loopStateAIRBORNE_DESCENT...altitudeCheck", altitudeCheck);
-  debug("loopStateAIRBORNE_DESCENT...timeoutRecordingCheck", timeoutRecordingCheck);
+  debug(F("loopStateAIRBORNE_DESCENT...altitudeOffsetGround"), altitudeOffsetGround);
+  debug(F("loopStateAIRBORNE_DESCENT...altitudeCheck"), altitudeCheck);
+  debug(F("loopStateAIRBORNE_DESCENT...timeoutRecordingCheck"), timeoutRecordingCheck);
 #endif
 
   if (timeoutRecordingCheck) {
@@ -354,7 +354,7 @@ void loopStateGROUND(unsigned long timestamp, unsigned long deltaElapsed) {
 
   // Functionality that happen on the tick goes here:
 
-  debug("stateGROUND...timestamp", timestamp);
+  debug(F("stateGROUND...timestamp"), timestamp);
 
   // Get the current altitude and determine the delta from initial.
   float altitude = readSensorAltitude();
@@ -362,19 +362,19 @@ void loopStateGROUND(unsigned long timestamp, unsigned long deltaElapsed) {
   _flightLogger.data.altitudeCurrent = altitude;
 
 #ifdef DEBUG_ALTIMETER
-  // debug("stateGROUND...processing, delta", delta);
-  // debug("stateGROUND...processing, deltaElapsed", deltaElapsed);
-  debug("stateGROUND...altitude", altitude);
-  debug("stateGROUND...altitudeInitial", _flightLogger.data.altitudeInitial);
-  debug("stateGROUND...altitudeDelta", altitudeDelta);
-  debug("stateGROUND...altitudeCurrent", _flightLogger.data.altitudeCurrent);
+  // debug(F("stateGROUND...processing, delta"), delta);
+  // debug(F("stateGROUND...processing, deltaElapsed"), deltaElapsed);
+  debug(F("stateGROUND...altitude"), altitude);
+  debug(F("stateGROUND...altitudeInitial"), _flightLogger.data.altitudeInitial);
+  debug(F("stateGROUND...altitudeDelta"), altitudeDelta);
+  debug(F("stateGROUND...altitudeCurrent"), _flightLogger.data.altitudeCurrent);
 #endif
 
   // Check for whether we've left the ground
   // If the delta altitude is less than the specified liftoff altitude, then its on the ground.
   // Lift altitude is a measurement of the difference between the initial altitude and current altitude.
 #ifdef DEBUG_ALTIMETER
-  debug("stateGROUND...altitudeOffsetLiftoff", altitudeOffsetLiftoff);
+  debug(F("stateGROUND...altitudeOffsetLiftoff"), altitudeOffsetLiftoff);
 #endif
   if (altitudeDelta > altitudeOffsetLiftoff) {
     // Transition to the AIRBORNE_ASCENT ascent stage.
@@ -387,17 +387,17 @@ void loopStateGROUNDToAIRBORNE_ASCENT(unsigned long timestamp) {
   // Turn off wifi, we don't need it in the air...
   setupNetworkDisable();
   
-  debug("");
-  debug("");
-  debug("");
-  debug("");
-  debug("...AIRBORNE!!!!");
-  debug("...AIRBORNE!!!!");
-  debug("...AIRBORNE!!!!");
-  debug("");
-  debug("");
-  debug("");
-  debug("");
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F("...AIRBORNE!!!!"));
+  debug(F("...AIRBORNE!!!!"));
+  debug(F("...AIRBORNE!!!!"));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
 
   // Re-initialize the flight...
   _flightLogger.initFlight(timestamp);
@@ -445,41 +445,41 @@ void loop() {
 }
 
 void setupFlightLogger() {
-  Serial.println("Setup flight logger...");
+  Serial.println(F("Setup flight logger..."));
 
-  Serial.println("Setup file system...");
+  Serial.println(F("Setup file system..."));
 
   if (!_flightLogger.instance.initFileSystem()) {
-    Serial.println("Failed to initialize file system");
+    Serial.println(F("Failed to initialize file system"));
     return;
   }
 
-  Serial.println("...file system successful.");
+  Serial.println(F("...file system successful."));
 
-  Serial.println("Initialize flight logger...");
+  Serial.println(F("Initialize flight logger..."));
 
   _flightLogger.instance.initFlight();
 
-  Serial.println("...flight logger successful.");
+  Serial.println(F("...flight logger successful."));
 }
 
 void setupFlightLoggerInitialAtmosphere() {
-  Serial.println("Setup initial atmosphere...");
+  Serial.println(F("Setup initial atmosphere..."));
   
   atmosphereValues values = initializeSensorsAtmosphere();
   _flightLogger.data.altitudeInitial = values.altitude;
-  Serial.print("initial altitude: ");
+  Serial.print(F("initial altitude: "));
   Serial.println(_flightLogger.data.altitudeInitial);
 
   _flightLogger.data.pressureInitial = values.pressure;
-  Serial.print("initial pressure: ");
+  Serial.print(F("initial pressure: "));
   Serial.println(_flightLogger.data.pressureInitial);
 
   _flightLogger.data.temperatureInitial = values.temperature;
-  Serial.print("initial temperature: ");
+  Serial.print(F("initial temperature: "));
   Serial.println(_flightLogger.data.temperatureInitial);
 
-  Serial.println("...initial atmosphere initialized.");
+  Serial.println(F("...initial atmosphere initialized."));
 }
 
 // void setupNetwork() {
@@ -495,7 +495,7 @@ void setupNetworkDisable() {
 void setup() {
   // put your setup code here, to run once:
   Serial.println(F("Setup..."));
-  Serial.println("");
+  Serial.println(F(""));
 
   setupLedBuiltin();
 
@@ -547,21 +547,21 @@ void setup() {
 #if defined(DEV) || defined(DEV_SIM)
   Serial.println(F(" (DEV)"));
 #endif
-  Serial.println("");
+  Serial.println(F(""));
 
   Serial.println(F("Memory Available"));
   Serial.print(F("\tFree Heap"));
   Serial.print(F("\tFree Internal Heap"));
   Serial.println(F("\tFree Minimum Heap"));
   Serial.print(F("\t"));
-  Serial.print(esp_get_free_heap_size() / 1000);
+  Serial.print(_memory.heap());
   Serial.print(F("kb\t\t"));
-  Serial.print(esp_get_free_internal_heap_size() / 1000);
+  Serial.print(_memory.heapInternal());
   Serial.print(F("kb\t\t\t"));
-  Serial.print(esp_get_minimum_free_heap_size() / 1000);
+  Serial.print(_memory.heapMinimum());
   Serial.println(F("kb"));
 
-  Serial.println("");
+  Serial.println(F(""));
   Serial.println(F("...finished."));
   Serial.println(F(""));
 }
