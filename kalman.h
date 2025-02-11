@@ -2,7 +2,7 @@
 #define _KALMAN_H
 
 extern void KalmanInit();
-extern float kalmanCalc (float altitude);
+extern float kalmanCalc(float altitude);
 
 class kalman {
   public:
