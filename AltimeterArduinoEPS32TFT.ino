@@ -15,6 +15,7 @@
 #include "kalman.h"
 #include "leds.h"
 #include "loopThrottle.h"
+#include "memory.h"
 #include "neoPixel.h"
 #include "sensor.h"
 #include "tft.h"
@@ -408,11 +409,20 @@ void loopStateGROUNDToAIRBORNE_ASCENT(unsigned long timestamp) {
   _loopState.current = AIRBORNE_ASCENT; // TODO!
 }
 
+loopThrottle _throttleMemory;
 void loop() {
   // put your main code here, to run repeatedly
 
   unsigned long current = millis();
   unsigned long delta = current - _timestamp;
+
+  // Determine the memory loop time delay based on sampling rate.
+  int deltaMemory = _throttleMemory.determine(delta, (int)SAMPLE_RATE_MEMORY);
+  if (deltaMemory > 0) {
+    _memory.loop();
+    // Serial.print(F("_throttleMemory..."));
+    // Serial.println(deltaMemory);
+  }
 
   // Simple state machine for the flight...
 
@@ -548,6 +558,8 @@ void setup() {
   Serial.println(F(" (DEV)"));
 #endif
   Serial.println(F(""));
+
+  _memory.setup();
 
   Serial.println(F("Memory Available"));
   Serial.print(F("\tFree Heap"));
