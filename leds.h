@@ -1,14 +1,14 @@
 #ifndef _LEDS_H
 #define _LEDS_H
 
-class leds {
+class ledsBuiltin {
   public:
-    leds();
-    void setupBuiltin();
-    void turnOffBuiltin();
-    void turnOnBuiltin();
+    ledsBuiltin();
+    void setup();
+    void turnOff();
+    void turnOn();
 };
 
-extern leds _leds;
+extern ledsBuiltin _ledsBuiltin;
 
 #endif

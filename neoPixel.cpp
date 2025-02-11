@@ -74,18 +74,18 @@ int neoPixelBlinker::cycle(int hexIn) {
   return hex;
 };
 
-void neoPixelBlinker::setupl() {
+void neoPixelBlinker::setup() {
   _neoPixelBlinker.init(pixels);
 }
 
-void neoPixelBlinker::setupDeninit() {
+void neoPixelBlinker::setupDeinit() {
   _neoPixelBlinker.off();
 }
 
 neoPixel::neoPixel() {
 }
 
-int neoPixel::cycleNeoPixel(Adafruit_NeoPixel pixels, int hexIn) {
+int neoPixel::cycle(Adafruit_NeoPixel pixels, int hexIn) {
 #ifdef DEBUG
   Serial.println(hexIn);
 #endif
@@ -136,7 +136,7 @@ void neoPixel::turnOff(Adafruit_NeoPixel pixels) {
   pixels.show();
 }
 
-void neoPixel::turnOnl(Adafruit_NeoPixel pixels, int hex) {
+void neoPixel::turnOn(Adafruit_NeoPixel pixels, int hex) {
   pixels.fill(hex);
   pixels.show();
 }

@@ -49,7 +49,10 @@ unsigned long _timestamp;
 */
 void sleepDevice() {
   setupButtonDeninit();
-  setupNeoPixelBlinkerDeninit();
+  
+  _ledsBuiltin.turnOff();
+
+  _neoPixelBlinker.setupDeinit();
 
   drawTftReset();
   drawTftSleep();
@@ -58,7 +61,7 @@ void sleepDevice() {
 
   sleepTft();
 
-  sleepNeoPixel();
+  _neoPixel.sleep();
 
   pinMode(41, OUTPUT);
   pinMode(42, OUTPUT);
@@ -82,7 +85,7 @@ void sleepDevice() {
 
   sleepTftHold();
   
-  sleepNeoPixelHold();
+  _neoPixel.sleepHold();
   
   gpio_hold_en((gpio_num_t)41);
   gpio_hold_en((gpio_num_t)42);
@@ -507,10 +510,10 @@ void setup() {
   Serial.println(F("Setup..."));
   Serial.println(F(""));
 
-  _leds.setupBuiltin();
-  setupNeoPixelBlinker();
+  _ledsBuiltin.setup();
+  _neoPixelBlinker.setup();
 
-  _leds.turnOnBuiltin();
+  _ledsBuiltin.turnOn();
 
   Wire.begin();
   Serial.begin(SERIAL_BAUD);
@@ -570,7 +573,7 @@ void setup() {
   Serial.print(_memory.heapMinimum());
   Serial.println(F("kb"));
 
-  _leds.turnOffBuiltin();
+  _ledsBuiltin.turnOff();
 
   Serial.println(F(""));
   Serial.println(F("...finished."));

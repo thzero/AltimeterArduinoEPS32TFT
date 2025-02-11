@@ -2,21 +2,21 @@
 
 #include "leds.h"
 
-leds::leds() {
+ledsBuiltin::ledsBuiltin() {
 }
 
-void leds::setupBuiltin() {
+void ledsBuiltin::setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 }
 
-void leds::turnOffBuiltin() {
+void ledsBuiltin::turnOff() {
   digitalWrite(LED_BUILTIN, LOW);
   Serial.println(F("LED is off"));
 }
 
-void leds::turnOnBuiltin() {
+void ledsBuiltin::turnOn() {
   digitalWrite(LED_BUILTIN, HIGH);
   Serial.println(F("LED is on"));
 }
 
-leds _leds;
+ledsBuiltin _ledsBuiltin;
