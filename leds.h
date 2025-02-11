@@ -1,12 +1,14 @@
 #ifndef _LEDS_H
 #define _LEDS_H
 
-#include <Adafruit_NeoPixel.h>
+class leds {
+  public:
+    leds();
+    void setupBuiltin();
+    void turnOffBuiltin();
+    void turnOnBuiltin();
+};
 
-extern void setupLedBuiltin();
-
-extern void turnOffLedBuiltin();
-
-extern void turnOnLedBuiltin();
+extern leds _leds;
 
 #endif

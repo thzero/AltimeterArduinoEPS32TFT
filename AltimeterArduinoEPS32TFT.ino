@@ -507,11 +507,10 @@ void setup() {
   Serial.println(F("Setup..."));
   Serial.println(F(""));
 
-  setupLedBuiltin();
-
+  _leds.setupBuiltin();
   setupNeoPixelBlinker();
 
-  turnOnLedBuiltin();
+  _leds.turnOnBuiltin();
 
   Wire.begin();
   Serial.begin(SERIAL_BAUD);
@@ -533,8 +532,6 @@ void setup() {
 
   // Disable Network
   setupNetworkDisable();
-
-  turnOffLedBuiltin();
 
   // battery
   /*
@@ -572,6 +569,8 @@ void setup() {
   Serial.print(F("kb\t\t\t"));
   Serial.print(_memory.heapMinimum());
   Serial.println(F("kb"));
+
+  _leds.turnOffBuiltin();
 
   Serial.println(F(""));
   Serial.println(F("...finished."));
