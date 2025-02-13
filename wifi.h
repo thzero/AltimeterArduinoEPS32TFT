@@ -1,6 +1,8 @@
 #ifndef _WIFI_H
 #define _WIFI_H
 
+#include <Arduino.h>
+
 class wifi {
   public:
     wifi();

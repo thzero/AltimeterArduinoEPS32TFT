@@ -1,4 +1,5 @@
 #include "utilities.h"
+#include "wifi.h"
 
 unsigned int msgChk(char * buffer, long length) {
   long index;
@@ -22,4 +23,9 @@ long roundUp(float val) {
   if (val > ret)
     return ret + 1;
   return ret;
+}
+
+void setupNetworkDisable() {
+  // _ble.disable();
+  _wifi.disable();
 }

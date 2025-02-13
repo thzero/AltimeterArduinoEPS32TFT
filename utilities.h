@@ -7,4 +7,6 @@ extern float round2dec(float var);
 
 extern long roundUp(float val);
 
+extern void setupNetworkDisable();
+
 #endif
