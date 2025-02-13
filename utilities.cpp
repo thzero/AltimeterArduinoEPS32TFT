@@ -24,8 +24,3 @@ long roundUp(float val) {
     return ret + 1;
   return ret;
 }
-
-void setupNetworkDisable() {
-  // _ble.disable();
-  _wifi.disable();
-}

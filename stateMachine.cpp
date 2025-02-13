@@ -6,6 +6,7 @@
 #include "leds.h"
 #include "loopThrottle.h"
 #include "neoPixel.h"
+#include "network.h"
 #include "sensor.h"
 #include "stateMachine.h"
 #include "tft.h"

@@ -12,6 +12,7 @@
 #include "loopThrottle.h"
 #include "memory.h"
 #include "neoPixel.h"
+#include "network.h"
 #include "stateMachine.h"
 #include "sensor.h"
 #include "tft.h"
