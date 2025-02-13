@@ -20,27 +20,27 @@ atmosphereValues sensorBMP::initializeSensors() {
   float sumPressure = 0;
   float sumTemperature = 0;
   for (int i = 0; i < samples; i++) {
-    debug(F("i"), i);
+    // debug(F("i"), i);
     resultHumidity = readSensor().humidity;
     resultPressure = readSensor().pressure;
     resultTemperature = readSensor().temperature;
-    debug(F("resultHumidity"), resultHumidity);
-    debug(F("resultPressure"), resultPressure);
-    debug(F("resultTemperature"), resultTemperature);
+    // debug(F("resultHumidity"), resultHumidity);
+    // debug(F("resultPressure"), resultPressure);
+    // debug(F("resultTemperature"), resultTemperature);
     sumHumidity += resultHumidity;
     sumPressure += resultPressure;
     sumTemperature += resultTemperature;
-    debug(F("sumHumidity"), sumHumidity);
-    debug(F("sumPressure"), sumPressure);
-    debug(F("sumTemperature"), sumTemperature);
+    // debug(F("sumHumidity"), sumHumidity);
+    // debug(F("sumPressure"), sumPressure);
+    // debug(F("sumTemperature"), sumTemperature);
     delay(50);
   }
   values.humidity = (sumHumidity / samples);
   values.pressure = (sumPressure / samples);
   values.temperature = (sumTemperature / samples);
-  debug(F("atmosphereValues.humidity"), values.humidity);
-  debug(F("atmosphereValues.pressure"), values.pressure);
-  debug(F("temperatureOutdoor"), values.temperature);
+  // debug(F("atmosphereValues.humidity"), values.humidity);
+  // debug(F("atmosphereValues.pressure"), values.pressure);
+  // debug(F("temperatureOutdoor"), values.temperature);
   
   float result = 0;
   float sum = 0;
@@ -53,7 +53,7 @@ atmosphereValues sensorBMP::initializeSensors() {
     delay(50);
   }
   float altitudeInitial = (sum / samples);
-  debug(F("altitudeInitial"), altitudeInitial);
+  // debug(F("altitudeInitial"), altitudeInitial);
   Serial.println(F("\t...initializeSensors"));
   values.altitude = altitudeInitial;
   return values;
@@ -129,7 +129,9 @@ float sensorBMP::readSensorAltitude(atmosphereValues values) {
   if (_simulation.isRunning() && _initialized) { 
     // values.altitude = simulationValueAltitude();
     values.altitude = _simulation.valueAltitude();
+#ifdef DEBUG_SIM
     debug("sim.altitude", values.altitude);
+#endif
   }
 #endif
 

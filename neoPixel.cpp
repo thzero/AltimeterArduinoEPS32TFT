@@ -9,21 +9,17 @@ neoPixelBlinker _neoPixelBlinker;
 neoPixelBlinker::neoPixelBlinker() {
 }
 
-void neoPixelBlinker::init(Adafruit_NeoPixel pixels) {
-  _pixels = pixels;
-  _pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
-  _pixels.setBrightness(5);
-  off();
-  // _delayMs = delayMs;
-}
-
-void neoPixelBlinker::init(Adafruit_NeoPixel pixels, int brightness) {
-  _pixels = pixels;
-  _pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
-  _pixels.setBrightness(brightness);
-  off();
-  // _delayMs = delayMs;
-}
+void neoPixelBlinker::blink(int hexIn) {
+  // Serial.print(F("-----");
+  // Serial.print(F("NeoPixel on..."));
+  // Serial.println(_hex);
+  if (_hex == 0x000000)
+    _hex = hexIn;
+  else
+    _hex = 0x000000;
+  _pixels.fill(_hex);
+  _pixels.show();
+};
 
 void neoPixelBlinker::blink(int timestamp, int delayMs) {
   bool blink = false;
@@ -51,11 +47,6 @@ void neoPixelBlinker::blink(int timestamp, int delayMs) {
   }
 };
 
-void neoPixelBlinker::off() {
-  _pixels.fill(0x000000);
-  _pixels.show();
-};
-
 int neoPixelBlinker::cycle(int hexIn) {
   // Serial.println(hexIn);
   if (hexIn != 0xFF000 && hexIn != 0x00FF00 && hexIn != 0x0000FF)
@@ -74,6 +65,27 @@ int neoPixelBlinker::cycle(int hexIn) {
   return hex;
 };
 
+void neoPixelBlinker::init(Adafruit_NeoPixel pixels) {
+  _pixels = pixels;
+  _pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
+  _pixels.setBrightness(5);
+  off();
+  // _delayMs = delayMs;
+}
+
+void neoPixelBlinker::init(Adafruit_NeoPixel pixels, int brightness) {
+  _pixels = pixels;
+  _pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
+  _pixels.setBrightness(brightness);
+  off();
+  // _delayMs = delayMs;
+}
+
+void neoPixelBlinker::off() {
+  _pixels.fill(0x000000);
+  _pixels.show();
+};
+
 void neoPixelBlinker::setup() {
   _neoPixelBlinker.init(pixels);
 }
@@ -85,30 +97,14 @@ void neoPixelBlinker::setupDeinit() {
 neoPixel::neoPixel() {
 }
 
-int neoPixel::cycle(Adafruit_NeoPixel pixels, int hexIn) {
-#ifdef DEBUG
-  Serial.println(hexIn);
-#endif
-  if (hexIn != 0xFF000 && hexIn != 0x00FF00 && hexIn != 0x0000FF)
-    hexIn = 0xFF0000;
-#ifdef DEBUG
-  Serial.println(hexIn);
-#endif
+void neoPixel::off(Adafruit_NeoPixel pixels) {
+  pixels.fill(0x000000);
+  pixels.show();
+}
 
-  int hex = hexIn;
-  if (hexIn == 0xFF0000)
-    hex = 0x00FF00;
-  else if (hexIn == 0x00FF00)
-    hex = 0x0000FF;
-  else if (hexIn == 0x0000FF)
-    hex = 0xFF0000;
-    
-#ifdef DEBUG
-  Serial.println(hex);
-#endif
+void neoPixel::on(Adafruit_NeoPixel pixels, int hex) {
   pixels.fill(hex);
   pixels.show();
-  return hex;
 }
 
 void neoPixel::sleep() {
@@ -129,14 +125,4 @@ void neoPixel::setup(Adafruit_NeoPixel pixels) {
 void neoPixel::setup(Adafruit_NeoPixel pixels, int brightness) {
   pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
   pixels.setBrightness(brightness);
-}
-
-void neoPixel::turnOff(Adafruit_NeoPixel pixels) {
-  pixels.fill(0x000000);
-  pixels.show();
-}
-
-void neoPixel::turnOn(Adafruit_NeoPixel pixels, int hex) {
-  pixels.fill(hex);
-  pixels.show();
 }

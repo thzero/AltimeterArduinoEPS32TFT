@@ -5,8 +5,8 @@ class ledsBuiltin {
   public:
     ledsBuiltin();
     void setup();
-    void turnOff();
-    void turnOn();
+    void off();
+    void on();
 };
 
 extern ledsBuiltin _ledsBuiltin;

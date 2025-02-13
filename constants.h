@@ -21,10 +21,14 @@
 // Sample rate is in Hz
 // Based on Eggtimer Quantum documentation
 // https://eggtimerrocketry.com/wp-content/uploads/2024/02/Eggtimer-Quantum-1_09G.pdf, page 25
-#define SAMPLE_RATE_GROUND 10
+#define SAMPLE_RATE_ABORTED 5
 #define SAMPLE_RATE_AIRBORNE_ASCENT 20
 #define SAMPLE_RATE_AIRBORNE_DESCENT 2
+#define SAMPLE_RATE_GROUND 10
+#define SAMPLE_RATE_LANDED 5
+#define SAMPLE_MEASURES_ABORTED 20
 #define SAMPLE_MEASURES_APOGEE 5
+#define SAMPLE_MEASURES_LANDED 20
 
 #define SAMPLE_RATE_MEMORY 1
 
@@ -37,7 +41,7 @@
 
 #define DEBUG
 #define DEBUG_INTERNAL
-#define DEBUG_ALTIMETER
+// #define DEBUG_ALTIMETER
 // #define DEBUG_SENSOR
 // #define DEBUG_SIM
 

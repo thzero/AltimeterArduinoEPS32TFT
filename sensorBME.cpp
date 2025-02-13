@@ -152,7 +152,9 @@
 //   if (_simulation.isRunning() && _initialized) { 
 //     // values.altitude = simulationValueAltitude();
 //     values.altitude = _simulation.valueAltitude();
+// #ifdef DEBUG_SIM
 //     debug("sim.altitude", values.altitude);
+// #endif
 //   }
 // #endif
 

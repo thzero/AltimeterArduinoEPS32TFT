@@ -26,7 +26,7 @@ void simulation::evaluateTimestep(double K, double deltaT, double Mr, double Me,
 }
 
 void simulation::outputPrint(double delta, double thrust, double mass, double altitude) {
-#ifdef DEBUG_SIM
+// #ifdef DEBUG_SIM
   Serial.print(F("sim -\t"));
   Serial.print(_elapsedTime);
   Serial.print(F("\t"));
@@ -45,13 +45,13 @@ void simulation::outputPrint(double delta, double thrust, double mass, double al
   Serial.print(altitude);
   Serial.print(F("\t\t"));
   Serial.println(_airborne ? "true" : "false");
-#endif
+// #endif
 }
 
 void simulation::outputPrintHeader() {
-#ifdef DEBUG_SIM
+// #ifdef DEBUG_SIM
   Serial.println(F("sim -\tTime\tDelta\tThrust\tMass\tVelocity\tStarting Altitude\tPosition\tAltitude\tAirborne"));
-#endif
+// #endif
 }
 
 void simulation::loopStep(double deltaT, bool output) {
@@ -237,7 +237,9 @@ double simulation::valueAltitude() {
     return 0;
 
   double altitude = _trace[0] - _startingAltitude;
+#ifdef DEBUG_SIM
   debug("simulation.altitude", altitude);
+#endif
   return altitude;
 }
 

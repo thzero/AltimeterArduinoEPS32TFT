@@ -12,7 +12,6 @@
 #include "flightLoggerBase.h"
 #include "flightLoggerData.h"
 #include "flightLoggerLFS.h"
-#include "kalman.h"
 #include "leds.h"
 #include "loopThrottle.h"
 #include "memory.h"
@@ -33,9 +32,11 @@ int timeOutTimeToApogee = 20000;
 // Global variables
 //////////////////////////////////////////////////////////////////////
 enum loopStates {
+  ABORTED,
   AIRBORNE_ASCENT,
   AIRBORNE_DESCENT,
-  GROUND
+  GROUND,
+  LANDED
 };
 
 struct loopStateMachine {
@@ -50,7 +51,7 @@ unsigned long _timestamp;
 void sleepDevice() {
   setupButtonDeninit();
   
-  _ledsBuiltin.turnOff();
+  _ledsBuiltin.off();
 
   _neoPixelBlinker.setupDeinit();
 
@@ -96,23 +97,58 @@ void sleepDevice() {
   esp_deep_sleep_start();
 }
 
-void loopStateAIRBORNE_ASCENTToAIRBORNE_DESCENT() {
-  _flightLogger.data.altitudeApogee = _flightLogger.data.altitudeApogeeFirstMeasure;
-  _flightLogger.data.timestampApogee = _flightLogger.data.timestampApogeeFirstMeasure;
+int _countdownAborted;
+loopThrottle _throttleAborted;
+void loopStateABORTED(unsigned long timestamp, unsigned long deltaElapsed) {
+  // Determine the aborted loop time delay based on sampling rate.
+  int delta = _throttleAborted.determine(deltaElapsed, (int)SAMPLE_RATE_ABORTED);
+  if (delta == 0)
+    return;
+
+  // Functionality that happen on the tick goes here:
+
+  _neoPixelBlinker.blink(0xFF0000);
+
+  // Transition to the GROUND stage.
+  if (_countdownAborted > SAMPLE_MEASURES_ABORTED) {
+    loopStateABORTEDToGROUND(timestamp);
+    return;
+  }
+
+  _countdownAborted++;
+}
+
+void loopStateABORTEDToGROUND(unsigned long timestamp) {
+  _loopState.current = GROUND;
+
+  loopStateToGROUND();
+}
+
+void loopStateAIRBORNEToAbort(char message1[], char message2[]) {
+  // Something went wrong and aborting...
+
+  _flightLogger.data.airborne = false;
+  _flightLogger.aborted = true;
+  _flightLogger.recording = false;
+  _flightLogger.data.touchdown = true;
 
   debug(F(""));
   debug(F(""));
   debug(F(""));
   debug(F(""));
-  debug(F("...DESCENT!!!!"));
-  debug(F("...DESCENT!!!!"));
-  debug(F("...DESCENT!!!!"));
+  debug(F("...ABORTED!!!!"));
+  debug(F("...ABORTED!!!!"));
+  Serial.println(message1);
+  Serial.println(message2);
+  debug(F("...ABORTED!!!!"));
   debug(F(""));
   debug(F(""));
   debug(F(""));
   debug(F(""));
 
-  _loopState.current = AIRBORNE_DESCENT;  // TODO!
+  _countdownAborted = 0;
+  
+  _loopState.current = ABORTED;
 }
 
 float loopStateAIRBORNE(unsigned long currentTimestamp, long diffTime) {
@@ -164,6 +200,10 @@ void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaElapse
   int delta = _throttleAirborneAscent.determine(deltaElapsed, (int)SAMPLE_RATE_AIRBORNE_ASCENT);
   if (delta == 0)
     return;
+
+  // Functionality that happen on the tick goes here:
+
+  _neoPixelBlinker.blink(0x00FF00);
 
   long currentTimestamp = timestamp - _flightLogger.data.timestampLaunch;
 #ifdef DEBUG_ALTIMETER
@@ -239,61 +279,23 @@ void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaElapse
   }
 }
 
-void loopStateAIRBORNEToAbort(char message1[], char message2[]) {
-  // Something went wrong and aborting...
-
-  // _loopState.current = GROUND; // TODO
-  _flightLogger.data.airborne = false;
-  _flightLogger.aborted = true;
-  _flightLogger.recording = false;
-  _flightLogger.data.touchdown = true;
+void loopStateAIRBORNE_ASCENTToAIRBORNE_DESCENT() {
+  _flightLogger.data.altitudeApogee = _flightLogger.data.altitudeApogeeFirstMeasure;
+  _flightLogger.data.timestampApogee = _flightLogger.data.timestampApogeeFirstMeasure;
 
   debug(F(""));
   debug(F(""));
   debug(F(""));
   debug(F(""));
-  debug(F("...ABORTED!!!!"));
-  debug(F("...ABORTED!!!!"));
-  Serial.println(message1);
-  Serial.println(message2);
-  debug(F("...ABORTED!!!!"));
+  debug(F("...DESCENT!!!!"));
+  debug(F("...DESCENT!!!!"));
+  debug(F("...DESCENT!!!!"));
   debug(F(""));
   debug(F(""));
   debug(F(""));
   debug(F(""));
 
-  // To avoid battery drain, etc. user should choose to turn on networking...
-  // setupNetwork();
-
-  drawTftReset();
-  drawTftSplash();
-}
-
-void loopStateAIRBORNEToGROUND() {
-  // Complete the flight
-  Serial.println(F("Flight has ended!!!"));
-
-  _loopState.current = GROUND; // TODO
-  _flightLogger.data.airborne = false;
-  _flightLogger.recording = false;
-
-  // To avoid battery drain, etc. user should choose to turn on networking...
-  // setupNetwork();
-
-  debug(F(""));
-  debug(F(""));
-  debug(F(""));
-  debug(F(""));
-  debug(F("...LANDED!!!!"));
-  debug(F("...LANDED!!!!"));
-  debug(F("...LANDED!!!!"));
-  debug(F(""));
-  debug(F(""));
-  debug(F(""));
-  debug(F(""));
-
-  drawTftReset();
-  drawTftSplash();
+  _loopState.current = AIRBORNE_DESCENT;
 }
 
 loopThrottle _throttleAirborneDescent;
@@ -303,6 +305,8 @@ void loopStateAIRBORNE_DESCENT(unsigned long timestamp, unsigned long deltaElaps
     return;
 
   // Functionality that happen on the tick goes here:
+
+  _neoPixelBlinker.blink(0x0000FF);
 
   long currentTimestamp = millis() - _flightLogger.data.timestampLaunch;
 
@@ -329,13 +333,90 @@ void loopStateAIRBORNE_DESCENT(unsigned long timestamp, unsigned long deltaElaps
     _flightLogger.data.altitudeTouchdown = _flightLogger.data.altitudeLast;
     _flightLogger.data.timestampTouchdown = _flightLogger.data.timestampPrevious;
     // Passed the descent touchdown altitude check, so the flight log is ended and return to GROUND
-    loopStateAIRBORNEToGROUND();
+    loopStateAIRBORNE_DESCENTToLANDED();
     return;
   }
 }
 
+void loopStateAIRBORNE_DESCENTToLANDED() {
+  // Complete the flight
+  Serial.println(F("Flight has ended!!!"));
+
+  _flightLogger.data.airborne = false;
+  _flightLogger.recording = false;
+
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F("...LANDED!!!!"));
+  debug(F("...LANDED!!!!"));
+  debug(F("...LANDED!!!!"));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+
+  _loopState.current = LANDED;
+}
+
+int _countdownLanded = 0;
+loopThrottle _throttleLanded;
+void loopStateLANDED(unsigned long timestamp, unsigned long deltaElapsed) {
+  // Determine the ground loop time delay based on sampling rate.
+  int delta = _throttleLanded.determine(deltaElapsed, (int)SAMPLE_RATE_LANDED);
+  if (delta == 0)
+    return;
+
+  // Functionality that happen on the tick goes here:
+
+  _neoPixelBlinker.blink(0xFF00FF);
+
+  // debug(F("loopStateLANDED...timestamp"), timestamp);
+
+  // Transition to the AIRBORNE_ASCENT ascent stage.
+  if (_countdownLanded > SAMPLE_MEASURES_LANDED) {
+    loopStateLANDEDToGROUND(timestamp);
+    return;
+  }
+
+  _countdownLanded++;
+}
+
+void loopStateLANDEDToGROUND(unsigned long timestamp) {
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F("...GROUNDED!!!!"));
+  debug(F("...GROUNDED!!!!"));
+  debug(F("...GROUNDED!!!!"));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+
+  _loopState.current = GROUND;
+  _countdownAborted = 0;
+  _countdownLanded = 0;
+
+  loopStateToGROUND();
+}
+
+void loopStateToGROUND() {
+  // To avoid battery drain, etc. user should choose to turn on networking...
+  // setupNetwork();
+
+  drawTftReset();
+  drawTftSplash();
+}
+
 loopThrottle _throttleGround;
 void loopStateGROUND(unsigned long timestamp, unsigned long deltaElapsed) {
+  
+  // Only blink while on the ground!
+  _neoPixelBlinker.blink(timestamp, 500);
+
   // Query the button handler to check for button press activity.
   handleButtonLoop();
 
@@ -358,7 +439,7 @@ void loopStateGROUND(unsigned long timestamp, unsigned long deltaElapsed) {
 
   // Functionality that happen on the tick goes here:
 
-  debug(F("stateGROUND...timestamp"), timestamp);
+  // debug(F("stateGROUND...timestamp"), timestamp);
 
   // Get the current altitude and determine the delta from initial.
   float altitude = readSensorAltitude();
@@ -390,6 +471,8 @@ void loopStateGROUND(unsigned long timestamp, unsigned long deltaElapsed) {
 void loopStateGROUNDToAIRBORNE_ASCENT(unsigned long timestamp) {
   // Turn off wifi, we don't need it in the air...
   setupNetworkDisable();
+
+  _neoPixelBlinker.off();
   
   debug(F(""));
   debug(F(""));
@@ -409,7 +492,7 @@ void loopStateGROUNDToAIRBORNE_ASCENT(unsigned long timestamp) {
   drawTftReset();
   drawTftFlightAirborneStart();
 
-  _loopState.current = AIRBORNE_ASCENT; // TODO!
+  _loopState.current = AIRBORNE_ASCENT;
 }
 
 loopThrottle _throttleMemory;
@@ -432,26 +515,30 @@ void loop() {
   // Serial.println(F("state..."));
   // Serial.println(_loopState.current);
   // Ground state
-  if (_loopState.current == GROUND) {
-    // Serial.println(F("state...GROUND"));
-    // Only blink while on the ground!
-    _neoPixelBlinker.blink(current, 500);
-    // Run the ground state algorithms
-    loopStateGROUND(current, delta);
+  if (_loopState.current == ABORTED) {
+    // Serial.println(F("state...ABORTED"));
+    // Run the aborted state algorithms
+    loopStateABORTED(current, delta);
   }
-  if (_loopState.current == AIRBORNE_ASCENT) {
+  else if (_loopState.current == AIRBORNE_ASCENT) {
     // Serial.println(F("state...AIRBORNE_ASCENT"));
-    // Only blink while on the ground!
-    _neoPixelBlinker.off();
     // Run the airborne ascent state algorithms
     loopStateAIRBORNE_ASCENT(current, delta);
   }
-  if (_loopState.current == AIRBORNE_DESCENT) {
+  else if (_loopState.current == AIRBORNE_DESCENT) {
     // Serial.println(F("state...AIRBORNE_DESCENT"));
-    // Only blink while on the ground!
-    _neoPixelBlinker.off();
     // Run the airborne descent state algorithms
     loopStateAIRBORNE_DESCENT(current, delta);
+  }
+  else if (_loopState.current == GROUND) {
+    // Serial.println(F("state...GROUND"));
+    // Run the ground state algorithms
+    loopStateGROUND(current, delta);
+  }
+  else if (_loopState.current == LANDED) {
+    // Serial.println(F("state...LANDED"));
+    // Run the landed state algorithms
+    loopStateLANDED(current, delta);
   }
 
   _timestamp = current;
@@ -513,7 +600,7 @@ void setup() {
   _ledsBuiltin.setup();
   _neoPixelBlinker.setup();
 
-  _ledsBuiltin.turnOn();
+  _ledsBuiltin.on();
 
   Wire.begin();
   Serial.begin(SERIAL_BAUD);
@@ -573,7 +660,7 @@ void setup() {
   Serial.print(_memory.heapMinimum());
   Serial.println(F("kb"));
 
-  _ledsBuiltin.turnOff();
+  _ledsBuiltin.off();
 
   Serial.println(F(""));
   Serial.println(F("...finished."));
