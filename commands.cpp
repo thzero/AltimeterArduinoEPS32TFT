@@ -3,6 +3,7 @@
 #include "debug.h"
 #include "flightLogger.h"
 #include "i2cscanner.h"
+#include "sensor.h"
 #include "simulation.h"
 #include "utilities.h"
 
@@ -56,6 +57,22 @@ void interpretCommandBufferSimulation(char command1) {
     _simulation.start(simulationConfigDefault, _flightLogger.data.altitudeInitial);
 }
 
+//
+//    Available commands.
+//    The commands can be used via the serial command line or via the Android console
+
+//    a  get all flight data
+//    e  erase all saved flights
+//    h  help
+//    l  list all flights
+//    n  the number of recorded flights
+//    r  followed by a number which is the flight number
+//       retrieve all data for the specified flight
+//    s  start simulation
+//    t  toggle flight telemetry
+//    s  stop simulation
+//    x  delete last recorded flight
+//  
 void interpretCommandBufferI() {
   char command = commandbuffer[0];
   char command1 = commandbuffer[1];
@@ -79,24 +96,84 @@ void interpretCommandBufferI() {
     Serial.println(F(""));
 #endif
 
-  // write altimeter config
+  // get all flight data
+  // if (command == 'a') {
+  //   handleFightPrintData(commandbuffer);
+  //   return;
+  // }
+  // erase all flight
+  // if (command == 'e')
+  // {
+  //   handeFlightErase(commandbuffer);
+  //   return;
+  // }
   if (command == 'h') {
     interpretCommandBufferHelp();
+    return;
   }
 #ifdef DEV
-  else if (command == 'i') {
+  if (command == 'i') {
     interpretCommandBufferI2CScanner();
+    return;
   }
 #endif
+  // // list all flights
+  // if (command == 'l')
+  // {
+  //   // logger.printFlightList();
+  //   return;
+  // }
 #ifdef DEV_SIM
   else if (command == 's') {
     interpretCommandBufferSimulation(command1);
+    return;
   }
 #endif
-  else {
-    Serial.print(F("$UNKNOWN command: "));
-    Serial.println(commandbuffer);
+  // number of flight
+  // if (command == 'n')
+  // {
+  //   handleFlightList(commandbuffer);
+  //   return;
+  // }
+  // read one flight
+  // if (command == 'r')
+  // {
+  //   handleFlightRead(commandbuffer);
+  //   return;
+  // }
+  // telemetry on/off
+  if (command == 't')
+  {
+    // not implemented
+    return;
   }
+  // recording
+  if (command == 'w')
+  {
+    // readSensorAltitude();
+    return;
+  }
+  // delete last flight
+  if (command == 'x')
+  {
+    /*logger.eraseLastFlight();
+      logger.readFlightList();
+      long lastFlightNbr = _flightLogger.instance.geFlightNbrLast();
+      if (lastFlightNbr < 0)
+      {
+      currentFileNbr = 0;
+      currentMemaddress = 201;
+      }
+      else
+      {
+      currentMemaddress = logger.getFlightStop(lastFlightNbr) + 1;
+      currentFileNbr = lastFlightNbr + 1;
+      }*/
+    return;
+  }
+
+  Serial.print(F("$UNKNOWN command: "));
+  Serial.println(commandbuffer);
 }
 
 void resetCommandBuffer() {
@@ -118,114 +195,6 @@ void interpretCommandBuffer() {
   interpretCommandBufferI();
   resetCommandBuffer();
 }
-
-/*
-   Print altimeter config to the Serial line
-*/
-void printAltimeterConfig(char *altiName) {
-  char altiConfig[160] = "";
-  char temp[25] = "";
-
-  strcat(altiConfig, "alticonfig,");
-
-  char format[3] = "%i";
-
-  //Unit
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  //beepingMode
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  //output1
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  //output2
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  //output3
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  //supersonicYesNo
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  //mainAltitude
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  //AltimeterName
-  strcat(altiConfig, BOARD_FIRMWARE);
-  strcat(altiConfig, ",");
-  //alti major version
-  sprintf(temp, format, MAJOR_VERSION);
-  strcat(altiConfig, temp);
-  //alti minor version
-  sprintf(temp, format, MINOR_VERSION);
-  strcat(altiConfig, temp);
-  //output1 delay
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  //output2 delay
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  //output3 delay
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  //Beeping frequency
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  sprintf(temp, "%lu,", 0);
-  strcat(altiConfig, temp);
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  //output4
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  //output4 delay
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  //Lift off altitude
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  //Battery type
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  // recording timeout
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  //altiID
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  //useTelemetryPort
-  sprintf(temp, format, 0);
-  strcat(altiConfig, temp);
-  sprintf(temp, "%s,", altiName);
-  strcat(altiConfig, temp);
-
-  unsigned int chk = 0;
-  chk = msgChk( altiConfig, sizeof(altiConfig));
-  sprintf(temp, "%i;\n", chk);
-
-  strcat(altiConfig, temp);
-  Serial.print(F("$"));
-  Serial.print(altiConfig);
-}
-
-// void handleAltimeterConfig(char *commandbuffer) {
-//     Serial.print(F("$start;\n"));
-//     printAltimeterConfig((char *)BOARD_NAME);
-//     Serial.print(F("$end;\n"));
-// }
 
 // void handeFlightErase(char *commandbuffer) {
 //     Serial.println(F("Erase\n"));
@@ -280,227 +249,6 @@ void printAltimeterConfig(char *altiName) {
 //     }
 //     else
 //       Serial.println(F("not a valid flight"));
-// }
-
-// void handleProcessingToggle(char *commandbuffer) {
-//     // if (commandbuffer[1] == '1') 
-//     //   mainLoopEnable = true;
-//     // else
-//     //   mainLoopEnable = false;
-
-//     Serial.print(F("$OK;\n"));
-// }
-
-// /*
-//    This interprets menu commands. This can be used in the commend line or
-//    this is used by the Android console
-
-//    Commands are as folow:
-//    a  get all flight data
-//    b  get altimeter config
-//    c  toggle continuity on and off
-//    d  reset alti config
-//    e  erase all saved flights
-//    f  FastReading on
-//    g  FastReading off
-//    h  hello. Does not do much
-//    i  unused
-//    k  folowed by a number turn on or off the selected output
-//    l  list all flights
-//    m  followed by a number turn main loop on/off. if number is 1 then
-//       main loop in on else turn it off
-//    n  Return the number of recorded flights in the EEprom
-//    o  requesting test trame
-//    r  followed by a number which is the flight number.
-//       This will retrieve all data for the specified flight
-//    s  write altimeter config
-//    t  reset alti config (why?)
-//    w  Start or stop recording
-//    x  delete last curve
-//    y  followed by a number turn telemetry on/off. if number is 1 then
-//       telemetry in on else turn it off
-//    z  send gps raw data
-// */
-// void interpretCommandBuffer(char *commandbuffer) {
-//   interpretCommandBufferI(commandbuffer);
-//   memset(commandbuffer, 0, sizeof(commandbuffer));
-// }
-
-// void interpretCommandBufferI(char *commandbuffer) {
-//   char command = commandbuffer[0];
-
-//   // get all flight data
-//   if (command == 'a') {
-//     handleFightPrintData(commandbuffer);
-//     return;
-//   }
-//   // get altimeter config
-//   if (command == 'b')
-//   {
-//     handleAltimeterConfig(commandbuffer);
-//     return;
-//   }
-//   // toggle continuity on and off
-//   if (command == 'c')
-//   {
-//     // not implemeted
-//     return;
-//   }
-//   // reset alti config this is equal to t why do I have 2 !!!!
-//   if (command == 'd')
-//   {
-//     /*preferences.begin("namespace", false);
-//       preferences.putString("Name", "TTGOAltimeter");
-//       preferences.end();*/
-//     return;
-//   }
-//   // erase all flight
-//   if (command == 'e')
-//   {
-//     handeFlightErase(commandbuffer);
-//     return;
-//   }
-//   // fast reading
-//   if (command == 'f')
-//   {
-//     // not implemeted
-//     return;
-//   }
-//   //FastReading off
-//   if (command == 'g')
-//   {
-//     // not implemeted
-//     return;
-//   }
-//   //hello
-//   if (command == 'h')
-//   {
-//     Serial.print(F("$OK;\n"));
-//     return;
-//   }
-//   // unused
-//   if (command == 'i')
-//   {
-//     // not implemeted
-//     return;
-//   }
-//   // turn on or off the selected output
-//   if (command == 'k')
-//   {
-//     // not implemeted
-//     return;
-//   }
-//   // list all flights
-//   if (command == 'l')
-//   {
-//     // logger.printFlightList();
-//     return;
-//   }
-//   // mainloop on/off
-//   if (command == 'm')
-//   {
-//     handleProcessingToggle(commandbuffer);
-//     return;
-//   }
-//   // number of flight
-//   if (command == 'n')
-//   {
-//     handleFlightList(commandbuffer);
-//     return;
-//   }
-//   // send test tram
-//   if (command == 'o')
-//   {
-//     // not implemented
-//     return;
-//   }
-//   // altimeter config param
-//   // write  config
-//   if (command == 'p')
-//   {
-//     // not implemented
-//     return;
-//   }
-//   if (command == 'q')
-//   {
-//     Serial.print(F("$OK;\n"));
-//     return;
-//   }
-//   // read one flight
-//   if (command == 'r')
-//   {
-//     handleFlightRead(commandbuffer);
-//     return;
-//   }
-//   // write altimeter config
-//   if (command == 's')
-//   {
-//     // not implemented
-//     return;
-//   }
-//   // reset config and set it to default
-//   if (command == 't')
-//   {
-//     //reset config
-//     /*preferences.begin("namespace", false);
-//       preferences.putString("Name", "TTGOAltimeter");
-//       preferences.end();*/
-//     return;
-//   }
-//   if (command == 'v')
-//   {
-//     /* preferences.begin("namespace", false);
-//       Serial.println(preferences.getString("Name", "TTGOAltimeter"));
-//       preferences.end();*/
-//     return;
-//   }
-//   // recording
-//   if (command == 'w')
-//   {
-//     // recordAltitude();
-//     return;
-//   }
-//   // delete last curve
-//   if (command == 'x')
-//   {
-//     /*logger.eraseLastFlight();
-//       logger.readFlightList();
-//       long lastFlightNbr = _flightLogger.instance.geFlightNbrLast();
-//       if (lastFlightNbr < 0)
-//       {
-//       currentFileNbr = 0;
-//       currentMemaddress = 201;
-//       }
-//       else
-//       {
-//       currentMemaddress = logger.getFlightStop(lastFlightNbr) + 1;
-//       currentFileNbr = lastFlightNbr + 1;
-//       }
-//       canRecord = logger.CanRecord();*/
-//     return;
-//   }
-//   // telemetry on/off
-//   if (command == 'y')
-//   {
-//     // not implemented
-//     return;
-//   }
-//   // alti Name for ESP32
-//   if (command == 'z')
-//   {
-//     //updateAltiName(commandbuffer);
-//     Serial.print(F("$OK;\n"));
-//     return;
-//   }
-//   // empty command
-//   if (command == ' ')
-//   {
-//     Serial.print(F("$K0;\n"));
-//     return;
-//   }
-
-//   Serial.print(F("$UNKNOWN;"));
-//   Serial.println(commandbuffer[0]);
 // }
 
 bool readSerial(unsigned long timestamp, unsigned long delta) {
