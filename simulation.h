@@ -2,6 +2,7 @@
 #define _SIMULATION_H
 
 #include "loopThrottle.h";
+#include "sensorData.h";
 
 #define SAMPLE_SIMULATION 1
 
@@ -22,6 +23,7 @@ class simulation {
     void start(struct simulationConfig startConfig, long initialAltitude);
     bool isRunning();
     void stop();
+    accelerometerValues valueAcceleration();
     double valueAltitude();
 
   private:
@@ -39,7 +41,7 @@ class simulation {
     double _motorThrust;  // N
     bool _running = false;
     double _startingAltitude;
-    double _trace[2];  // _t
+    double _trace[3];
     int _finalCountdown;
     
     double _maxHeight;

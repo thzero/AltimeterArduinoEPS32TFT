@@ -12,22 +12,22 @@ atmosphereValues sensorBMP::initializeSensors() {
   atmosphereValues values;
 
   Serial.println(F("\tinitializeSensors..."));
-  float resultHumidity = 0;
+  // float resultHumidity = 0;
   float resultPressure = 0;
   float resultTemperature = 0;
   byte samples = 20;
-  float sumHumidity = 0;
+  // float sumHumidity = 0;
   float sumPressure = 0;
   float sumTemperature = 0;
   for (int i = 0; i < samples; i++) {
     // debug(F("i"), i);
-    resultHumidity = readSensor().humidity;
+    // resultHumidity = readSensor().humidity;
     resultPressure = readSensor().pressure;
     resultTemperature = readSensor().temperature;
     // debug(F("resultHumidity"), resultHumidity);
     // debug(F("resultPressure"), resultPressure);
     // debug(F("resultTemperature"), resultTemperature);
-    sumHumidity += resultHumidity;
+    // sumHumidity += resultHumidity;
     sumPressure += resultPressure;
     sumTemperature += resultTemperature;
     // debug(F("sumHumidity"), sumHumidity);
@@ -35,7 +35,7 @@ atmosphereValues sensorBMP::initializeSensors() {
     // debug(F("sumTemperature"), sumTemperature);
     delay(50);
   }
-  values.humidity = (sumHumidity / samples);
+  // values.humidity = (sumHumidity / samples);
   values.pressure = (sumPressure / samples);
   values.temperature = (sumTemperature / samples);
   // debug(F("atmosphereValues.humidity"), values.humidity);
@@ -63,16 +63,43 @@ atmosphereValues sensorBMP::readSensor() {
   atmosphereValues values;
 
   uint32_t pressure = _sensor.getPressure();
-  float temperature = _sensor.getTemperature();
-  // values.humidity = humidity;
+#if defined(KALMAN) && defined(KALMAN_PRESSURE)
+  float pressureK = _kalmanPressure.kalmanCalc(pressure);
+#if defined(DEBUG_SENSOR)
+  Serial.print(F("__kalmanPressure="));
+  Serial.println(pressureK);
+#endif
+  pressure = pressureK;
+#endif'
   values.pressure = (float)pressure / 100.0;
+
+//   float humidity = _sensor.getHmidity();
+// #if defined(KALMAN) && defined(KALMAN_HUMIDITY)
+//   float humidityK = _kalmanHumidity.kalmanCalc(humidity);
+// #if defined(DEBUG_SENSOR)
+//   Serial.print(F("__kalmanhumidity="));
+//   Serial.println(humidityK);
+// #endif
+//   humidity = humidityK;
+// #endif
+// value.humidity = humidity;
+
+  float temperature = _sensor.getTemperature();
+#if defined(KALMAN) && defined(KALMAN_TEMPERATURE)
+  float temperatureK = _kalmanTemperature.kalmanCalc(temperature);
+#if defined(DEBUG_SENSOR)
+  Serial.print(F("__kalmanTemperature="));
+  Serial.println(temperatureK);
+#endif
+  temperature = temperatureK;
+#endif'
   values.temperature = temperature;
 
 #if defined(DEBUG_SENSOR)
   Serial.print(F("refPres="));
   Serial.print(pressureReference);
-  Serial.print(F("humidity="));
-  Serial.print(humidity);
+  // Serial.print(F("humidity="));
+  // Serial.print(humidity);
   Serial.print(F("\t"));
   Serial.print(F("pressure="));
   Serial.print(pressure);
@@ -92,15 +119,6 @@ float sensorBMP::readSensorAltitude() {
 
 float sensorBMP::readSensorAltitude(atmosphereValues values) {
   float pressure = values.pressure * 100;
-
-#if defined(KALMAN) && defined(KALMAN_ALTITUDE)
-  float pressureK = _kalmanPressure.kalmanCalc(altitude);
-#if defined(DEBUG_SENSOR)
-  Serial.print(F("__kalmanPressure="));
-  Serial.println(pressureK);
-#endif
-  pressure = pressureK;
-#endif
 
   // float altitude = _sensor.calAltitude(pressure, pressureReference);
   float altitude = 44330 * (1.0 - pow(pressure / 100.0 / pressureReference, 0.1903));

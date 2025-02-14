@@ -285,19 +285,25 @@ void flightLoggerLFS::printFlightData(int flightNbr) {
     strcat(flightDt, temp);
     sprintf(temp, format, currentTime);
     strcat(flightDt, temp);
-    sprintf(temp, formatF, _flightData[i].altitude);
-    strcat(flightDt, temp);
-    sprintf(temp, formatF, _flightData[i].temperature);
-    strcat(flightDt, temp);
-    sprintf(temp, formatF, _flightData[i].pressure);
-    strcat(flightDt, temp);
-    sprintf(temp, formatF, _flightData[i].humidity); //humidity
-    strcat(flightDt, temp);
     sprintf(temp, formatF, _flightData[i].accelX * 1000);
     strcat(flightDt, temp);
     sprintf(temp, formatF, _flightData[i].accelY * 1000);
     strcat(flightDt, temp);
     sprintf(temp, formatF, _flightData[i].accelZ * 1000);
+    strcat(flightDt, temp);
+    sprintf(temp, formatF, _flightData[i].altitude);
+    strcat(flightDt, temp);
+    sprintf(temp, formatF, _flightData[i].gyroX * 1000);
+    strcat(flightDt, temp);
+    sprintf(temp, formatF, _flightData[i].gyroY * 1000);
+    strcat(flightDt, temp);
+    sprintf(temp, formatF, _flightData[i].gyroZ * 1000);
+    strcat(flightDt, temp);
+    sprintf(temp, formatF, _flightData[i].humidity);
+    strcat(flightDt, temp);
+    sprintf(temp, formatF, _flightData[i].pressure);
+    strcat(flightDt, temp);
+    sprintf(temp, formatF, _flightData[i].temperature);
     strcat(flightDt, temp);
     sprintf(temp, formatF, _flightData[i].velocity);
     strcat(flightDt, temp);
@@ -316,16 +322,16 @@ bool flightLoggerLFS::writeFlightFast() {
   return writeFlight(geFlightNbrLast() + 1);
 }
 
-void flightLoggerLFS::setFlightAccelX(float accelX) {
-  _currentRecord.accelX = accelX;
+void flightLoggerLFS::setFlightAccelX(float x) {
+  _currentRecord.accelX = x;
 }
 
-void flightLoggerLFS::setFlightAccelY(float accelY) {
-  _currentRecord.accelY = accelY;
+void flightLoggerLFS::setFlightAccelY(float y) {
+  _currentRecord.accelY = y;
 }
 
-void flightLoggerLFS::setFlightAccelZ(float accelZ) {
-  _currentRecord.accelZ = accelZ;
+void flightLoggerLFS::setFlightAccelZ(float z) {
+  _currentRecord.accelZ = z;
 }
 
 void flightLoggerLFS::setFlightAltitude(float altitude) {
@@ -341,6 +347,18 @@ bool flightLoggerLFS::setFlightData() {
   _flightData[_dataPos] = _currentRecord;
   _dataPos++;
   return true;
+}
+
+void flightLoggerLFS::setFlightGyroX(float x) {
+  _currentRecord.gyroX = x;
+}
+
+void flightLoggerLFS::setFlightGyroY(float y) {
+  _currentRecord.gyroY = y;
+}
+
+void flightLoggerLFS::setFlightGyroZ(float z) {
+  _currentRecord.gyroZ = z;
 }
 
 void flightLoggerLFS::setFlightHumidity(float humidity) {
@@ -394,12 +412,15 @@ bool flightLoggerLFS::readFlight(int flightNbr) {
   for (JsonPair pair : flight) {
     JsonObject record = pair.value().as<JsonObject>();
     _flightData[index].diffTime = record["diffTime"];
-    _flightData[index].altitude = record["altitude"];
     _flightData[index].accelX = record["accelX"];
     _flightData[index].accelY = record["accelY"];
     _flightData[index].accelZ = record["accelZ"];
-    _flightData[index].pressure = record["pressure"];
+    _flightData[index].altitude = record["altitude"];
+    _flightData[index].gyroX = record["gyroX"];
+    _flightData[index].gyroY = record["gyroY"];
+    _flightData[index].gyroZ = record["gyroZ"];
     _flightData[index].humidity = record["humidity"];
+    _flightData[index].pressure = record["pressure"];
     _flightData[index].temperature = record["temperature"];
     _flightData[index].velocity = record["velocity"];
     index++;
@@ -418,12 +439,15 @@ bool flightLoggerLFS::writeFlight(int flightNbr) {
   for (long i = 0; i < _dataPos; i++) {
     JsonObject record = flight.createNestedObject(String(i));
     record["diffTime"] = _flightData[i].diffTime;
-    record["altitude"] = _flightData[i].altitude;
     record["accelX"] = _flightData[i].accelX;
     record["accelY"] = _flightData[i].accelY;
     record["accelZ"] = _flightData[i].accelZ;
-    record["pressure"] = _flightData[i].pressure;
+    record["altitude"] = _flightData[i].altitude;
+    record["gyroX"] = _flightData[i].gyroX;
+    record["gyroY"] = _flightData[i].gyroY;
+    record["gyroZ"] = _flightData[i].gyroZ;
     record["humidity"] = _flightData[i].humidity;
+    record["pressure"] = _flightData[i].pressure;
     record["temperature"] = _flightData[i].temperature;
     record["velocity"] = _flightData[i].velocity;
   }

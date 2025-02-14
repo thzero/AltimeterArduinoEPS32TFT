@@ -2,6 +2,7 @@
 
 #include "debug.h"
 #include "simulation.h"
+#include "utilities.h"
 
 struct simulationConfig simulationConfigDefault;
 
@@ -22,35 +23,67 @@ void simulation::evaluateTimestep(double K, double deltaT, double Mr, double Me,
   F += 0.5 * K * (_trace[1] * _trace[1]) * dragSign;
   F += Ft;
   // Apply acceleration
-  _trace[1] += deltaT * F / Mr;
+  // _trace[1] += deltaT * F / Mr;
+  _trace[2] = F / Mr;
+  _trace[1] += deltaT * _trace[2];
 }
 
 void simulation::outputPrint(double delta, double thrust, double mass, double altitude) {
 // #ifdef DEBUG_SIM
+  char temp[20];
+  char formatFloat[5] = "%.2f";
   Serial.print(F("sim -\t"));
   Serial.print(_elapsedTime);
-  Serial.print(F("\t"));
-  Serial.print(delta);
-  Serial.print(F("\t"));
-  Serial.print(thrust);
-  Serial.print(F("\t"));
-  Serial.print(mass);
-  Serial.print(F("\t"));
-  Serial.print(_trace[1]);
-  Serial.print(F("\t\t"));
-  Serial.print(_startingAltitude);
-  Serial.print(F("\t\t"));
-  Serial.print(_trace[0]);
-  Serial.print(F("\t"));
-  Serial.print(altitude);
-  Serial.print(F("\t\t"));
+  Serial.print(stringPad(_elapsedTime, 6, formatFloat));
+  // Serial.print(F("\t"));
+  // Serial.print(delta);
+  sprintf(temp, formatFloat, delta);
+  Serial.print(temp);
+  Serial.print(stringPad(delta, 8, formatFloat));
+  // Serial.print(F("\t"));
+  // Serial.print(thrust);
+  sprintf(temp, formatFloat, thrust);
+  Serial.print(temp);
+  Serial.print(stringPad(thrust, 8, formatFloat));
+  // Serial.print(F("\t"));
+  // Serial.print(mass);
+  sprintf(temp, formatFloat, mass);
+  Serial.print(temp);
+  Serial.print(stringPad(mass, 10, formatFloat));
+  // Serial.print(F("\t"));
+  // Serial.print(_trace[2]); // Acceleration
+  sprintf(temp, formatFloat, _trace[2]); // Acceleration
+  Serial.print(temp);
+  Serial.print(stringPad(_trace[2], 15, formatFloat));
+  // Serial.print(F("\t\t\t"));
+  // Serial.print(_trace[1]); // Velocity
+  sprintf(temp, formatFloat, _trace[1]); // Velocity
+  Serial.print(temp);
+  Serial.print(stringPad(_trace[1], 12, formatFloat));
+  // Serial.print(F("\t\t"));
+  // Serial.print(_trace[0]); // Position
+  sprintf(temp, formatFloat, _trace[0]); // Position
+  Serial.print(temp);
+  Serial.print(stringPad(_trace[0], 14, formatFloat));
+  // Serial.print(F("\t"));
+  // Serial.print(_startingAltitude);
+  sprintf(temp, formatFloat, _startingAltitude - EarthRadius);
+  Serial.print(temp);
+  Serial.print(stringPad(_startingAltitude - EarthRadius, 15, formatFloat));
+  // Serial.print(F("\t\t"));
+  // Serial.print(altitude);
+  sprintf(temp, formatFloat, altitude);
+  Serial.print(temp);
+  Serial.print(stringPad(altitude, 12, formatFloat));
+  // Serial.print(F("\t\t"));
   Serial.println(_airborne ? "true" : "false");
 // #endif
 }
 
 void simulation::outputPrintHeader() {
 // #ifdef DEBUG_SIM
-  Serial.println(F("sim -\tTime\tDelta\tThrust\tMass\tVelocity\tStarting Altitude\tPosition\tAltitude\tAirborne"));
+  // Serial.println(F("sim -\tTime\tDelta\tThrust\tMass\tAcceleration\tVelocity\tPosition\tStarting Altitude\tAltitude\tAirborne"));
+  Serial.println(F("sim -	Time  Delta   Thrust  Mass      Acceleration   Velocity    Position      Starting Alt.  Altitude    Airborne"));
 // #endif
 }
 
@@ -201,6 +234,7 @@ void simulation::start(simulationConfig startConfig, long initialAltitude) {
   _startingAltitude = EarthRadius + initialAltitude;
   _trace[0] = _startingAltitude; // Initial position
   _trace[1] = 0.0; // Initial velocity
+  _trace[2] = 0.0; // Initial acceleration
 
   // Serial.println(F("sim -\tTime\tDelta\tThrust\tMass\tVelocity\tStarting Altitude\tPosition\tAltitude\tAirborne"));
 
@@ -241,6 +275,18 @@ double simulation::valueAltitude() {
   debug("simulation.altitude", altitude);
 #endif
   return altitude;
+}
+
+accelerometerValues simulation::valueAcceleration() {
+  accelerometerValues values;
+  if (!_running)
+    return values;
+
+  values.x = 0;
+  values.y = 0;
+  values.z = _trace[2];
+
+  return values;
 }
 
 simulation _simulation;

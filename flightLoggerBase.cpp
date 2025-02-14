@@ -102,13 +102,13 @@ bool flightLoggerBase::writeFlightFast() {
   return false;
 }
 
-void flightLoggerBase::setFlightAccelX(float accelX) {
+void flightLoggerBase::setFlightAccelX(float x) {
 }
 
-void flightLoggerBase::setFlightAccelY(float accelY) {
+void flightLoggerBase::setFlightAccelY(float y) {
 }
 
-void flightLoggerBase::setFlightAccelZ(float accelZ) {
+void flightLoggerBase::setFlightAccelZ(float z) {
 }
 
 void flightLoggerBase::setFlightAltitude(float altitude) {
@@ -116,6 +116,15 @@ void flightLoggerBase::setFlightAltitude(float altitude) {
 
 bool flightLoggerBase::setFlightData() {
   return false;
+}
+
+void flightLoggerBase::setFlightGyroX(float x) {
+}
+
+void flightLoggerBase::setFlightGyroY(float y) {
+}
+
+void flightLoggerBase::setFlightGyroZ(float z) {
 }
 
 void flightLoggerBase::setFlightHumidity(float humidity) {

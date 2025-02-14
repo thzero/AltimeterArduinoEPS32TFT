@@ -35,11 +35,14 @@ class flightLoggerLFS : public flightLoggerBase {
     bool initFlight();
     void printFlightData(int flightNbr);
     bool readFlight(int flightNbr);
-    void setFlightAccelX(float accelX);
-    void setFlightAccelY(float accelY);
-    void setFlightAccelZ(float accelZ);
+    void setFlightAccelX(float x);
+    void setFlightAccelY(float y);
+    void setFlightAccelZ(float z);
     void setFlightAltitude(float altitude);
     bool setFlightData();
+    void setFlightGyroX(float x);
+    void setFlightGyroY(float y);
+    void setFlightGyroZ(float z);
     void setFlightHumidity(float humidity);
     void setFlightPressure(float pressure);
     void setFlightTemperature(float temperature);

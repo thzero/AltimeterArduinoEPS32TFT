@@ -125,19 +125,22 @@ float stateMachine::loopStateAIRBORNE(unsigned long currentTimestamp, long diffT
   _flightLogger.instance.setFlightAltitude(_flightLogger.data.altitudeCurrent);
 
   // Log the flight temperature and pressure...
-  atmosphereValues val = readSensorAtmosphere();
-  _flightLogger.instance.setFlightHumidity((long)val.temperature);
-  _flightLogger.instance.setFlightTemperature((long)val.temperature);
-  _flightLogger.instance.setFlightPressure((long)val.pressure);
+  atmosphereValues atmosphereValuesO = readSensorAtmosphere();
+  _flightLogger.instance.setFlightHumidity(atmosphereValuesO.temperature);
+  _flightLogger.instance.setFlightTemperature(atmosphereValuesO.temperature);
+  _flightLogger.instance.setFlightPressure(atmosphereValuesO.pressure);
 
   // Log the flight x, y, and z accelerations...
-  // if (_qmi.instance.getDataReady()) {
-  //   if (_qmi.instance.getAccelerometer(_qmi.acc.x, _qmi.acc.y, _qmi.acc.z)) {
-  //     _flightLogger.instance.setFlightAccelX(_qmi.acc.x);
-  //     _flightLogger.instance.setFlightAccelY(_qmi.acc.y);
-  //     _flightLogger.instance.setFlightAccelZ(_qmi.acc.z);
-  //   }
-  // }
+  
+  accelerometerValues accelerometerValuesO = readSensorAccelerometer();
+  _flightLogger.instance.setFlightAccelX(accelerometerValuesO.x);
+  _flightLogger.instance.setFlightAccelY(accelerometerValuesO.y);
+  _flightLogger.instance.setFlightAccelZ(accelerometerValuesO.z);
+  
+  gyroscopeValues gyroscopeValuesO = readSensorGyroscope();
+  _flightLogger.instance.setFlightGyroX(gyroscopeValuesO.x);
+  _flightLogger.instance.setFlightGyroY(gyroscopeValuesO.y);
+  _flightLogger.instance.setFlightGyroZ(gyroscopeValuesO.z);
 
   // Add to the set data to the flight.
   _flightLogger.instance.setFlightData();
@@ -447,4 +450,4 @@ void stateMachine::loopStateGROUNDToAIRBORNE_ASCENT(unsigned long timestamp) {
   _loopState.current = AIRBORNE_ASCENT;
 }
 
-stateMachine _stateMachine;
+stateMachine _stateMachine; 

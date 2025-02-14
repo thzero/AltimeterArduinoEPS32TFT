@@ -29,6 +29,9 @@ struct flightDataStruct {
   float accelZ;
   long altitude;
   long diffTime;
+  float gyroX;
+  float gyroY;
+  float gyroZ;
   float humidity;
   float pressure;
   float temperature;

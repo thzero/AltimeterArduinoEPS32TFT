@@ -2,6 +2,7 @@
 
 #include "debug.h"
 #include "constants.h"
+#include "kalman.h"
 #include "sensor.h"
 #include "sensorIMU.h"
 #include "simulation.h"
@@ -14,20 +15,51 @@ accelerometerValues sensorIMU::readSensorAccelerometer() {
   accelerometerValues values;
   if (_qmi.getDataReady()) {
     if (_qmi.getAccelerometer(_qmiData.acc.x, _qmiData.acc.y, _qmiData.acc.z)) {
-        values.x = (float)_qmiData.acc.x;
-        values.y = (float)_qmiData.acc.y;
-        values.z = (float)_qmiData.acc.x;
+        values.x = _qmiData.acc.x;
+        values.y = _qmiData.acc.y;
+        values.z = _qmiData.acc.x;
       }
     }
 
+#ifdef DEV_SIM
+  if (_simulation.isRunning()) { 
+    values.x = 0; // TODO: Simulation currently does not have these values.
+    values.y = 0; // TODO: Simulation currently does not have these values.
+    values.z = _simulation.valueAltitude();
+  }
+#endif
+
+#if defined(KALMAN) && defined(KALMAN_ACCEL)
+        float value = _kalmanAccelX.kalmanCalc(values.x);
+  #if defined(DEBUG_SENSOR)
+        Serial.print(F("_kalmanAccelX="));
+        Serial.println(value);
+  #endif
+        values.x = value;
+
+        value = _kalmanAccelY.kalmanCalc(values.y);
+  #if defined(DEBUG_SENSOR)
+        Serial.print(F("_kalmanAccelY="));
+        Serial.println(value);
+  #endif
+        values.y = value;
+        
+        value = _kalmanAccelZ.kalmanCalc(values.z);
+  #if defined(DEBUG_SENSOR)
+        Serial.print(F("_kalmanAccelZ="));
+        Serial.println(value);
+  #endif
+        values.z = value;
+#endif
+
 #if defined(DEBUG_SENSOR)
-  Serial.print(F("acc.x="));
+  Serial.print(F("accelerometer.x="));
   Serial.print(values.accX);
   Serial.print(F("\t"));
-  Serial.print(F("acc.y="));
+  Serial.print(F("accelerometer.y="));
   Serial.print(values.accY);
   Serial.print(F("\t"));
-  Serial.print(F("acc.z="));
+  Serial.print(F("accelerometer.z="));
   Serial.print(values.accZ);
 #endif
 
@@ -37,21 +69,53 @@ accelerometerValues sensorIMU::readSensorAccelerometer() {
 gyroscopeValues sensorIMU::readSensorGyroscope() {
   gyroscopeValues values;
   if (_qmi.getDataReady()) {
-    if (_qmi.getAccelerometer(_qmiData.acc.x, _qmiData.acc.y, _qmiData.acc.z)) {
-        values.x = (float)_qmiData.acc.x;
-        values.y = (float)_qmiData.acc.y;
-        values.z = (float)_qmiData.acc.x;
+    if (_qmi.getGyroscope(_qmiData.gyr.x, _qmiData.gyr.y, _qmiData.gyr.z)) {
+        values.x = (float)_qmiData.gyr.x;
+        values.y = (float)_qmiData.gyr.y;
+        values.z = (float)_qmiData.gyr.x;
       }
     }
 
+#ifdef DEV_SIM
+  if (_simulation.isRunning()) { 
+    // TODO: Simulation currently does not have these values.
+    values.x = 0;
+    values.y = 0;
+    values.z = 0;
+  }
+#endif
+
+#if defined(KALMAN) && defined(KALMAN_ACCEL)
+        float value = _kalmanGyroX.kalmanCalc(values.x);
+  #if defined(DEBUG_SENSOR)
+        Serial.print(F("_kalmanGyroX="));
+        Serial.println(value);
+  #endif
+        values.x = value;
+
+        value = _kalmanGyroY.kalmanCalc(values.y);
+  #if defined(DEBUG_SENSOR)
+        Serial.print(F("_kalmanGyroY="));
+        Serial.println(value);
+  #endif
+        values.y = value;
+        
+        value = _kalmanGyroZ.kalmanCalc(values.z);
+  #if defined(DEBUG_SENSOR)
+        Serial.print(F("_kalmanGyroZ="));
+        Serial.println(value);
+  #endif
+        values.z = value;
+#endif
+
 #if defined(DEBUG_SENSOR)
-  Serial.print(F("acc.x="));
+  Serial.print(F("gyro.x="));
   Serial.print(values.x);
   Serial.print(F("\t"));
-  Serial.print(F("acc.y="));
+  Serial.print(F("gyro.y="));
   Serial.print(values.y);
   Serial.print(F("\t"));
-  Serial.print(F("acc.z="));
+  Serial.print(F("gyro.z="));
   Serial.print(values.z);
 #endif
 

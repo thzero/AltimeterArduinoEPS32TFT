@@ -31,11 +31,14 @@ class flightLoggerBase {
     virtual bool initFlight();
     virtual void printFlightData(int flightNbr);
     virtual bool readFlight(int flightNbr);
-    virtual void setFlightAccelX(float accelX);
-    virtual void setFlightAccelY(float accelY);
-    virtual void setFlightAccelZ(float accelZ);
+    virtual void setFlightAccelX(float x);
+    virtual void setFlightAccelY(float y);
+    virtual void setFlightAccelZ(float z);
     virtual void setFlightAltitude(float altitude);
     virtual bool setFlightData();
+    virtual void setFlightGyroX(float x);
+    virtual void setFlightGyroY(float y);
+    virtual void setFlightGyroZ(float z);
     virtual void setFlightHumidity(float humidity);
     virtual void setFlightPressure(float pressure);
     virtual void setFlightTemperature(float temperature);

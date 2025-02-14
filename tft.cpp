@@ -5,8 +5,9 @@
 #include "constants.h"
 #include "debug.h"
 #include "flightLogger.h"
-#include "tft.h"
+#include "sensor.h"
 #include "simulation.h"
+#include "tft.h"
 #include "utilities.h"
 #include "wifi.h"
 #include "images/thzero_altimeters128x128.h"
@@ -38,7 +39,7 @@ void drawTftFlightAirborne(unsigned long timestamp, unsigned long delta) {
   sprintf(altitude, "Initial: %.2fm", _flightLogger.data.altitudeInitial);
   _tft.println(altitude);
 
-  sprintf(altitude, "Current: %f.2m", _flightLogger.data.altitudeCurrent);
+  sprintf(altitude, "Current: %.2fm", _flightLogger.data.altitudeCurrent + _flightLogger.data.altitudeInitial);
   _tft.println(altitude);
 
   drawTftSensorImu();
@@ -202,19 +203,17 @@ void drawTftReset() {
 }
 
 void drawTftSensorImu() {
-  // if (!_qmi.instance.getDataReady())
-  //   return;
-
-  // if (_qmi.instance.getAccelerometer(_qmi.acc.x, _qmi.acc.y, _qmi.acc.z)) {
-  //   char temp[15];
-  //   sprintf(temp, "x=%3.2f m/s", (float)_qmi.acc.x);
-  //   _tft.println("");
-  //   _tft.println(temp);
-  //   sprintf(temp, "y=%3.2f m/s", (float)_qmi.acc.y);
-  //   _tft.println(temp);
-  //   sprintf(temp, "z=%3.2f m/s", (float)_qmi.acc.z);
-  //   _tft.println(temp);
-  // }
+  accelerometerValues accelerometerValuesO = readSensorAccelerometer();
+  char temp[15];
+  sprintf(temp, "x=%3.2f m/s", accelerometerValuesO.x);
+  _tft.println("");
+  _tft.println(temp);
+  sprintf(temp, "y=%3.2f m/s", accelerometerValuesO.y);
+  _tft.println(temp);
+  sprintf(temp, "z=%3.2f m/s", accelerometerValuesO.z);
+  _tft.println(temp);
+  
+  // gyroscopeValues readSensorGyroscope();
 }
 
 void drawTftSleep() {

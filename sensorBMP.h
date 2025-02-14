@@ -22,7 +22,9 @@ class sensorBMP {
     BMP280 _sensor;
     int _count;
     kalman _kalmanAltitude;
+    kalman _kalmanHumidity;
     kalman _kalmanPressure;
+    kalman _kalmanTemperature;
 };
 
 #endif

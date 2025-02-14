@@ -35,7 +35,10 @@
 // #define USE_SLEEP_MODE
 
 // #define KALMAN
+// #define KALMAN_ACCEL
 // #define KALMAN_ALTITUDE
+// #define KALMAN_GYRO
+// #define KALMAN_HUMIDITY
 // #define KALMAN_PRESSURE
 // #define KALMAN_TEMPERATURE
 
