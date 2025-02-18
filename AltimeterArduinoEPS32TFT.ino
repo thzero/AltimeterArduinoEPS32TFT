@@ -7,6 +7,7 @@
 #include "button.h"
 #include "constants.h"
 #include "debug.h"
+#include "fileSystem.h"
 #include "flightLogger.h"
 #include "leds.h"
 #include "loopThrottle.h"
@@ -17,7 +18,6 @@
 #include "sensor.h"
 #include "tft.h"
 #include "utilities.h"
-#include "wifi.h"
 
 unsigned long _timestamp;
 
@@ -131,11 +131,6 @@ void setupFlightLoggerInitialAtmosphere() {
   Serial.println(F("...initial atmosphere initialized."));
 }
 
-// void setupNetwork() {
-//   _ble.start();
-//   _wifi.start();
-// }
-
 void setup() {
   // put your setup code here, to run once:
   Serial.println(F("Setup..."));
@@ -149,6 +144,8 @@ void setup() {
   Wire.begin();
   Serial.begin(SERIAL_BAUD);
 
+  setupFileSystem();
+
   setupFlightLogger();
 
   setupTft();
@@ -161,11 +158,9 @@ void setup() {
 
   setupButton();
 
-  // Setup WiFi so it's available...
-  _wifi.start();
-
-  // Disable Network
-  setupNetworkDisable();
+  // Setup Network so it's available...
+  setupNetwork();
+  networkStart(); // TODO: temp
 
   // battery
   /*

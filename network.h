@@ -1,6 +1,9 @@
 #ifndef _NETWORK_H
 #define _NETWORK_H
 
-extern void setupNetworkDisable();
+extern void networkDisable();
+extern void networkLoop();
+extern void networkStart();
+extern void setupNetwork();
 
 #endif

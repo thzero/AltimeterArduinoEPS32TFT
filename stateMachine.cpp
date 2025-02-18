@@ -11,7 +11,6 @@
 #include "stateMachine.h"
 #include "tft.h"
 #include "utilities.h"
-#include "wifi.h"
 
 // Assumed environmental values
 float altitudeBarometer = 1650.3;  // meters ... map readings + barometer position
@@ -361,7 +360,7 @@ void stateMachine::loopStateLANDEDToGROUND() {
 
 void stateMachine::loopStateToGROUND() {
   // To avoid battery drain, etc. user should choose to turn on networking...
-  // setupNetwork();
+  // networkStart();
 
   drawTftReset();
   drawTftSplash();
@@ -374,8 +373,7 @@ void stateMachine::loopStateGROUND(unsigned long timestamp, unsigned long deltaE
   // Query the button handler to check for button press activity.
   handleButtonLoop();
 
-  // check wifi...
-  _wifi.loop();
+  networkLoop();
 
   // battery
   // voltage = analogReadMilliVolts(10)/500;
@@ -425,7 +423,7 @@ void stateMachine::loopStateGROUND(unsigned long timestamp, unsigned long deltaE
 
 void stateMachine::loopStateGROUNDToAIRBORNE_ASCENT(unsigned long timestamp) {
   // Turn off networks, we don't need it in the air...
-  setupNetworkDisable();
+  networkDisable();
 
   _neoPixelBlinker.off();
   

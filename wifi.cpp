@@ -9,7 +9,7 @@ IPAddress local_IP(192, 168, 1, 4);
 // Set your Gateway IP address
 IPAddress gateway(192, 168, 1, 1);
 
-IPAddress subnet(255, 255, 0, 0);
+IPAddress subnet(255, 255, 255, 0);
 // IPAddress primaryDNS(8, 8, 8, 8);   // optional
 // IPAddress secondaryDNS(8, 8, 4, 4); // optional
 
@@ -23,7 +23,7 @@ bool wifi::connected() {
 void wifi::disable() {
   Serial.println(F("Disable network WiFi..."));
 
-  WiFi.disconnect(true);
+  WiFi.softAPdisconnect(true);
   WiFi.mode(WIFI_OFF);
 
   Serial.println(F("...network WiFi disabled successful."));
@@ -38,17 +38,17 @@ String wifi::ipAddress() {
 }
 
 void wifi::loop() {
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.print(F("WiFi connected..."));
-  }
+  // if (WiFi.status() == WL_CONNECTED) {
+  //   Serial.print(F("WiFi connected..."));
+  // }
 }
 
 String wifi::ssid() {
   return _ssId;
 }
 
-void wifi::start() {
-  Serial.println(F("Start network WiFi..."));
+void wifi::setup() {
+  Serial.println(F("Setup network WiFi..."));
 
   char macAddress[14];
   snprintf(macAddress, 14, "%llX", ESP.getEfuseMac());
@@ -79,20 +79,29 @@ void wifi::start() {
   // }
   // debug(F("serialnumber"), serialnumber);
 
+  Serial.println(F(""));
   Serial.print(F("WiFi SSID: "));
   Serial.println(_ssId);
+  Serial.println(F(""));
 
-  WiFi.mode(WIFI_AP);
+  Serial.println(F("...network WiFi setup successful."));
+}
+
+void wifi::start() {
+  Serial.println(F("Start network WiFi..."));
+
   WiFi.softAP(_ssId, "password123"); // TODO: Dumb...
 
   // if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
-  if (!WiFi.config(local_IP, gateway, subnet)) {
+  if (!WiFi.softAPConfig(local_IP, gateway, subnet)) {
     Serial.println(F("WiFi: STA Failed to configure"));
   }
 
-  _ipAddress = WiFi.localIP().toString();
+  _ipAddress = WiFi.softAPIP().toString();
+  Serial.println(F(""));
   Serial.print(F("WiFi IP address: "));
   Serial.println(_ipAddress);
+  Serial.println(F(""));
 
   Serial.println(F("...network WiFi started successful."));
 }

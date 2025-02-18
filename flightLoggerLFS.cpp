@@ -236,23 +236,23 @@ long flightLoggerLFS::getFlightSize() {
 }
 
 bool flightLoggerLFS::initFileSystem() {
-  if (!LittleFS.begin(false)) {
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
-    Serial.println(F("LittleFS mount failed");
-    Serial.println(F("Did not find filesystem; starting format"));
-#endif
+//   if (!LittleFS.begin(false)) {
+// #if defined(DEBUG) || defined(DEBUG_LOGGER)
+//     Serial.println(F("LittleFS mount failed");
+//     Serial.println(F("Did not find filesystem; starting format"));
+// #endif
 
-    // format if begin fails
-    if (!LittleFS.begin(true)) {
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
-      Serial.println(F("LittleFS mount failed"));
-      Serial.println(F("Formatting not possible"));
-#endif
-      return false;
-    }
+//     // format if begin fails
+//     if (!LittleFS.begin(true)) {
+// #if defined(DEBUG) || defined(DEBUG_LOGGER)
+//       Serial.println(F("LittleFS mount failed"));
+//       Serial.println(F("Formatting not possible"));
+// #endif
+//       return false;
+//     }
 
-    Serial.println(F("Formatting"));
-  }
+//     Serial.println(F("Formatting"));
+//   }
 
   return true;
 }

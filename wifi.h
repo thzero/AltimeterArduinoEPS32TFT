@@ -12,6 +12,7 @@ class wifi {
     String ipAddress();
     void loop();
     String ssid();
+    void setup();
     void start();
     
   private:

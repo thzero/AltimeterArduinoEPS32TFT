@@ -51,9 +51,21 @@ In ArduinoIDE, under Tools->Manage Libraries, add the following libraries
 * TFT_eWidget
 * TFT_eSPI library
   * See Custom TFT_eSPI library section
+* ESPAsyncWebServer
+  * See ESPAsyncWebServer library section
+* AsyncTCP
+  * See AsyncTCP library section
 
 ### SPIFFS
 As the code uses LittleLFS, make sure that the Partition Scheme is set to SPIFFS.  In ArduinoIDE, set the Tools->Partition Scheme to "Default 4MB with Spiffs (1.2MB apps/1.5MB SPIFFS)".
+
+### AsyncTCP
+
+The AsyncTCP library is not available to install through the Arduino Library Manager in ArduinoIDE, use these steps to install.
+
+Go to https://github.com/ESP32Async/AsyncTCP
+Click on Releases and download the latest release as a zip file.
+In ArduinoIDE, Sketch > Include Library > Add .zip Library and select the ESPAsyncWebServer library that was downloaded.
 
 ### Custom TFT_eSPI library
 Using a custom version of the TFT_eSPI that was tweaked by [bdureau](https://github.com/bdureau) to work with this board.
@@ -93,6 +105,19 @@ with this line:
 #include <User_Setups/Setup400_Adafruit_Feather.h>
 ``
 
+### ESPAsyncWebServer
+
+The ESPAsyncWebServer library is not available to install through the Arduino Library Manager in ArduinoIDE, use these steps to install.
+
+Go to https://github.com/ESP32Async/ESPAsyncWebServer
+Click on Releases and download the latest release as a zip file.
+In ArduinoIDE, Sketch > Include Library > Add .zip Library and select the ESPAsyncWebServer library that was downloaded.
+
+### Filesystem Uploader
+To upload the web serveri files in the data directly, ythe ESP32 Uploader Plugin must be installed in ArduinoIDE.
+
+ArduinoIDE 2.X: Install [ESP32 LittleFS Uploader](https://randomnerdtutorials.com/arduino-ide-2-install-esp32-littlefs/)
+
 ## Attach Device
 
 Hold the boot button when plugging in to enter boot loader.
@@ -111,7 +136,6 @@ In AdruinoIDE, open the AltimeterEPS32.ino file.
 
 ## Windows
 The location is at C:\Users\\[user]\OneDrive\Documents\Arduino\AltimeterEPS32.
-
 
 ## Compile
 

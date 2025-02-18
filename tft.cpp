@@ -276,6 +276,9 @@ void drawTftSplash() {
     row += 10;
     String ipAddress = "IP: ";
     ipAddress.concat(_wifi.ipAddress());
+    ipAddress.concat("    ");
+    Serial.print(F("WiFi IP address: "));
+    Serial.println(_wifi.ipAddress());
     _tft.drawString(ipAddress, 6, row);
   }
   else {
