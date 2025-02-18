@@ -77,7 +77,7 @@ git clone https://github.com/bdureau/TFT_eSPI.git
 ``
 
 #### Windows
-Location is C:\Users\\[user>]\OneDrive\Documents\Arduino\libraries on Windows.
+ArdunioIDE Sketch Folder location is at: C:\Users\\[user>]\OneDrive\Documents\Arduino\libraries
 
 #### Tweak Code
 
@@ -114,9 +114,24 @@ Click on Releases and download the latest release as a zip file.
 In ArduinoIDE, Sketch > Include Library > Add .zip Library and select the ESPAsyncWebServer library that was downloaded.
 
 ### Filesystem Uploader
-To upload the web serveri files in the data directly, ythe ESP32 Uploader Plugin must be installed in ArduinoIDE.
+To upload the web server files in the data directly, ythe ESP32 Uploader Plugin must be installed in ArduinoIDE.
 
-ArduinoIDE 2.X: Install [ESP32 LittleFS Uploader](https://randomnerdtutorials.com/arduino-ide-2-install-esp32-littlefs/)
+#### Installation 
+ArduinoIDE 2.X: Install [ESP32 LittleFS Uploader](https://github.com/earlephilhower/arduino-littlefs-upload).
+
+* Go to the Uploader's releases page (https://github.com/earlephilhower/arduino-littlefs-upload/releases).
+  * Download .vsix file
+
+* Windows
+  * IN Windows Explorer, type C:\Users\\[user>]\.arduinoIDE and open that directory.
+* Mac OSX
+  * In Finder, type ~/.arduinoIDE/ and open that directory.
+* Create a new folder called plugins, if a folder by that name is not already present.
+* Move the .vsix file to the plugins folder.
+  * Remove any other previous versions of the same plugin.
+* Restart or open the Arduino IDE 2. 
+
+To check if the plugin was successfully installed, press [Ctrl] + [Shift] + [P] to open the command palette, and search for a command with the name of 'Upload Little FS to Pico/ESP8266/ESP32'.
 
 ## Attach Device
 
@@ -176,6 +191,21 @@ Click the Verify button to see that it compiles succesfully.
   * Enable to build with dev utilities.
   * DEV_SIM
     * Enables the "lightweight" flight simulation capability for testing.
+
+## Upload Files
+
+* Shutdown the Serial Monitor if opened, otherwise the upload tool will fail.
+* Press [Ctrl] + [Shift] + [P] on Windows or [⌘] + [Shift] + [P] on Mac OSX to open the command palette. 
+* Search for the 'Upload LittleFS to Pico/ESP8266/ESP32' command and click on it.
+  * After a few seconds, a "Completed upload." message should be shown which indicate that the files were successfully uploaded to the SPIFFS filesystem.
+
+### Errors
+
+If following error message “ERROR: No port specified, check IDE menus“ is shown...
+
+* Restart the Arduino IDE
+* Validate that the Tools->Port has been selected as the same one used to upload the Sketch with.
+* Retry the Upload tool
 
 ## Load
 
