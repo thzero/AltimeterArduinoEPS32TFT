@@ -30,7 +30,7 @@
 #define SAMPLE_MEASURES_APOGEE 5
 #define SAMPLE_MEASURES_LANDED 20
 
-#define SAMPLE_RATE_MEMORY 1
+#define SAMPLE_RATE_MONITOR 1
 
 // #define USE_SLEEP_MODE
 
@@ -42,6 +42,9 @@
 // #define KALMAN_PRESSURE
 // #define KALMAN_TEMPERATURE
 
+#define MONITOR_MEMORY;
+// #define MONITOR_VOLTAGE;
+
 #define DEBUG
 #define DEBUG_INTERNAL
 // #define DEBUG_ALTIMETER
@@ -50,5 +53,12 @@
 
 #define DEV
 #define DEV_SIM
+
+// Assumed environmental values
+extern float altitudeBarometer;
+extern int altitudeOffsetLiftoff;
+extern int altitudeOffsetGround;
+extern int timeoutRecording;
+extern int timeOutTimeToApogee;
 
 #endif

@@ -13,11 +13,11 @@
 #define RAD2DEG(r)   ((r)*57.29577951f)
 #define DEG2RAD(d)   ((d)*0.017453292f)
 
-#define _180_DIV_PI         57.2957795f
-#define PI_DIV_180          0.017453292f
-#define _2_PI              6.2831853f
+#define _180_DIV_PI 7.2957795f
+#define PI_DIV_180 0.017453292f
+#define _2_PI 6.2831853f
 
-#define CORE_0    0
-#define CORE_1    1
+#define CORE_0 0
+#define CORE_1 1
 
 #endif

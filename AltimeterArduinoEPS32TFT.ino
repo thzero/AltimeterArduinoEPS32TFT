@@ -1,3 +1,7 @@
+//
+// https://www.aliexpress.us/item/3256806269616675.html?spm=a2g0o.order_list.order_list_main.5.16c41802aIJMaX&gatewayAdapt=vnm2usa4itemAdapt
+//
+
 #include <Arduino.h>
 #include <esp_sleep.h>
 #include <Preferences.h>
@@ -11,7 +15,7 @@
 #include "flightLogger.h"
 #include "leds.h"
 #include "loopThrottle.h"
-#include "memory.h"
+#include "monitor.h"
 #include "neoPixel.h"
 #include "network.h"
 #include "stateMachine.h"
@@ -20,6 +24,8 @@
 #include "utilities.h"
 
 unsigned long _timestamp;
+
+static const char* TAG = "AltimeterArduinoESP32TFT";
 
 /*
   This will turn off the altimeter
@@ -73,19 +79,19 @@ void sleepDevice() {
   esp_deep_sleep_start();
 }
 
-loopThrottle _throttleMemory;
+loopThrottle _throttleMnitor;
 void loop() {
   // put your main code here, to run repeatedly
 
   unsigned long current = millis();
   unsigned long delta = current - _timestamp;
 
-  // Determine the memory loop time delay based on sampling rate.
-  int deltaMemory = _throttleMemory.determine(delta, (int)SAMPLE_RATE_MEMORY);
-  if (deltaMemory > 0) {
-    _memory.loop();
-    // Serial.print(F("_throttleMemory..."));
-    // Serial.println(deltaMemory);
+  // Determine the monitor loop time delay based on sampling rate.
+  int deltaMonitor = _throttleMnitor.determine(delta, (int)SAMPLE_RATE_MONITOR);
+  if (deltaMonitor > 0) {
+    _monitor.loop();
+    // Serial.print(F("_throttleMnitor..."));
+    // Serial.println(deltaMonitor);
   }
 
   _stateMachine.loop(current, delta);
@@ -132,6 +138,11 @@ void setupFlightLoggerInitialAtmosphere() {
 }
 
 void setup() {
+  // Enables the ESP_LOGX to go to Serial output.
+#ifdef DEBUG
+  Serial.setDebugOutput(true);
+#endif
+
   // put your setup code here, to run once:
   Serial.println(F("Setup..."));
   Serial.println(F(""));
@@ -185,19 +196,27 @@ void setup() {
 #endif
   Serial.println(F(""));
 
-  _memory.setup();
+  _monitor.setup();
 
+#ifdef MONITOR_MEMORY
   Serial.println(F("Memory Available"));
   Serial.print(F("\tFree Heap"));
   Serial.print(F("\tFree Internal Heap"));
   Serial.println(F("\tFree Minimum Heap"));
   Serial.print(F("\t"));
-  Serial.print(_memory.heap());
+  Serial.print(_monitor.heap());
   Serial.print(F("kb\t\t"));
-  Serial.print(_memory.heapInternal());
+  Serial.print(_monitor.heapInternal());
   Serial.print(F("kb\t\t\t"));
-  Serial.print(_memory.heapMinimum());
+  Serial.print(_monitor.heapMinimum());
   Serial.println(F("kb"));
+#endif
+
+#ifdef MONITOR_BATTERY
+  Serial.println(F("Voltage"));
+  Serial.print(_monitor.voltage());
+  Serial.println(F("V"));
+#endif
 
   _ledsBuiltin.off();
 

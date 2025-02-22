@@ -1,18 +1,16 @@
 #include <Arduino.h>
-#include <Arduino_JSON.h>
 #include <AsyncTCP.h>
+#include <driver/timer.h>
 #include <HTTPClient.h>
 #include <LittleFS.h>
 
+#include "constants.h"
 #include "debug.h"
+#include "flightLogger.h"
+#include "monitor.h"
 #include "web.h"
-
-const char HTML[] PROGMEM = " \
-<html> \
-  <body> \
-    hi \
-  </body> \
-</html>";
+#include "wifi.h"
+// #include "images/thzero_altimeters128x128.h"
 
 web::web() {
 }
@@ -42,32 +40,6 @@ void web::start() {
 
   _server->begin();
 
-  // // Route for root / web page
-  // _server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-  //   request->send(LittleFS, "/index.html", String(), false, processor);
-  // });
-  // _server.on("/temperature", HTTP_GET, [](AsyncWebServerRequest *request){
-  //   request->send_P(200, "text/plain", temperature.c_str());
-  // });
-  // _server.on("/humidity", HTTP_GET, [](AsyncWebServerRequest *request){
-  //   request->send_P(200, "text/plain", humidity.c_str());
-  // });
-  // _server.on("/pressure", HTTP_GET, [](AsyncWebServerRequest *request){
-  //   request->send_P(200, "text/plain", pressure.c_str());
-  // });
-  // _server.on("/timestamp", HTTP_GET, [](AsyncWebServerRequest *request){
-  //   request->send_P(200, "text/plain", timestamp.c_str());
-  // });
-  // _server.on("/rssi", HTTP_GET, [](AsyncWebServerRequest *request){
-  //   request->send_P(200, "text/plain", String(rssi).c_str());
-  // });
-  // _server.on("/winter", HTTP_GET, [](AsyncWebServerRequest *request){
-  //   request->send(LittleFS, "/winter.jpg", "image/jpg");
-  // });
-
-  // // Start server
-  // server.begin();
-
   Serial.println(F("...network web server started successful."));
 }
 
@@ -75,49 +47,168 @@ void web::configure() {
   _server->onNotFound([this](AsyncWebServerRequest * request) {
     this->serverNotFound(request);
   });
-  // server->onFileUpload(server_handle_upload);
-  _server->on("/", HTTP_GET, [this](AsyncWebServerRequest * request) {
-    // ESP_LOGD(TAG,"Client: %s %s",request->client()->remoteIP().toString().c_str(), request->url().c_str());
-    // if (server_authenticate(request)) {
-    //   ESP_LOGD(TAG," Auth: Success");
-      Serial.println(F("\twebserver request /"));
-      // request->send(200, "text/plain", "Hello, world");
 
-      request->send(LittleFS, "/index.html", "text/html", false, NULL);
-
-      // if (!LittleFS.begin()){
-      //   Serial.println(F("An Error has occurred while mounting LittleFS"));
-      //   return;
-      // }
-      
-      // File file = LittleFS.open("/test_example.txt", "r");
-      // if (!file){
-      //   Serial.println(F("Failed to open file for reading"));
-      //   return;
-      // }
-      
-      // Serial.println(F("File Content: "));
-      // while (file.available()){
-      //   Serial.write(file.read());
-      // }
-      // file.close();
-    //   }  
-    // else {
-    //   ESP_LOGD(TAG," Auth: Failed");
-    //   return request->requestAuthentication();
-    //   }
+  _server->onFileUpload([this](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+    this->serverHandleUpload(request, filename, index, data, len, final);
   });
 
-  // // Route to load style.css file
-  // server->on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
-  //   request->send(LittleFS, "/style.css", "text/css");
-  // });
+  _server->on("/", HTTP_GET, [this](AsyncWebServerRequest * request) {
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...home"));
+    #endif
+    
+    // if (server_authenticate(request)) {
+    //   ESP_LOGD(TAG," Auth: Success");
+    // Serial.println(F("\twebserver request /"));
+    // request->send(200, "text/plain", "Hello, world");
+
+    // request->send(LittleFS, "/index.html", "text/html", false, [this](const String& var) {
+    //   return this->serverProcessor(var);
+    // });
+    request->send(LittleFS, "/index.html", "text/html", false, NULL);
+  });
+
+  _server->on("/script.js", HTTP_GET, [this](AsyncWebServerRequest * request) {
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...script.js"));
+    #endif
+
+    request->send(LittleFS, "/script.js", "text/javascript", false, NULL);
+  });
+
+  // Route to load data JSON
+  _server->on("/data", HTTP_GET, [this](AsyncWebServerRequest *request) {
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...data"));
+    #endif
+
+    AsyncJsonResponse *response = new AsyncJsonResponse();
+    JsonObject root = response->getRoot().to<JsonObject>();
+    this->jsonAtmosphere(root);
+    this->jsonHeader(root);
+    this->jsonLaunch(root);
+    this->jsonMonitor(root);
+    this->jsonSamples(root);
+    this->jsonWifi(root);
+    response->setLength();
+    request->send(response);
+  });
+
+  // Route to load settings data JSON
+  _server->on("/settings/data", HTTP_GET, [this](AsyncWebServerRequest *request) {
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...settings data"));
+    #endif
+
+    AsyncJsonResponse *response = new AsyncJsonResponse();
+    JsonObject root = response->getRoot().to<JsonObject>();
+    this->jsonHeader(root);
+    this->jsonLaunch(root);
+    this->jsonSamples(root);
+    this->jsonWifi(root);
+    response->setLength();
+    request->send(response);
+  });
+
+  _server->on("/settings", HTTP_GET, [this](AsyncWebServerRequest * request) {
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...settings"));
+    #endif
+
+    // if (server_authenticate(request)) {
+    //   ESP_LOGD(TAG," Auth: Success");
+    // request->send(LittleFS, "/settings.html", "text/html", false, [this](const String& var) {
+    //   return this->serverProcessor(var);
+    // });
+    request->send(LittleFS, "/settings.html", "text/html", false, NULL);
+  });
+
+  AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler("/settings/reset");
+  handler->setMethod(HTTP_POST | HTTP_PUT);
+  handler->onRequest([](AsyncWebServerRequest *request, JsonVariant &json) {
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...settings reset"));
+    #endif
+
+    // TODO: reset preferences...
+
+    AsyncJsonResponse *response = new AsyncJsonResponse();
+    JsonObject responseResult = response->getRoot().to<JsonObject>();
+    response->setLength();
+    request->send(responseResult);
+  });
+  _server->addHandler(handler);
+
+  handler = new AsyncCallbackJsonWebHandler("/settings/save");
+  handler->setMethod(HTTP_POST | HTTP_PUT);
+  handler->onRequest([](AsyncWebServerRequest *request, JsonVariant &json) {
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...settings save"));
+    #endif
+
+    #ifdef DEBUG
+    serializeJson(json, Serial);
+    Serial.println("");
+    #endif
+
+    const char* wifiSSID = json["wifiSSID"];
+    debug("wifiSSID", wifiSSID);
+    int launchDetect = json["launchDetect"];
+    debug("launchDetect", launchDetect);
+    int samplesAscent = json["samplesAscent"];
+    debug("samplesAscent", samplesAscent);
+    int samplesDescent = json["samplesDescent"];
+    debug("samplesDescent", samplesDescent);
+    int samplesGround = json["samplesGround"];
+    debug("samplesGround", samplesGround);
+
+    AsyncJsonResponse *response = new AsyncJsonResponse();
+    JsonObject responseResult = response->getRoot().to<JsonObject>();
+    response->setLength();
+    request->send(responseResult);
+  });
+  _server->addHandler(handler);
+
+  // Route to load style.css file
+  _server->on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request) {
+    Serial.println(F("\twebserver request /style.css"));
+    request->send(LittleFS, "/style.css", "text/css");
+  });
+
+  // Route to load logo.png file
+  _server->on("/logo.png", HTTP_GET, [](AsyncWebServerRequest *request) {
+      Serial.println(F("\twebserver request /logo.png"));
+    // //request->send_P(200, "image/png", thzero_altimeters128x128, NULL);
+    // const size_t imageSize = sizeof thzero_altimeters128x128;
+    // AsyncWebServerResponse *response = request->beginChunkedResponse("image/bmp", [](uint8_t *buffer, size_t maxLen, size_t alreadySent) -> size_t {
+    //   if (imageSize - alreadySent >= maxLen) {
+    //     memcpy(buffer, thzero_altimeters128x128 + alreadySent, maxLen);
+    //     return maxLen;
+    //   }
+    //   memcpy(buffer, thzero_altimeters128x128 + alreadySent, imageSize - alreadySent);
+    //   return imageSize - alreadySent; 
+    // });
+    // request->send(response);
+    request->send(LittleFS, "/logo.png", "image/png");
+  });
+
+  // Route to load battery.png file
+  _server->on("/battery.png", HTTP_GET, [](AsyncWebServerRequest *request) {
+    Serial.println(F("\twebserver request /battery.png"));
+    request->send(LittleFS, "/battery.png", "image/png");
+  });
+
+  // Route to load transparent.png file
+  _server->on("/transparent.png", HTTP_GET, [](AsyncWebServerRequest *request) {
+    Serial.println(F("\twebserver request /transparent.png"));
+    request->send(LittleFS, "/transparent.png", "image/png");
+  });
 
   // server->on("/datalog", HTTP_GET, [](AsyncWebServerRequest * request) {
   //   ESP_LOGD(TAG,"Client: %s %s",request->client()->remoteIP().toString().c_str(), request->url().c_str());
   //   if (FlashLogFreeAddress) {
   //     AsyncWebServerResponse *response = request->beginResponse("application/octet-stream", FlashLogFreeAddress, [](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-  //       feed_watchdog(); // prevent watchdog resets when downloading large files
+  //       feedWatchdog(); // prevent watchdog resets when downloading large files
   //       return datalog_chunked_read(buffer, maxLen, index);
   //     });
   //     response->addHeader("Content-Disposition", "attachment; filename=datalog");
@@ -159,10 +250,10 @@ void web::configure() {
   //         ESP_LOGD(TAG," file exists");
   //         if (strcmp(fileAction, "download") == 0) {
   //           ESP_LOGD(TAG, " downloaded");
-  //           LittleFSFile = LittleFS.open(fileName, "r");
-  //           int sizeBytes = LittleFSFile.size();
+  //           fileLittleFS = LittleFS.open(fileName, "r");
+  //           int sizeBytes = fileLittleFS.size();
   //           AsyncWebServerResponse *response = request->beginResponse("application/octet-stream", sizeBytes, [](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-  //             feed_watchdog();
+  //             feedWatchdog();
   //             return littlefs_chunked_read(buffer, maxLen);
   //             });
   //           char szBuf[80];
@@ -209,99 +300,215 @@ void web::serverNotFound(AsyncWebServerRequest *request) {
 //   return isAuthenticated;
 //   }
 
+void web::serverHandleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+  if (filename.endsWith(".bin") ) {
+    // .bin files uploaded are processed as application firmware updates
+    serverHandleUploadOTAUpdate(request, filename, index, data, len, final);
+    return;
+  }
 
-// static void server_handle_upload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
-//   if (filename.endsWith(".bin") ) {
-//     // .bin files uploaded are processed as application firmware updates
-//     server_handle_OTA_update(request, filename, index, data, len, final);
-//     }
-//   else {
-//     // non .bin files are uploaded to the LITTLEFS partition
-//     size_t freeBytes = LittleFS.totalBytes() - LittleFS.usedBytes();
-//     if (len < freeBytes) {
-//       server_handle_littleFS_upload(request, filename, index, data, len, final);
-//       }
-//     else {
-//       ESP_LOGD(TAG, "Cannot upload file size %d bytes, as LittleFS free space = %d bytes", len, freeBytes);
-//       request->send(404, "text/plain", "Not enough free space in LittleFS partition");
-//       }
-//     }
+  // non .bin files are uploaded to the LITTLEFS partition
+  size_t freeBytes = LittleFS.totalBytes() - LittleFS.usedBytes();
+  if (len < freeBytes) {
+    serverHandleUploadLittleFS(request, filename, index, data, len, final);
+    return;
+  }
+
+  char szBuf[80];
+  sprintf(szBuf, "Cannot upload file size %d bytes, as LittleFS free space = %d bytes", len, freeBytes);
+  Serial.println(szBuf);
+  request->send(404, "text/plain", "Not enough free space in LittleFS partition.");
+}
+
+// handles non .bin file uploads to the LITTLEFS directory
+void web::serverHandleUploadLittleFS(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+  // make sure authenticated before allowing upload
+  // if (serverAuthenticate(request)) {
+  //   Serial.println("Auth: Failed");
+  //   return request->requestAuthentication();
+  // }
+
+  char szBuf[80];
+  sprintf(szBuf, "Client: %s %s",request->client()->remoteIP().toString().c_str(), request->url().c_str());
+  Serial.println(szBuf);
+
+  // open the file on first call
+  if (index == 0) {
+    sprintf(szBuf, "Upload Start : %s", filename.c_str());
+    Serial.println(szBuf);
+
+    filename = "/" + filename;
+    if (LittleFS.exists(filename)) {
+      bool res = LittleFS.remove(filename);
+      sprintf(szBuf, "Delete file %s : %s", filename, res == false ? "Error" : "OK");
+      Serial.println(szBuf);
+    }
+
+    fileLittleFS = LittleFS.open(filename, FILE_WRITE);
+  }
+
+  if (len) {
+    // stream the incoming chunk to the opened file
+    feedWatchdog();
+    fileLittleFS.write(data, len);
+    sprintf(szBuf, "Writing file : %s, index = %d, len = %d", filename.c_str(), index, len);
+    Serial.println(szBuf);
+  }
+
+  if (final) {
+    sprintf(szBuf, "Upload Complete : %s, size = %d", filename.c_str(), index+len);
+    Serial.println(szBuf);
+    
+    // close the file handle after upload
+    fileLittleFS.close();
+  } 
+}
+
+// handles OTA firmware update
+void web::serverHandleUploadOTAUpdate(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+  // // make sure authenticated before allowing upload
+  // if (server_authenticate(request)) {
+  // char szBuf[80];
+  // sprintf(szBuf, "Client: %s %s",request->client()->remoteIP().toString().c_str(), request->url().c_str());
+  // Serial.println(szBuf);
+  //   ESP_LOGD(TAG,"Client: %s %s",request->client()->remoteIP().toString().c_str(), request->url().c_str());
+  //   if (!index) {
+  //     ESP_LOGD(TAG,"OTA Update Start : %s", filename.c_str());
+  //     if (!Update.begin(UPDATE_SIZE_UNKNOWN)) { //start with max available size
+  //       Update.printError(Serial);
+  //       }
+  //     }
+
+  //   if (len) {
+  //     feedWatchdog();
+  //     // flashing firmware to ESP
+  //     if (Update.write(data, len) != len) {
+  //       Update.printError(Serial);
+  //       }      
+  //     ESP_LOGD(TAG,"Writing : %s index = %d len = %d", filename.c_str(), index, len);
+  //     }
+
+  //   if (final) {
+  //     if (Update.end(true)) { //true to set the size to the current progress
+  //       ESP_LOGD(TAG,"OTA Complete : %s, size = %d", filename.c_str(), index + len);
+  //       } 
+  //     else {
+  //       Update.printError(Serial);
+  //       }
+  //     delayMs(1000);
+  //     ESP.restart(); // force reboot after firmware update
+  //     }
+  //   } 
+  // else {
+  //   ESP_LOGD(TAG,"Auth: Failed");
+  //   return request->requestAuthentication();
+  //   }
+  // }
+}
+
+// replace %var%  in webpage with dynamically generated string
+// String web::serverProcessor(const String& var) {
+//   // Serial.println(var);
+//   char temp[23];
+
+//   if (var == "TITLE")
+//       return String(BOARD_NAME);
+
+//   if (var == "COPYRIGHT")
+//       return String(COPYRIGHT); 
+//   if (var == "COPYRIGHT_YEARS")
+//       return String(COPYRIGHT_YEARS); 
+
+//   if (var == "VERSION")
+//       return String(MAJOR_VERSION) + "." + String(MINOR_VERSION); 
+
+//   if (var == "LAUNCH_DETECT") {
+//     sprintf(temp, "%d", altitudeOffsetLiftoff);
+//     return temp;
+//     return "20"; // TODO
+//   }
+    
+//   if (var == "MONITOR_BATTERY_VOLTAGE") {
+//     return "3.5";   // TODO: determine if battery level if plugged in...
+//   }
+//   if (var == "MONITOR_BATTERY_VOLTAGE_MAX") {
+//     return "3.7";   // TODO: determine if battery level if plugged in...
 //   }
 
+//   if (var == "MONITOR_BATTERY_STATUS")
+// #ifdef MONITOR_BATTERY
+//     return "true";  // TODO: determine if battery is plugged in...
+// #else
+//     return "false";
+// #endif
 
-// // handles non .bin file uploads to the LITTLEFS directory
-// static void server_handle_littleFS_upload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
-//   // make sure authenticated before allowing upload
-//   if (server_authenticate(request)) {
-//     ESP_LOGD(TAG,"Client: %s %s",request->client()->remoteIP().toString().c_str(), request->url().c_str());
-//     // open the file on first call
-//     if (index == 0) {
-//       ESP_LOGD(TAG,"Upload Start : %s", filename.c_str());
-//       filename = "/" + filename;
-//       if (LittleFS.exists(filename)) {
-//         bool res = LittleFS.remove(filename);
-//         ESP_LOGD(TAG, "Delete file %s : %s", filename, res == false ? "Error" : "OK");
-//         }
-//       LittleFSFile = LittleFS.open(filename, FILE_WRITE);
-//       }
-
-//     if (len) {
-//       // stream the incoming chunk to the opened file
-//       feed_watchdog();
-//       LittleFSFile.write(data, len);
-//       ESP_LOGD(TAG,"Writing file : %s, index = %d, len = %d", filename.c_str(), index, len);
-//       }
-
-//     if (final) {
-//       ESP_LOGD(TAG,"Upload Complete : %s, size = %d", filename.c_str(), index+len);
-//       // close the file handle after upload
-//       LittleFSFile.close();
-//       }
-//     } 
-//   else {
-//     ESP_LOGD(TAG,"Auth: Failed");
-//     return request->requestAuthentication();
-//     }
+//   if (var == "MONITOR_MEMORY_FREE") {
+//     sprintf(temp, "%u", _monitor.heap());
+//     return temp;
 //   }
 
+//   if (var == "WIFI_ADDRESS")
+//     return _wifi.ipAddress();
 
-// // handles OTA firmware update
-// static void server_handle_OTA_update(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
-//   // make sure authenticated before allowing upload
-//   if (server_authenticate(request)) {
-//     ESP_LOGD(TAG,"Client: %s %s",request->client()->remoteIP().toString().c_str(), request->url().c_str());
-//     if (!index) {
-//       ESP_LOGD(TAG,"OTA Update Start : %s", filename.c_str());
-//       if (!Update.begin(UPDATE_SIZE_UNKNOWN)) { //start with max available size
-//         Update.printError(Serial);
-//         }
-//       }
+//   if (var == "WIFI_SSID")
+//     return _wifi.ssid();
 
-//     if (len) {
-//       feed_watchdog();
-//       // flashing firmware to ESP
-//       if (Update.write(data, len) != len) {
-//         Update.printError(Serial);
-//         }      
-//       ESP_LOGD(TAG,"Writing : %s index = %d len = %d", filename.c_str(), index, len);
-//       }
+//   // if (var == "TOTALDATALOG")
+//   //     return server_ui_size(FLASH_SIZE_BYTES);
 
-//     if (final) {
-//       if (Update.end(true)) { //true to set the size to the current progress
-//         ESP_LOGD(TAG,"OTA Complete : %s, size = %d", filename.c_str(), index + len);
-//         } 
-//       else {
-//         Update.printError(Serial);
-//         }
-//       delayMs(1000);
-//       ESP.restart(); // force reboot after firmware update
-//       }
-//     } 
-//   else {
-//     ESP_LOGD(TAG,"Auth: Failed");
-//     return request->requestAuthentication();
-//     }
-//   }
+//   // if (var == "USEDDATALOG")
+//   //     return server_ui_size(FlashLogFreeAddress);26
+  
+//   return "?";
 // }
+
+void web::feedWatchdog() {
+  // TIMERG0.wdt_wprotect = TIMG_WDT_WKEY_VALUE;
+  // TIMERG0.wdt_feed = 1;
+  // TIMERG0.wdt_wprotect = 0;
+  TIMERG0.wdtwprotect.wdt_wkey = 1356348065;
+  TIMERG0.wdtfeed.wdt_feed = 1;
+  TIMERG0.wdtwprotect.wdt_wkey = 0;
+}
+
+void web::jsonAtmosphere(JsonObject root) {
+  root["altitudeASL"] = _flightLogger.data.pressureInitial;
+  root["pressureAbove"] = _flightLogger.data.altitudeInitial;
+  root["pressureAt"] = _flightLogger.data.pressureInitial; // TODO
+  root["temperature"] = _flightLogger.data.temperatureInitial; // TODO
+}
+
+void web::jsonHeader(JsonObject root) {
+  root["title"] = BOARD_NAME;
+  root["copyright"] = COPYRIGHT;
+  root["copyrightYears"] = COPYRIGHT_YEARS;
+  root["version"] = String(MAJOR_VERSION) + "." + String(MINOR_VERSION);
+}
+
+void web::jsonLaunch(JsonObject root) {
+    root["launchDetect"] = altitudeOffsetLiftoff;
+}
+
+void web::jsonMonitor(JsonObject root) {
+#ifdef MONITOR_BATTERY
+    root["monitorBatteryStatus"] = true;
+#else
+    root["monitorBatteryStatus"] = false;
+#endif
+    root["monitorBatteryVoltage"] = "3.5";
+    root["monitorBatteryVoltageMax"] = "3.7";
+    root["monitorMemoryFree"] = _monitor.heap();
+}
+
+void web::jsonSamples(JsonObject root) {
+    root["samplesAscent"] = SAMPLE_RATE_AIRBORNE_ASCENT;
+    root["samplesDescent"] = SAMPLE_RATE_AIRBORNE_DESCENT;
+    root["samplesGround"] = SAMPLE_RATE_GROUND;
+}
+
+void web::jsonWifi(JsonObject root) {
+    root["wifiAddress"] = _wifi.ipAddress();
+    root["wifiSSID"] = _wifi.ssid();
+}
 
 web _web;
