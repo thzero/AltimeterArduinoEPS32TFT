@@ -12,6 +12,7 @@
       <td style="text-align: center;">
         <h1 id="title"></h1>
         <p id="copyright"></p>
+        <p>Version <span id="version"></span></p>
       </td>
       <td style="width: 20%;"></td>
     </tr>
@@ -21,8 +22,7 @@
 
   <table style="width: 100%;">
     <tr>
-      <td class="left" >Version:</td>
-      <td id="version" class="left" style="width: 50%;"></td>
+      <td colspan="2"></td>
       <td colspan="2" class="right" style="width: 50%;"><a href="/">Home</a></td>
     </tr>
     <tr>
@@ -46,6 +46,7 @@
       <td class="left" style="padding-right: 12px;white-space: nowrap;">&nbsp;&nbsp;Descent</td>
       <td class="left" style="width: 50%;">
         <select id="samplesDescent">
+          <option value="1">1</option>
           <option value="2">2 (default)</option>
           <option value="3">3</option>
           <option value="4">4</option>
@@ -97,6 +98,12 @@
       </td>
     </tr>
     <tr>
+      <td class="left" style="padding-right: 12px;white-space: nowrap;">WIFI Password</td>
+      <td class="left" style="width: 50%;">
+        <input type="text" id="wifiPassword"></input>
+      </td>
+    </tr>
+    <tr>
       <td colspan="4">&nbsp;</td>
     </tr>
     <tr>
@@ -107,15 +114,17 @@
       </td>
     </tr>
   </table>
-  <pre id="debug"></pre>
+  <pre id="debug" style="display: none"></pre>
 <script src="/script.js"></script>
 <script>
+var _json;
 function reset() {
   requestPostJSON('/settings/reset', {});
   requestGet('/settings/data', set);
 }
 
 function save() {
+  let wifiPasswordEl = document.getElementById("wifiPassword");
   let wifiSSIDEl = document.getElementById("wifiSSID");
   let launchDetectEl = document.getElementById("launchDetect");
   let samplesAscentEl = document.getElementById("samplesAscent");
@@ -123,14 +132,25 @@ function save() {
   let samplesGroundEl = document.getElementById("samplesGround");
 
   const json = {
+    wifiPassword: wifiPasswordEl.value,
     wifiSSID: wifiSSIDEl.value,
     launchDetect: launchDetectEl.value,
     samplesAscent: samplesAscentEl.value,
     samplesDescent: samplesDescentEl.value,
     samplesGround: samplesGroundEl.value
   }
+
+  if ((json.wifiPassword !== _json.wifiPassword) ||
+      (json.wifiSSID !== _json.wifiSSID)) {
+    if (!confirm(`Password: ${json.wifiPassword}\nSSID: ${json.wifiSSID}\nThis will restart the WIFI device and shut down the current connection.\nAre you sure?`)) {
+      return;
+    }
+  }
+
+  alert('hi')
   
-  requestPostJSON('/settings/save', json);
+  //requestPostJSON('/settings/save', json);
+  //requestGet('/settings/data', set);
 }
 
 function set(json) {
@@ -141,6 +161,8 @@ function set(json) {
   launch(json, true);
   samples(json, true);
   wifi(json, true);
+
+  _json = json;
 }
 
 function init() {

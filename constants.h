@@ -14,6 +14,8 @@
 // Constants
 //////////////////////////////////////////////////////////////////////
 
+#define PREFERENCE_KEY "altimeter"
+
 // #define SERIAL_BAUD 38400
 #define SERIAL_BAUD 115200
 #define STATUS_HEIGHT_BAR 10
@@ -31,6 +33,8 @@
 #define SAMPLE_MEASURES_LANDED 20
 
 #define SAMPLE_RATE_MONITOR 1
+
+#define ALTITUDE_LIFTOFF 20
 
 // #define USE_SLEEP_MODE
 
@@ -53,12 +57,5 @@
 
 #define DEV
 #define DEV_SIM
-
-// Assumed environmental values
-extern float altitudeBarometer;
-extern int altitudeOffsetLiftoff;
-extern int altitudeOffsetGround;
-extern int timeoutRecording;
-extern int timeOutTimeToApogee;
 
 #endif

@@ -184,6 +184,8 @@ void setup() {
 
   drawTftSplash();
 
+  _stateMachine.setup();
+
   Serial.println(F(""));
   Serial.print(BOARD_FIRMWARE);
 

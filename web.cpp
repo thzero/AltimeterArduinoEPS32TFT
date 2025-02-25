@@ -6,8 +6,10 @@
 
 #include "constants.h"
 #include "debug.h"
+#include "fileSystem.h"
 #include "flightLogger.h"
 #include "monitor.h"
+#include "stateMachine.h"
 #include "web.h"
 #include "wifi.h"
 // #include "images/thzero_altimeters128x128.h"
@@ -106,6 +108,13 @@ void web::configure() {
     this->jsonLaunch(root);
     this->jsonSamples(root);
     this->jsonWifi(root);
+
+    #ifdef DEBUG
+    Serial.println("");
+    serializeJson(root, Serial);
+    Serial.println("");
+    #endif
+
     response->setLength();
     request->send(response);
   });
@@ -147,10 +156,12 @@ void web::configure() {
     #endif
 
     #ifdef DEBUG
+    Serial.println(F("\twebserver request...settings inbound data"));
     serializeJson(json, Serial);
     Serial.println("");
-    #endif
 
+    const char* wifiPassword = json["wifiPassword"];
+    debug("wifiPassword", wifiPassword);
     const char* wifiSSID = json["wifiSSID"];
     debug("wifiSSID", wifiSSID);
     int launchDetect = json["launchDetect"];
@@ -161,6 +172,22 @@ void web::configure() {
     debug("samplesDescent", samplesDescent);
     int samplesGround = json["samplesGround"];
     debug("samplesGround", samplesGround);
+    #endif
+
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...settings save - state"));
+    #endif
+    _stateMachine.save(launchDetect, samplesAscent, samplesDescent, samplesGround);
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...settings save - state completed"));
+    #endif
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...settings save - wifi"));
+    #endif
+    _wifi.save(wifiPassword, wifiSSID);
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...settings save - wifi completed"));
+    #endif
 
     AsyncJsonResponse *response = new AsyncJsonResponse();
     JsonObject responseResult = response->getRoot().to<JsonObject>();
@@ -486,7 +513,7 @@ void web::jsonHeader(JsonObject root) {
 }
 
 void web::jsonLaunch(JsonObject root) {
-    root["launchDetect"] = altitudeOffsetLiftoff;
+    root["launchDetect"] = _stateMachine.launchDetect();
 }
 
 void web::jsonMonitor(JsonObject root) {
@@ -497,17 +524,22 @@ void web::jsonMonitor(JsonObject root) {
 #endif
     root["monitorBatteryVoltage"] = "3.5";
     root["monitorBatteryVoltageMax"] = "3.7";
+    
     root["monitorMemoryFree"] = _monitor.heap();
+
+    root["fileSystemTotalBytes"] = fileSystemTotalBytes();
+    root["fileSystemUsedBytes"] = fileSystemUsedBytes();
 }
 
 void web::jsonSamples(JsonObject root) {
-    root["samplesAscent"] = SAMPLE_RATE_AIRBORNE_ASCENT;
-    root["samplesDescent"] = SAMPLE_RATE_AIRBORNE_DESCENT;
-    root["samplesGround"] = SAMPLE_RATE_GROUND;
+    root["samplesAscent"] = _stateMachine.sampleRateAirborneAscent();
+    root["samplesDescent"] = _stateMachine.sampleRateAirborneDescent();
+    root["samplesGround"] = _stateMachine.sampleRateGround();
 }
 
 void web::jsonWifi(JsonObject root) {
     root["wifiAddress"] = _wifi.ipAddress();
+    root["wifiPassword"] = _wifi.password();
     root["wifiSSID"] = _wifi.ssid();
 }
 

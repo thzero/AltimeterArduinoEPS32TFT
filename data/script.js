@@ -82,7 +82,12 @@ function launch(json, editable) {
     launchDetectEl.innerHTML = json.launchDetect;
 }
 
-function memory(json) {
+function monitor(json) {
+  let fileSystemTotalBytesEl = document.getElementById('fileSystemTotalBytes');
+  fileSystemTotalBytesEl.innerHTML = Number(json.fileSystemTotalBytes / 1000).toFixed(2);
+  let fileSystemUsedBytesEl = document.getElementById('fileSystemUsedBytes');
+  fileSystemUsedBytesEl.innerHTML = Number(json.fileSystemUsedBytes / 1000).toFixed(2);
+
   let memoryEl = document.getElementById('memoryFree');
   memoryEl.innerHTML = json.monitorMemoryFree;
 }
@@ -113,6 +118,11 @@ function wifi(json, editable) {
     wifiSSIDEl.value = json.wifiSSID;
   else
     wifiSSIDEl.innerHTML = json.wifiSSID;
+  let wifiPasswordEl = document.getElementById('wifiPassword');
+  if (editable)
+    wifiPasswordEl.value = json.wifiPassword;
+  else
+    wifiPasswordEl.innerHTML = json.wifiPassword;
 }
 
 function requestGet(url, callback) {

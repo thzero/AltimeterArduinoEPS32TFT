@@ -1,10 +1,12 @@
+#include <Arduino.h>
+#include <Preferences.h>
+
 #include "button.h"
 #include "commands.h"
 #include "constants.h"
 #include "debug.h"
 #include "flightLogger.h"
 #include "leds.h"
-#include "loopThrottle.h"
 #include "neoPixel.h"
 #include "network.h"
 #include "sensor.h"
@@ -148,7 +150,7 @@ float stateMachine::loopStateAIRBORNE(unsigned long currentTimestamp, long diffT
 }
 
 void stateMachine::loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaElapsed) {
-  int delta = _throttleAirborneAscent.determine(deltaElapsed, (int)SAMPLE_RATE_AIRBORNE_ASCENT);
+  int delta = _throttleAirborneAscent.determine(deltaElapsed, _sampleRateAirborneAscent);
   if (delta == 0)
     return;
 
@@ -250,7 +252,7 @@ void stateMachine::loopStateAIRBORNE_ASCENTToAIRBORNE_DESCENT() {
 }
 
 void stateMachine::loopStateAIRBORNE_DESCENT(unsigned long timestamp, unsigned long deltaElapsed) {
-  int delta = _throttleAirborneDescent.determine(deltaElapsed, (int)SAMPLE_RATE_AIRBORNE_DESCENT);
+  int delta = _throttleAirborneDescent.determine(deltaElapsed, _sampleRateAirborneDescent);
   if (delta == 0)
     return;
 
@@ -265,10 +267,10 @@ void stateMachine::loopStateAIRBORNE_DESCENT(unsigned long timestamp, unsigned l
 
   float altitudeDelta = loopStateAIRBORNE(currentTimestamp, diffTime);
 
-  bool altitudeCheck = _flightLogger.data.altitudeCurrent < altitudeOffsetGround;
+  bool altitudeCheck = _flightLogger.data.altitudeCurrent < _altitudeGround;
   bool timeoutRecordingCheck = ((timestamp - _flightLogger.data.timestampLaunch) > timeoutRecording);
 #ifdef DEBUG_ALTIMETER
-  debug(F("loopStateAIRBORNE_DESCENT...altitudeOffsetGround"), altitudeOffsetGround);
+  debug(F("loopStateAIRBORNE_DESCENT...altitudeGround"), _altitudeGround);
   debug(F("loopStateAIRBORNE_DESCENT...altitudeCheck"), altitudeCheck);
   debug(F("loopStateAIRBORNE_DESCENT...timeoutRecordingCheck"), timeoutRecordingCheck);
 #endif
@@ -379,7 +381,7 @@ void stateMachine::loopStateGROUND(unsigned long timestamp, unsigned long deltaE
 
 
   // Determine the ground loop time delay based on sampling rate.
-  int delta = _throttleGround.determine(deltaElapsed, (int)SAMPLE_RATE_GROUND);
+  int delta = _throttleGround.determine(deltaElapsed, _sampleRateGround);
   if (delta == 0)
     return;
 
@@ -405,9 +407,9 @@ void stateMachine::loopStateGROUND(unsigned long timestamp, unsigned long deltaE
   // If the delta altitude is less than the specified liftoff altitude, then its on the ground.
   // Lift altitude is a measurement of the difference between the initial altitude and current altitude.
 #ifdef DEBUG_ALTIMETER
-  debug(F("stateGROUND...altitudeOffsetLiftoff"), altitudeOffsetLiftoff);
+  debug(F("stateGROUND...altitudeLiftoff"), _altitudeLiftoff);
 #endif
-  if (altitudeDelta > altitudeOffsetLiftoff) {
+  if (altitudeDelta > _altitudeLiftoff) {
     // Transition to the AIRBORNE_ASCENT ascent stage.
     loopStateGROUNDToAIRBORNE_ASCENT(timestamp);
     return;
@@ -441,4 +443,105 @@ void stateMachine::loopStateGROUNDToAIRBORNE_ASCENT(unsigned long timestamp) {
   _loopState.current = AIRBORNE_ASCENT;
 }
 
-stateMachine _stateMachine; 
+void stateMachine::reset() {
+  Serial.println(F("Reset state machine..."));
+
+  _altitudeLiftoff = (int)ALTITUDE_LIFTOFF;
+  _sampleRateAirborneAscent = (int)SAMPLE_RATE_AIRBORNE_ASCENT;
+  _sampleRateAirborneDescent = (int)SAMPLE_RATE_AIRBORNE_DESCENT;
+  _sampleRateGround = (int)SAMPLE_RATE_GROUND;
+  
+  save(_altitudeLiftoff, _sampleRateAirborneAscent, _sampleRateAirborneDescent, _sampleRateGround);
+
+  Serial.println(F("...state machine reset successful."));
+}
+
+void stateMachine::save(int launchDetect, int samplesAscent, int samplesDescent, int samplesGround) {
+  Serial.println(F("Save state machine..."));
+
+  Preferences preferences;
+  preferences.begin(PREFERENCE_KEY, false);
+  _altitudeLiftoff = launchDetect;
+  preferences.putInt(PREFERENCE_KEY_LAUNCH_DETECT, _altitudeLiftoff);
+  _sampleRateAirborneAscent = samplesAscent;
+  preferences.putInt(PREFERENCE_KEY_ALTITUDE_AIRBORNE_ASCENT, _sampleRateAirborneAscent);
+  _sampleRateAirborneDescent = samplesDescent;
+  preferences.putInt(PREFERENCE_KEY_ALTITUDE_AIRBORNE_DESCENT, _sampleRateAirborneDescent);
+  _sampleRateGround = samplesGround;
+  preferences.putInt(PREFERENCE_KEY_ALTITUDE_GROUND, _sampleRateGround);
+  preferences.end();
+
+  _altitudeGround = _altitudeLiftoff / 2;
+
+  #ifdef DEBUG
+  Serial.println(F("\t...state machine... state"));
+  _displaySettings();
+  Serial.println(F(""));
+  #endif
+
+  Serial.println(F("...state machine save successful."));
+}
+
+void stateMachine::setup() {
+  Serial.println(F("Setup state machine..."));
+
+  Preferences preferences;
+  preferences.begin(PREFERENCE_KEY, false);
+  _altitudeLiftoff = preferences.getInt(PREFERENCE_KEY_LAUNCH_DETECT, (int)ALTITUDE_LIFTOFF);
+  // preferences.putInt("altitudeLiftoff", _altitudeLiftoff);
+  _sampleRateAirborneAscent = preferences.getInt(PREFERENCE_KEY_ALTITUDE_AIRBORNE_ASCENT, (int)SAMPLE_RATE_AIRBORNE_ASCENT);
+  // preferences.putInt("sampleRateAirborneAscent", _sampleRateAirborneAscent);
+  _sampleRateAirborneDescent = preferences.getInt(PREFERENCE_KEY_ALTITUDE_AIRBORNE_DESCENT, (int)SAMPLE_RATE_AIRBORNE_DESCENT);
+  // preferences.putInt("sampleRateAirborneDescent", _sampleRateAirborneDescent);
+  _sampleRateGround = preferences.getInt(PREFERENCE_KEY_ALTITUDE_GROUND, (int)SAMPLE_RATE_GROUND);
+  // preferences.putInt("sampleRateGround", _sampleRateGround);
+  preferences.end();
+
+  #ifdef DEBUG
+  Serial.println(F("\t...state machine settings..."));
+  _displaySettings();
+  Serial.println(F(""));
+  #endif
+
+  save(_altitudeLiftoff, _sampleRateAirborneAscent, _sampleRateAirborneDescent, _sampleRateGround);
+
+  Serial.println(F("...state machine setup successful."));
+}
+
+void stateMachine::_displaySettings() {
+  Serial.print(F("\taltitudeLiftoff="));
+  Serial.print(_altitudeLiftoff);
+  Serial.print(F(", default="));
+  Serial.println(ALTITUDE_LIFTOFF);
+  Serial.print(F("\taltitudeGround="));
+  Serial.print(_altitudeGround);
+  Serial.print(F(", default="));
+  Serial.println(SAMPLE_RATE_GROUND);
+  Serial.print(F("\tsampleRateAirborneAscent="));
+  Serial.print(_sampleRateAirborneAscent);
+  Serial.print(F(", default="));
+  Serial.println(SAMPLE_RATE_AIRBORNE_ASCENT);
+  Serial.print(F("\tsampleRateAirborneDescent="));
+  Serial.print(_sampleRateAirborneDescent);
+  Serial.print(F(", default="));
+  Serial.println(SAMPLE_RATE_AIRBORNE_DESCENT);
+  Serial.print(F("\tsampleRateGround="));
+  Serial.print(_sampleRateGround);
+  Serial.print(F(", default="));
+  Serial.println(SAMPLE_RATE_GROUND);
+}
+
+int stateMachine::launchDetect() {
+  return _altitudeLiftoff;
+}
+int stateMachine::sampleRateAirborneAscent() {
+  return _sampleRateAirborneAscent;
+}
+int stateMachine::sampleRateAirborneDescent() {
+  return _sampleRateAirborneDescent;
+}
+int stateMachine::sampleRateGround() {
+  return _sampleRateGround;
+}
+
+stateMachine _stateMachine;

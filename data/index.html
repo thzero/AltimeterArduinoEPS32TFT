@@ -12,6 +12,7 @@
       <td style="text-align: center;">
         <h1 id="title"></h1>
         <p id="copyright"></p>
+        <p>Version <span id="version"></span></p>
       </td>
       <td style="width: 20%;"></td>
     </tr>
@@ -19,14 +20,22 @@
 
   <table style="width: 100%;">
     <tr>
-      <td class="left" >Version:</td>
-      <td id="version" class="left" style="width: 50%;"></td>
-      <td class="right" style="width: 50%;"><a href="/settings">Settings</a>&nbsp;</td>
-      <td class="right" style="width: 50%;"><a href="#" onclick="refreshPage()">Refresh</a></td>
+      <td colspan="2" style="width: 50%;"></td>
+      <td class="right" style="width: 25%;"><a href="/settings">Settings</a>&nbsp;</td>
+      <td class="right" style="width: 25%;"><a href="#" onclick="refreshPage()">Refresh</a></td>
     </tr>
     <tr>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">Memory Used</td>
-      <td id="memoryFree" class="left" style="width: 50%;"></td>
+      <td class="left" style="padding-right: 12px;white-space: nowrap;">Memory Free</td>
+      <td class="left" style="width: 50%;"><span id="memoryFree"></span>kb</td>
+    </tr>
+    <tr>
+      <td class="left" colspan="2">File System</span></td>
+    </tr>
+    <tr>
+      <td class="left" style="padding-right: 12px;white-space: nowrap;">Total Bytes</td>
+      <td class="left" style="width: 50%;"><span id="fileSystemTotalBytes"></span>kb</td>
+      <td class="left" style="padding-right: 12px;white-space: nowrap;">Used Bytes</td>
+      <td class="left" style="width: 50%;"><span id="fileSystemUsedBytes"></span>kb</td>
     </tr>
     <tr id="battery">
       <td class="left" style="padding-right: 12px;">Battery</td>
@@ -39,6 +48,9 @@
         <img id="battery-mostly" class="battery battery-mostly battery-sm" src="/transparent.png" style="display: none;" />
         <span class="middle" style="padding-right: 8px;display:inline-block"><span id="battery-voltage"></span>v</span>
       </td>
+    </tr>
+    <tr>
+      <td colspan="4">&nbsp;</td>
     </tr>
     <tr>
       <td class="left" style="padding-right: 12px;white-space: nowrap;">Pressure<br><span style="font-size: 75%">at sea level</span></td>
@@ -167,7 +179,7 @@ function set(json) {
   atmosphere(json);
   battery_level(json);
   launch(json);
-  memory(json);
+  monitor(json);
   samples(json);
   wifi(json);
 }

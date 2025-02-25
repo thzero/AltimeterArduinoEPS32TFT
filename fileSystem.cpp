@@ -27,3 +27,11 @@ bool setupFileSystem() {
 
   return true;
 }
+
+size_t fileSystemTotalBytes() {
+  return LittleFS.totalBytes();
+}
+
+size_t fileSystemUsedBytes() {
+  return LittleFS.usedBytes();
+}
