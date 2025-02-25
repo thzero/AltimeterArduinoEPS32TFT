@@ -60,13 +60,20 @@ void wifi::reset() {
 void wifi::save(const char * password, const char * ssId) {
   Serial.println(F("Saving network WiFi preferences..."));
 
-  Preferences preferences;
-  preferences.begin(PREFERENCE_KEY, false);
-  _password = password;
-  preferences.putString(PREFERENCE_KEY_WIFI_PASSWORD, _password);
-  _ssId = ssId;
-  preferences.putString(PREFERENCE_KEY_WIFI_SSID, _ssId);
-  preferences.end();
+  // TODO
+  // disable();
+  
+  // TODO
+  // Preferences preferences;
+  // preferences.begin(PREFERENCE_KEY, false);
+  // _password = password;
+  // preferences.putString(PREFERENCE_KEY_WIFI_PASSWORD, _password);
+  // _ssId = ssId;
+  // preferences.putString(PREFERENCE_KEY_WIFI_SSID, _ssId);
+  // preferences.end();
+
+  // TODO
+  // start();
 
   Serial.println(F("...network WiFi preferences saved successful."));
 }

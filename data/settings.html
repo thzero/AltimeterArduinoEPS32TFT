@@ -119,6 +119,9 @@
 <script>
 var _json;
 function reset() {
+  if (!confirm(`Are you sure?  This may resetart the WIFI device and shut down the current connection.`))
+    return;
+
   requestPostJSON('/settings/reset', {});
   requestGet('/settings/data', set);
 }
@@ -142,15 +145,12 @@ function save() {
 
   if ((json.wifiPassword !== _json.wifiPassword) ||
       (json.wifiSSID !== _json.wifiSSID)) {
-    if (!confirm(`Password: ${json.wifiPassword}\nSSID: ${json.wifiSSID}\nThis will restart the WIFI device and shut down the current connection.\nAre you sure?`)) {
+    if (!confirm(`Password: ${json.wifiPassword}\nSSID: ${json.wifiSSID}\nThis will restart the WIFI device and shut down the current connection.\nAre you sure?`))
       return;
-    }
   }
 
-  alert('hi')
-  
-  //requestPostJSON('/settings/save', json);
-  //requestGet('/settings/data', set);
+  requestPostJSON('/settings/save', json);
+  requestGet('/settings/data', set);
 }
 
 function set(json) {

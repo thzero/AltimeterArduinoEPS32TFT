@@ -139,7 +139,20 @@ void web::configure() {
       Serial.println(F("\twebserver request...settings reset"));
     #endif
 
-    // TODO: reset preferences...
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...settings reset - state"));
+    #endif
+    _stateMachine.reset();
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...settings reset - state completed"));
+    #endif
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...settings reset - wifi"));
+    #endif
+    _wifi.reset();
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...settings reset - wifi completed"));
+    #endif
 
     AsyncJsonResponse *response = new AsyncJsonResponse();
     JsonObject responseResult = response->getRoot().to<JsonObject>();
@@ -246,18 +259,6 @@ void web::configure() {
   //     request->send(400, "text/plain", "ERROR : no data log found");
   //     }
   //   ESP_LOGD(TAG," Datalog Download : Success");
-  //   });
-
-  // server->on("/directory", HTTP_GET, [](AsyncWebServerRequest * request)  {
-  //   ESP_LOGD(TAG,"Client: %s %s",request->client()->remoteIP().toString(), request->url().c_str());
-  //   if (server_authenticate(request)) {
-  //     ESP_LOGD(TAG," Auth: Success");
-  //     request->send(200, "text/plain", server_directory(true)); // send html formatted table
-  //     } 
-  //   else {
-  //     ESP_LOGD(TAG, " Auth: Failed");
-  //     return request->requestAuthentication();
-  //     }
   //   });
 
   // server->on("/file", HTTP_GET, [](AsyncWebServerRequest * request) {
@@ -524,7 +525,7 @@ void web::jsonMonitor(JsonObject root) {
 #endif
     root["monitorBatteryVoltage"] = "3.5";
     root["monitorBatteryVoltageMax"] = "3.7";
-    
+
     root["monitorMemoryFree"] = _monitor.heap();
 
     root["fileSystemTotalBytes"] = fileSystemTotalBytes();
