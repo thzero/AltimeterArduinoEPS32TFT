@@ -82,13 +82,22 @@
       <td id="wifiSSID" class="left" style="width: 50%;"></td>
     </tr>
   </table>
-  <p>
+  <div>
     <button class='home_buttons'><a href='/datalog'>Data Log Download</a></button>
     <button class='home_buttons' onclick="upload_handler()">Upload Firmware</button>
-  </p>
+  </div>
+  <!--
   <p id="status"></p>
   <p id="upload_header"></p>
   <p id="upload"></p>
+  -->
+  <table style="width: 100%;">
+    <tr>
+      <td style="text-align: center;">
+        <h1>Flight Logs</h1>
+      </td>
+    </tr>
+  </table>
 <script src="/script.js"></script>
 <script>
 function refreshPage() { 
