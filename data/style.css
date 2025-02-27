@@ -8,6 +8,16 @@ body {
   padding-top: 12px;
 	text-align: center;
 }
+	
+button {
+	margin-bottom: 0.5rem;
+	margin-top: 0.5rem;
+	border-radius: 0.5em;
+	background: #558ED5;
+	padding: 0.3em 0.3em;
+	color: white;
+	font-size: 100%;
+}
 
 button a:link{
 	color: white;
@@ -19,15 +29,6 @@ button a:hover{
 	color: white;
 	font-size: 100%;
 	text-decoration: none;
-}
-	
-button {
-	margin-bottom: 1rem;
-	border-radius: 0.5em;
-	background: #558ED5;
-	padding: 0.3em 0.3em;
-	color: white;
-	font-size: 100%;
 }
 	
 footer {
