@@ -1,8 +1,7 @@
 #ifndef _FLIGHT_LOGGER_DATA_H
 #define _FLIGHT_LOGGER_DATA_H
 
-struct flightLoggerData {
-  bool airborne;
+struct flightDataStruct {
   float altitudeApogee;
   float altitudeApogeeFirstMeasure;
   float altitudeCurrent;
@@ -10,11 +9,6 @@ struct flightLoggerData {
   float altitudeLast;
   float altitudeLaunch;
   float altitudeTouchdown;
-  // Number of measures to do so that we are sure that apogee has been reached
-  unsigned long measures = 5;
-  float pressureInitial;
-  float temperatureInitial;
-  bool touchdown;
   unsigned long timestampLaunch = 0;
   unsigned long timestampCurrent = 0;
   unsigned long timestampPrevious = 0;
@@ -23,7 +17,7 @@ struct flightLoggerData {
   unsigned long timestampTouchdown = 0;
 };
 
-struct flightDataStruct {
+struct flightDataTraceStruct {
   float accelX;
   float accelY;
   float accelZ;

@@ -11,23 +11,10 @@ void flightLogger::initFlight(unsigned long timestamp) {
   aborted = false;
   recording = true;
 
-  data.airborne = true;
-  data.altitudeApogee = 0;
-  data.altitudeApogeeFirstMeasure = 0;
-  data.altitudeCurrent = 0;
-  data.altitudeLaunch = 0;
-  data.altitudeLast = 0;
-  data.altitudeTouchdown = 0;
-  data.measures = SAMPLE_MEASURES_APOGEE;
-  data.temperatureInitial = 0;
-  data.timestampApogee = 0;
-  data.timestampApogeeFirstMeasure = 0;
-  data.timestampLaunch = timestamp;
-  data.timestampPrevious = 0;
-  data.timestampTouchdown = 0;
-  data.touchdown = false;
+  airborne = true;
+  touchdown = false;
 
-  instance.initFlight();
+  instance.initFlight(timestamp);
 }
 
 void flightLogger::reset() {
@@ -35,19 +22,10 @@ void flightLogger::reset() {
   aborted = false;
   recording = false;
 
-  data.airborne = false;
-  data.altitudeApogee = 0;
-  data.altitudeCurrent = 0;
-  data.altitudeLaunch = 0;
-  data.altitudeLast = 0;
-  data.altitudeTouchdown = 0;
-  data.measures = SAMPLE_MEASURES_APOGEE;
-  data.temperatureInitial = 0;
-  data.timestampApogee = 0;
-  data.timestampLaunch = 0;
-  data.timestampPrevious = 0;
-  data.timestampTouchdown = 0;
-  data.touchdown = false;
+  airborne = false;
+  touchdown = false;
+
+  instance.resetFlight();
 }
 
 flightLogger _flightLogger;

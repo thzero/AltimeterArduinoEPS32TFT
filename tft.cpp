@@ -36,10 +36,10 @@ void drawTftFlightAirborne(unsigned long timestamp, unsigned long delta) {
 
   char altitude[40];
   _tft.println("Altitude");
-  sprintf(altitude, "Initial: %.2fm", _flightLogger.data.altitudeInitial);
+  sprintf(altitude, "Initial: %.2fm", _flightLogger.altitudeInitial);
   _tft.println(altitude);
 
-  sprintf(altitude, "Current: %.2fm", _flightLogger.data.altitudeCurrent + _flightLogger.data.altitudeInitial);
+  sprintf(altitude, "Current: %.2fm", _flightLogger.instance.getFlightData().altitudeCurrent + _flightLogger.altitudeInitial);
   _tft.println(altitude);
 
   drawTftSensorImu();
@@ -124,8 +124,8 @@ void drawTftGraphForlightNbr(int flightNbr, int curveType) {
   if (!_flightLogger.instance.readFlight(flightNbr))
     return;
 
-  flightDataStruct *currentFlight;
-  currentFlight = _flightLogger.instance.getFlightData();
+  flightDataTraceStruct *currentFlight;
+  currentFlight = _flightLogger.instance.getFlightDataTrace();
   _flightLogger.instance.determineFlightMinAndMax(flightNbr);
 
   //altitude
@@ -291,7 +291,7 @@ void drawTftSplash() {
   _tft.drawString(F("Alt.   Temp. Pres."), 6, row);
   row += 10;
   char temp[40];
-  sprintf(temp, "%.0fm%s%.0fC%s%.0fhPa", _flightLogger.data.altitudeInitial, drawTftSplashPad(_flightLogger.data.altitudeInitial, 6, "%.0f"), _flightLogger.data.temperatureInitial, drawTftSplashPad(_flightLogger.data.temperatureInitial, 5, "%.0f"), _flightLogger.data.pressureInitial);
+  sprintf(temp, "%.0fm%s%.0fC%s%.0fhPa", _flightLogger.altitudeInitial, drawTftSplashPad(_flightLogger.altitudeInitial, 6, "%.0f"), _flightLogger.temperatureInitial, drawTftSplashPad(_flightLogger.temperatureInitial, 5, "%.0f"), _flightLogger.pressureInitial);
   _tft.drawString(temp, 6, row);
   row += 15;
   

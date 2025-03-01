@@ -500,10 +500,10 @@ void web::feedWatchdog() {
 }
 
 void web::jsonAtmosphere(JsonObject root) {
-  root["altitudeASL"] = _flightLogger.data.pressureInitial;
-  root["pressureAbove"] = _flightLogger.data.altitudeInitial;
-  root["pressureAt"] = _flightLogger.data.pressureInitial; // TODO
-  root["temperature"] = _flightLogger.data.temperatureInitial; // TODO
+  root["altitudeASL"] = _flightLogger.pressureInitial;
+  root["pressureAbove"] = _flightLogger.altitudeInitial;
+  root["pressureAt"] = _flightLogger.pressureInitial; // TODO
+  root["temperature"] = _flightLogger.temperatureInitial; // TODO
 }
 
 void web::jsonHeader(JsonObject root) {

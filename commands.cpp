@@ -54,7 +54,7 @@ void interpretCommandBufferSimulation(char command1) {
       return;
     }
 
-    _simulation.start(simulationConfigDefault, _flightLogger.data.altitudeInitial);
+    _simulation.start(simulationConfigDefault, _flightLogger.altitudeInitial);
 }
 
 //

@@ -5,7 +5,7 @@
 #include "utilities.h"
 
 flightLoggerLFS::flightLoggerLFS() {
-  _flightData = nullptr;
+  _flightDataTrace = nullptr;
   _dataPos = 0;
 }
 
@@ -59,138 +59,6 @@ bool flightLoggerLFS::clearFlightList() {
   return true;
 }
 
-void flightLoggerLFS::determineFlightMinAndMax(int flightNbr) {
-  _flightMinAndMax.accelXMax = 0;
-  _flightMinAndMax.accelXMin = 0;
-  _flightMinAndMax.accelYMax = 0;
-  _flightMinAndMax.accelYMin = 0;
-  _flightMinAndMax.accelZMax = 0;
-  _flightMinAndMax.accelZMin = 0;
-  _flightMinAndMax.accelZMin = 0;
-  _flightMinAndMax.altitudeMax = 0;
-  _flightMinAndMax.duration = 0;
-  _flightMinAndMax.pressureMax = 0;
-  _flightMinAndMax.pressureMin = 0;
-  _flightMinAndMax.temperatureMax = 0;
-  _flightMinAndMax.temperatureMin = 0;
-  _flightMinAndMax.velocityMax = 0;
-  _flightMinAndMax.velocityMin = 0;
-
-  if (readFlight(flightNbr)) {
-    for (int i = 0; i < _dataPos ; i++)
-    {
-      _flightMinAndMax.duration = _flightMinAndMax.duration + _flightData[i].diffTime;
-
-      if (_flightData[i].accelX < _flightMinAndMax.accelXMin)
-        _flightMinAndMax.accelXMin = _flightData[i].accelX;
-      if (_flightData[i].accelX > _flightMinAndMax.accelXMax)
-        _flightMinAndMax.accelXMax = _flightData[i].accelX;
-
-      if (_flightData[i].accelY < _flightMinAndMax.accelYMin)
-        _flightMinAndMax.accelXMin = _flightData[i].accelY;
-      if (_flightData[i].accelY > _flightMinAndMax.accelYMax)
-        _flightMinAndMax.accelXMax = _flightData[i].accelY;
-
-      if (_flightData[i].accelZ < _flightMinAndMax.accelZMin)
-        _flightMinAndMax.accelZMin = _flightData[i].accelZ;
-      if (_flightData[i].accelZ > _flightMinAndMax.accelZMax)
-        _flightMinAndMax.accelZMax = _flightData[i].accelZ;
-
-      if (_flightData[i].altitude < _flightMinAndMax.altitudeMin)
-        _flightMinAndMax.altitudeMin = _flightData[i].altitude;
-      if (_flightData[i].altitude > _flightMinAndMax.altitudeMax)
-        _flightMinAndMax.altitudeMax = _flightData[i].altitude;
-
-      if (_flightData[i].pressure < _flightMinAndMax.pressureMin)
-        _flightMinAndMax.pressureMin = _flightData[i].pressure;
-      if (_flightData[i].pressure > _flightMinAndMax.temperatureMax)
-        _flightMinAndMax.pressureMax = _flightData[i].pressure;
-
-      if (_flightData[i].temperature < _flightMinAndMax.temperatureMin)
-        _flightMinAndMax.temperatureMin = _flightData[i].temperature;
-      if (_flightData[i].temperature > _flightMinAndMax.temperatureMax)
-        _flightMinAndMax.temperatureMax = _flightData[i].temperature;
-
-      if (_flightData[i].velocity < _flightMinAndMax.velocityMin)
-        _flightMinAndMax.temperatureMin = _flightData[i].velocity;
-      if (_flightData[i].velocity > _flightMinAndMax.velocityMax)
-        _flightMinAndMax.velocityMax = _flightData[i].velocity;
-    }
-  }
-}
-
-long flightLoggerLFS::getFlightDuration() {
-  return _flightMinAndMax.duration;
-}
-
-float flightLoggerLFS::getFlightAccelXMax() {
-  return _flightMinAndMax.accelXMax;
-}
-
-float flightLoggerLFS::getFlightAccelXMin() {
-  return _flightMinAndMax.accelXMin;
-}
-
-float flightLoggerLFS::getFlightAccelYMax() {
-  return _flightMinAndMax.accelYMax;
-}
-
-float flightLoggerLFS::getFlightAccelYMin() {
-  return _flightMinAndMax.accelYMin;
-}
-
-float flightLoggerLFS::getFlightAccelZMax() {
-  return _flightMinAndMax.accelZMax;
-}
-
-float flightLoggerLFS::getFlightAccelZMin() {
-  return _flightMinAndMax.accelZMin;
-}
-
-float flightLoggerLFS::getFlightAltitudeMax() {
-  return _flightMinAndMax.altitudeMax;
-}
-
-float flightLoggerLFS::getFlightAltitudeMin() {
-  return _flightMinAndMax.altitudeMin;
-}
-
-flightDataStruct* flightLoggerLFS::getFlightData() {
-  return _flightData;
-}
-
-float flightLoggerLFS::getFlightHumidityMax() {
-  return _flightMinAndMax.humidityMax;
-}
-
-float flightLoggerLFS::getFlightHumidityMin() {
-  return _flightMinAndMax.humidityMin;
-}
-
-float flightLoggerLFS::getFlightPressureMax() {
-  return _flightMinAndMax.pressureMax;
-}
-
-float flightLoggerLFS::getFlightPressureMin() {
-  return _flightMinAndMax.pressureMin;
-}
-
-float flightLoggerLFS::getFlightTemperatureMax() {
-  return _flightMinAndMax.temperatureMax;
-}
-
-float flightLoggerLFS::getFlightTemperatureMin() {
-  return _flightMinAndMax.temperatureMin;
-}
-
-float flightLoggerLFS::getFlightVelocityMax() {
-  return _flightMinAndMax.velocityMax;
-}
-
-float flightLoggerLFS::getFlightVelocityMin() {
-  return _flightMinAndMax.velocityMin;
-}
-
 long flightLoggerLFS::geFlightNbrLast() {
   long maxFlightNumber = 0; // Default to 0 if no valid flight file is found
 
@@ -231,10 +99,6 @@ long flightLoggerLFS::geFlightNbrLast() {
   return maxFlightNumber;
 }
 
-long flightLoggerLFS::getFlightSize() {
-  return _dataPos;
-}
-
 bool flightLoggerLFS::initFileSystem() {
 //   if (!LittleFS.begin(false)) {
 // #if defined(DEBUG) || defined(DEBUG_LOGGER)
@@ -257,130 +121,6 @@ bool flightLoggerLFS::initFileSystem() {
   return true;
 }
 
-bool flightLoggerLFS::initFlight() {
-  if (_flightData != nullptr)
-    free(_flightData);
-
-  _flightData = nullptr;
-  _dataPos = 0;
-  return true;
-}
-
-void flightLoggerLFS::printFlightData(int flightNbr) {
-  unsigned long currentTime = 0;
-
-  if (!readFlight(flightNbr))
-    return;
-
-  char format[4] = "%i,";
-  char formatF[6] = "%.2f,";
-
-  for (int i = 0; i < _dataPos ; i++)
-  {
-    char flightDt[120] = "";
-    char temp[20] = "";
-    currentTime = currentTime + _flightData[i].diffTime;
-    strcat(flightDt, "data,");
-    sprintf(temp, format, flightNbr-1);
-    strcat(flightDt, temp);
-    sprintf(temp, format, currentTime);
-    strcat(flightDt, temp);
-    sprintf(temp, formatF, _flightData[i].accelX * 1000);
-    strcat(flightDt, temp);
-    sprintf(temp, formatF, _flightData[i].accelY * 1000);
-    strcat(flightDt, temp);
-    sprintf(temp, formatF, _flightData[i].accelZ * 1000);
-    strcat(flightDt, temp);
-    sprintf(temp, formatF, _flightData[i].altitude);
-    strcat(flightDt, temp);
-    sprintf(temp, formatF, _flightData[i].gyroX * 1000);
-    strcat(flightDt, temp);
-    sprintf(temp, formatF, _flightData[i].gyroY * 1000);
-    strcat(flightDt, temp);
-    sprintf(temp, formatF, _flightData[i].gyroZ * 1000);
-    strcat(flightDt, temp);
-    sprintf(temp, formatF, _flightData[i].humidity);
-    strcat(flightDt, temp);
-    sprintf(temp, formatF, _flightData[i].pressure);
-    strcat(flightDt, temp);
-    sprintf(temp, formatF, _flightData[i].temperature);
-    strcat(flightDt, temp);
-    sprintf(temp, formatF, _flightData[i].velocity);
-    strcat(flightDt, temp);
-
-    unsigned int chk = msgChk(flightDt, sizeof(flightDt));
-    sprintf(temp, "%i", chk);
-    strcat(flightDt, temp);
-    strcat(flightDt, ";\n");
-
-    Serial.print(F("$"));
-    Serial.print(flightDt);
-  }
-}
-
-bool flightLoggerLFS::writeFlightFast() {
-  return writeFlight(geFlightNbrLast() + 1);
-}
-
-void flightLoggerLFS::setFlightAccelX(float x) {
-  _currentRecord.accelX = x;
-}
-
-void flightLoggerLFS::setFlightAccelY(float y) {
-  _currentRecord.accelY = y;
-}
-
-void flightLoggerLFS::setFlightAccelZ(float z) {
-  _currentRecord.accelZ = z;
-}
-
-void flightLoggerLFS::setFlightAltitude(float altitude) {
-  _currentRecord.altitude = altitude;
-}
-
-bool flightLoggerLFS::setFlightData() {
-  flightDataStruct* newFlightData = (flightDataStruct*)realloc(_flightData, (_dataPos + 1) * sizeof(flightDataStruct));
-  if (!newFlightData)
-    return false;
-
-  _flightData = newFlightData;
-  _flightData[_dataPos] = _currentRecord;
-  _dataPos++;
-  return true;
-}
-
-void flightLoggerLFS::setFlightGyroX(float x) {
-  _currentRecord.gyroX = x;
-}
-
-void flightLoggerLFS::setFlightGyroY(float y) {
-  _currentRecord.gyroY = y;
-}
-
-void flightLoggerLFS::setFlightGyroZ(float z) {
-  _currentRecord.gyroZ = z;
-}
-
-void flightLoggerLFS::setFlightHumidity(float humidity) {
-  _currentRecord.humidity = humidity;
-}
-
-void flightLoggerLFS::setFlightPressure(float pressure) {
-  _currentRecord.pressure = pressure;
-}
-
-void flightLoggerLFS::setFlightTemperature(float temperature) {
-  _currentRecord.temperature = temperature;
-}
-
-void flightLoggerLFS::setFlightTime(long diffTime) {
-  _currentRecord.diffTime = diffTime;
-}
-
-void flightLoggerLFS::setFlightVelocity(float velocity) {
-  _currentRecord.velocity = velocity;
-}
-
 bool flightLoggerLFS::readFlight(int flightNbr) {
   char flightName [15];
   sprintf(flightName, "/flight%i.json", flightNbr);
@@ -401,28 +141,28 @@ bool flightLoggerLFS::readFlight(int flightNbr) {
     return false;
 
   _dataPos = flight.size();
-  if (_flightData != nullptr)
-    free(_flightData);
+  if (_flightDataTrace != nullptr)
+    free(_flightDataTrace);
 
-  _flightData = (flightDataStruct*)malloc(sizeof(flightDataStruct) * _dataPos);
-  if (!_flightData)
+  _flightDataTrace = (flightDataTraceStruct*)malloc(sizeof(flightDataTraceStruct) * _dataPos);
+  if (!_flightDataTrace)
     return false;
 
   long index = 0;
   for (JsonPair pair : flight) {
     JsonObject record = pair.value().as<JsonObject>();
-    _flightData[index].diffTime = record["diffTime"];
-    _flightData[index].accelX = record["accelX"];
-    _flightData[index].accelY = record["accelY"];
-    _flightData[index].accelZ = record["accelZ"];
-    _flightData[index].altitude = record["altitude"];
-    _flightData[index].gyroX = record["gyroX"];
-    _flightData[index].gyroY = record["gyroY"];
-    _flightData[index].gyroZ = record["gyroZ"];
-    _flightData[index].humidity = record["humidity"];
-    _flightData[index].pressure = record["pressure"];
-    _flightData[index].temperature = record["temperature"];
-    _flightData[index].velocity = record["velocity"];
+    _flightDataTrace[index].diffTime = record["diffTime"];
+    _flightDataTrace[index].accelX = record["accelX"];
+    _flightDataTrace[index].accelY = record["accelY"];
+    _flightDataTrace[index].accelZ = record["accelZ"];
+    _flightDataTrace[index].altitude = record["altitude"];
+    _flightDataTrace[index].gyroX = record["gyroX"];
+    _flightDataTrace[index].gyroY = record["gyroY"];
+    _flightDataTrace[index].gyroZ = record["gyroZ"];
+    _flightDataTrace[index].humidity = record["humidity"];
+    _flightDataTrace[index].pressure = record["pressure"];
+    _flightDataTrace[index].temperature = record["temperature"];
+    _flightDataTrace[index].velocity = record["velocity"];
     index++;
   }
 
@@ -438,18 +178,18 @@ bool flightLoggerLFS::writeFlight(int flightNbr) {
 
   for (long i = 0; i < _dataPos; i++) {
     JsonObject record = flight.createNestedObject(String(i));
-    record["diffTime"] = _flightData[i].diffTime;
-    record["accelX"] = _flightData[i].accelX;
-    record["accelY"] = _flightData[i].accelY;
-    record["accelZ"] = _flightData[i].accelZ;
-    record["altitude"] = _flightData[i].altitude;
-    record["gyroX"] = _flightData[i].gyroX;
-    record["gyroY"] = _flightData[i].gyroY;
-    record["gyroZ"] = _flightData[i].gyroZ;
-    record["humidity"] = _flightData[i].humidity;
-    record["pressure"] = _flightData[i].pressure;
-    record["temperature"] = _flightData[i].temperature;
-    record["velocity"] = _flightData[i].velocity;
+    record["diffTime"] = _flightDataTrace[i].diffTime;
+    record["accelX"] = _flightDataTrace[i].accelX;
+    record["accelY"] = _flightDataTrace[i].accelY;
+    record["accelZ"] = _flightDataTrace[i].accelZ;
+    record["altitude"] = _flightDataTrace[i].altitude;
+    record["gyroX"] = _flightDataTrace[i].gyroX;
+    record["gyroY"] = _flightDataTrace[i].gyroY;
+    record["gyroZ"] = _flightDataTrace[i].gyroZ;
+    record["humidity"] = _flightDataTrace[i].humidity;
+    record["pressure"] = _flightDataTrace[i].pressure;
+    record["temperature"] = _flightDataTrace[i].temperature;
+    record["velocity"] = _flightDataTrace[i].velocity;
   }
 
   // Serial.println(String(doc)));
@@ -459,11 +199,3 @@ bool flightLoggerLFS::writeFlight(int flightNbr) {
 
   return true;
 }
-
-// unsigned int flightLoggerLFS::msgChk( char * buffer, long length) {
-//   long index;
-//   unsigned int checksum;
-
-//   for ( index = 0L, checksum = 0; index < length; checksum += (unsigned int) buffer[index++]);
-//   return (unsigned int) (checksum % 256);
-// }

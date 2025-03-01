@@ -111,28 +111,24 @@ void setupFlightLogger() {
 
   Serial.println(F("...file system successful."));
 
-  Serial.println(F("Initialize flight logger..."));
-
-  _flightLogger.instance.initFlight();
-
   Serial.println(F("...flight logger successful."));
 }
 
-void setupFlightLoggerInitialAtmosphere() {
+void setupInitialAtmosphere() {
   Serial.println(F("Setup initial atmosphere..."));
   
   atmosphereValues values = initializeSensorsAtmosphere();
-  _flightLogger.data.altitudeInitial = values.altitude;
+  _flightLogger.altitudeInitial = values.altitude;
   Serial.print(F("initial altitude: "));
-  Serial.println(_flightLogger.data.altitudeInitial);
+  Serial.println(_flightLogger.altitudeInitial);
 
-  _flightLogger.data.pressureInitial = values.pressure;
+  _flightLogger.pressureInitial = values.pressure;
   Serial.print(F("initial pressure: "));
-  Serial.println(_flightLogger.data.pressureInitial);
+  Serial.println(_flightLogger.pressureInitial);
 
-  _flightLogger.data.temperatureInitial = values.temperature;
+  _flightLogger.temperatureInitial = values.temperature;
   Serial.print(F("initial temperature: "));
-  Serial.println(_flightLogger.data.temperatureInitial);
+  Serial.println(_flightLogger.temperatureInitial);
 
   Serial.println(F("...initial atmosphere initialized."));
 }
@@ -163,7 +159,7 @@ void setup() {
 
   setupSensors();
 
-  setupFlightLoggerInitialAtmosphere();
+  setupInitialAtmosphere();
 
   setupSensorsCompleted();
 
@@ -172,15 +168,6 @@ void setup() {
   // Setup Network so it's available...
   setupNetwork();
   networkStart(); // TODO: temp
-
-  // battery
-  /*
-   .. Setup 1:1 ratio voltage divider from VBAT -> Pin 10 -> Pin 6
-    analogReadResolution(12);
-    pinMode(10,INPUT);   
-    pinMode(6, OUTPUT);
-    digitalWrite(6, LOW);
-  */
 
   drawTftSplash();
 

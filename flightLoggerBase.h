@@ -6,6 +6,7 @@
 class flightLoggerBase {
   public:
     virtual bool clearFlightList();
+    virtual bool copyFlightDataTrace();
     virtual long getFlightDuration();
     virtual void determineFlightMinAndMax(int flightNbr);
     virtual float getFlightAccelXMax();
@@ -16,7 +17,8 @@ class flightLoggerBase {
     virtual float getFlightAccelZMin();
     virtual float getFlightAltitudeMax();
     virtual float getFlightAltitudeMin();
-    virtual flightDataStruct* getFlightData();
+    virtual flightDataStruct getFlightData();
+    virtual flightDataTraceStruct* getFlightDataTrace();
     virtual float getFlightHumidityMax();
     virtual float getFlightHumidityMin();
     virtual float getFlightPressureMax();
@@ -28,14 +30,20 @@ class flightLoggerBase {
     virtual long geFlightNbrLast();
     virtual long getFlightSize();
     virtual bool initFileSystem();
-    virtual bool initFlight();
+    virtual void initFlight(unsigned long timestamp);
     virtual void printFlightData(int flightNbr);
     virtual bool readFlight(int flightNbr);
+    virtual void resetFlight();
     virtual void setFlightAccelX(float x);
     virtual void setFlightAccelY(float y);
     virtual void setFlightAccelZ(float z);
     virtual void setFlightAltitude(float altitude);
-    virtual bool setFlightData();
+    virtual void setFlightAltitudeApogee(float altitude);
+    virtual void setFlightAltitudeApogeeFirstMeasure(float altitude);
+    virtual void setFlightAltitudeCurrent(float altitude);
+    virtual void setFlightAltitudeLast(float altitude);
+    virtual void setFlightAltitudeLaunch(float altitude);
+    virtual void setFlightAltitudeTouchdown(float altitude);
     virtual void setFlightGyroX(float x);
     virtual void setFlightGyroY(float y);
     virtual void setFlightGyroZ(float z);
@@ -44,13 +52,20 @@ class flightLoggerBase {
     virtual void setFlightTemperature(float temperature);
     virtual void setFlightVelocity(float velocity);
     virtual void setFlightTime(long diffTime);
+    virtual void setFlightTimestampApogee(long diffTime);
+    virtual void setFlightTimestampApogeeFirstMeasure(long diffTime);
+    virtual void setFlightTimestampCurrent(long diffTime);
+    virtual void setFlightTimestampLaunch(long diffTime);
+    virtual void setFlightTimestampPrevious(long diffTime);
+    virtual void setFlightTimestampTouchdown(long diffTime);
     virtual bool writeFlight(int flightNbr);
     virtual bool writeFlightFast();
 
   protected:
-    flightDataStruct _currentRecord;
+    flightDataTraceStruct _currentRecord;
     int _dataPos;
-    flightDataStruct* _flightData;
+    flightDataStruct _flightData;
+    flightDataTraceStruct* _flightDataTrace;
     flightMinAndMaxStruct _flightMinAndMax;
 };
 

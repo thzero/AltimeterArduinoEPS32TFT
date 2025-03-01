@@ -43,6 +43,9 @@ void monitor::setup() {
 #endif
 
 #ifdef MONITOR_VOLTAGE
+  /*
+   .. Setup 1:1 ratio voltage divider from VBAT -> Pin 10 -> Pin 6
+  */
   // It turns out that pins using ADC2 instead of ADC1 can conflict with the WiFi so it's good practice to use a ACD1 port.
   // Also if you use the analogReadMilliVolts(PIN) option instead of working it out yourself it is calibrated for the fact the pin read is not fully linear and gives a nice exact voltage.
 

@@ -10,46 +10,10 @@ class flightLoggerLFS : public flightLoggerBase {
   public:
     flightLoggerLFS();
     bool clearFlightList();
-    long getFlightDuration();
-    void determineFlightMinAndMax(int flightNbr);
-    float getFlightAccelXMax();
-    float getFlightAccelXMin();
-    float getFlightAccelYMax();
-    float getFlightAccelYMin();
-    float getFlightAccelZMax();
-    float getFlightAccelZMin();
-    float getFlightAltitudeMax();
-    float getFlightAltitudeMin();
-    flightDataStruct* getFlightData();
-    float getFlightHumidityMax();
-    float getFlightHumidityMin();
-    float getFlightPressureMax();
-    float getFlightPressureMin();
-    float getFlightTemperatureMax();
-    float getFlightTemperatureMin();
-    float getFlightVelocityMax();
-    float getFlightVelocityMin();
     long geFlightNbrLast();
-    long getFlightSize();
     bool initFileSystem();
-    bool initFlight();
-    void printFlightData(int flightNbr);
     bool readFlight(int flightNbr);
-    void setFlightAccelX(float x);
-    void setFlightAccelY(float y);
-    void setFlightAccelZ(float z);
-    void setFlightAltitude(float altitude);
-    bool setFlightData();
-    void setFlightGyroX(float x);
-    void setFlightGyroY(float y);
-    void setFlightGyroZ(float z);
-    void setFlightHumidity(float humidity);
-    void setFlightPressure(float pressure);
-    void setFlightTemperature(float temperature);
-    void setFlightVelocity(float velocity);
-    void setFlightTime(long diffTime);
     bool writeFlight(int flightNbr);
-    bool writeFlightFast();
 };
 
 #endif

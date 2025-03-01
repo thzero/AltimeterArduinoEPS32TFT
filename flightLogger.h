@@ -10,10 +10,17 @@ class flightLogger {
     flightLogger();
     void initFlight(unsigned long timestamp);
     void reset();
+    
+    bool airborne = false;
     bool aborted;
-    flightLoggerData data;
+    float altitudeInitial;
     flightLoggerBase instance = flightLoggerLFS();
+    // Number of measures to do so that we are sure that apogee has been reached
+    unsigned long measures = 5;
+    float pressureInitial;
     bool recording;
+    float temperatureInitial;
+    bool touchdown = false;
 
   // private:
 };
