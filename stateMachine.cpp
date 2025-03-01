@@ -17,6 +17,10 @@
 stateMachine::stateMachine() {
 }
 
+int stateMachine::launchDetect() {
+  return _altitudeLiftoff;
+}
+
 void stateMachine::loop(unsigned long timestamp, unsigned long delta) {
   // Simple state machine for the flight...
 
@@ -456,8 +460,41 @@ void stateMachine::reset() {
   Serial.println(F("...state machine reset successful."));
 }
 
+int stateMachine::sampleRateAirborneAscent() {
+  return _sampleRateAirborneAscent;
+}
+int stateMachine::sampleRateAirborneDescent() {
+  return _sampleRateAirborneDescent;
+}
+int stateMachine::sampleRateGround() {
+  return _sampleRateGround;
+}
+
 void stateMachine::save(int launchDetect, int samplesAscent, int samplesDescent, int samplesGround) {
   Serial.println(F("Save state machine..."));
+  
+  #ifdef DEBUG
+  Serial.println(F("\t...state machine... save requests"));
+  Serial.print(F("\tlaunchDetect="));
+  Serial.println(launchDetect);
+  Serial.print(F("\tsamplesAscent="));
+  Serial.println(samplesAscent);
+  Serial.print(F("\tsamplesDescent="));
+  Serial.println(samplesDescent);
+  Serial.print(F("\tsamplesGround="));
+  Serial.println(samplesGround);
+
+  Serial.println(F("\t...state machine... save current"));
+  _displaySettings();
+  #endif
+
+  // if (launchDetect <= 0) || (launchDetect > 20))
+  //   launchDetect = (int)ALTITUDE_LIFTOFF;
+
+  launchDetect = _checkValues(launchDetectValues, _altitudeLiftoff, (int)ALTITUDE_LIFTOFF);
+  launchDetect = _checkValues(sampleRateAirborneAscentValues, _sampleRateAirborneAscent, (int)SAMPLE_RATE_AIRBORNE_ASCENT);
+  launchDetect = _checkValues(sampleRateAirborneDecentValues, _sampleRateAirborneDescent, (int)SAMPLE_RATE_AIRBORNE_DESCENT);
+  launchDetect = _checkValues(sampleRateGroundValues, _sampleRateGround, (int)SAMPLE_RATE_GROUND);
 
   Preferences preferences;
   preferences.begin(PREFERENCE_KEY, false);
@@ -474,7 +511,7 @@ void stateMachine::save(int launchDetect, int samplesAscent, int samplesDescent,
   _altitudeGround = _altitudeLiftoff / 2;
 
   #ifdef DEBUG
-  Serial.println(F("\t...state machine... state"));
+  Serial.println(F("\t...state machine... saved state"));
   _displaySettings();
   Serial.println(F(""));
   #endif
@@ -488,14 +525,28 @@ void stateMachine::setup() {
   Preferences preferences;
   preferences.begin(PREFERENCE_KEY, false);
   _altitudeLiftoff = preferences.getInt(PREFERENCE_KEY_LAUNCH_DETECT, (int)ALTITUDE_LIFTOFF);
-  // preferences.putInt("altitudeLiftoff", _altitudeLiftoff);
+  if (_altitudeLiftoff <= 0) {
+    _altitudeLiftoff = (int)ALTITUDE_LIFTOFF;
+    preferences.putInt(PREFERENCE_KEY_LAUNCH_DETECT, _altitudeLiftoff);
+  }
   _sampleRateAirborneAscent = preferences.getInt(PREFERENCE_KEY_ALTITUDE_AIRBORNE_ASCENT, (int)SAMPLE_RATE_AIRBORNE_ASCENT);
-  // preferences.putInt("sampleRateAirborneAscent", _sampleRateAirborneAscent);
+  if (_sampleRateAirborneAscent <= 0) {
+    _sampleRateAirborneAscent = (int)SAMPLE_RATE_AIRBORNE_ASCENT;
+    preferences.putInt(PREFERENCE_KEY_ALTITUDE_AIRBORNE_ASCENT, _sampleRateAirborneAscent);
+  }
   _sampleRateAirborneDescent = preferences.getInt(PREFERENCE_KEY_ALTITUDE_AIRBORNE_DESCENT, (int)SAMPLE_RATE_AIRBORNE_DESCENT);
-  // preferences.putInt("sampleRateAirborneDescent", _sampleRateAirborneDescent);
+  if (_sampleRateAirborneDescent <= 0) {
+    _sampleRateAirborneDescent = (int)SAMPLE_RATE_AIRBORNE_DESCENT;
+    preferences.putInt(PREFERENCE_KEY_ALTITUDE_AIRBORNE_DESCENT, _sampleRateAirborneDescent);
+  }
   _sampleRateGround = preferences.getInt(PREFERENCE_KEY_ALTITUDE_GROUND, (int)SAMPLE_RATE_GROUND);
-  // preferences.putInt("sampleRateGround", _sampleRateGround);
+  if (_sampleRateGround <= 0) {
+    _sampleRateGround = (int)PREFERENCE_KEY_ALTITUDE_GROUND;
+    preferences.putInt(PREFERENCE_KEY_ALTITUDE_GROUND, _sampleRateGround);
+  }
   preferences.end();
+
+  _altitudeGround = _altitudeLiftoff / 2;
 
   #ifdef DEBUG
   Serial.println(F("\t...state machine settings..."));
@@ -508,15 +559,25 @@ void stateMachine::setup() {
   Serial.println(F("...state machine setup successful."));
 }
 
+int stateMachine::_checkValues(int values[], int value, int defaultValue) {
+  if (value < 0)
+    return defaultValue;
+
+  for (int i = 0; i < sizeof(values); i++) {
+    if (value == values[i])
+      return value;
+  }
+  
+  return defaultValue;
+}
+
 void stateMachine::_displaySettings() {
   Serial.print(F("\taltitudeLiftoff="));
   Serial.print(_altitudeLiftoff);
   Serial.print(F(", default="));
   Serial.println(ALTITUDE_LIFTOFF);
   Serial.print(F("\taltitudeGround="));
-  Serial.print(_altitudeGround);
-  Serial.print(F(", default="));
-  Serial.println(SAMPLE_RATE_GROUND);
+  Serial.println(_altitudeGround);
   Serial.print(F("\tsampleRateAirborneAscent="));
   Serial.print(_sampleRateAirborneAscent);
   Serial.print(F(", default="));
@@ -529,19 +590,6 @@ void stateMachine::_displaySettings() {
   Serial.print(_sampleRateGround);
   Serial.print(F(", default="));
   Serial.println(SAMPLE_RATE_GROUND);
-}
-
-int stateMachine::launchDetect() {
-  return _altitudeLiftoff;
-}
-int stateMachine::sampleRateAirborneAscent() {
-  return _sampleRateAirborneAscent;
-}
-int stateMachine::sampleRateAirborneDescent() {
-  return _sampleRateAirborneDescent;
-}
-int stateMachine::sampleRateGround() {
-  return _sampleRateGround;
 }
 
 stateMachine _stateMachine;

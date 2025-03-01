@@ -28,11 +28,11 @@ class web {
     // String serverProcessor(const String& var);
     void jsonAtmosphere(JsonObject root);
     void jsonHeader(JsonObject root);
-    void jsonLaunch(JsonObject root);
+    void jsonLaunch(JsonObject root, bool settings);
     void jsonMonitor(JsonObject root);
-    void jsonSamples(JsonObject root);
+    void jsonSamples(JsonObject root, bool settings);
     void jsonWifi(JsonObject root);
-
+    void _values(int values[], JsonArray valuesJson);
 };
 
 extern web _web;

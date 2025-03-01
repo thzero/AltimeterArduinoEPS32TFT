@@ -88,9 +88,9 @@ void web::configure() {
     JsonObject root = response->getRoot().to<JsonObject>();
     this->jsonAtmosphere(root);
     this->jsonHeader(root);
-    this->jsonLaunch(root);
+    this->jsonLaunch(root, false);
     this->jsonMonitor(root);
-    this->jsonSamples(root);
+    this->jsonSamples(root, false);
     this->jsonWifi(root);
     response->setLength();
     request->send(response);
@@ -105,8 +105,8 @@ void web::configure() {
     AsyncJsonResponse *response = new AsyncJsonResponse();
     JsonObject root = response->getRoot().to<JsonObject>();
     this->jsonHeader(root);
-    this->jsonLaunch(root);
-    this->jsonSamples(root);
+    this->jsonLaunch(root, true);
+    this->jsonSamples(root, true);
     this->jsonWifi(root);
 
     #ifdef DEBUG
@@ -132,9 +132,9 @@ void web::configure() {
     request->send(LittleFS, "/settings.html", "text/html", false, NULL);
   });
 
-  AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler("/settings/reset");
-  handler->setMethod(HTTP_POST | HTTP_PUT);
-  handler->onRequest([](AsyncWebServerRequest *request, JsonVariant &json) {
+  AsyncCallbackJsonWebHandler *handlerReset = new AsyncCallbackJsonWebHandler("/settings/reset");
+  handlerReset->setMethod(HTTP_POST);
+  handlerReset->onRequest([](AsyncWebServerRequest *request, JsonVariant &json) {
     #ifdef DEBUG
       Serial.println(F("\twebserver request...settings reset"));
     #endif
@@ -159,13 +159,13 @@ void web::configure() {
     response->setLength();
     request->send(responseResult);
   });
-  _server->addHandler(handler);
+  _server->addHandler(handlerReset);
 
-  handler = new AsyncCallbackJsonWebHandler("/settings/save");
-  handler->setMethod(HTTP_POST | HTTP_PUT);
-  handler->onRequest([](AsyncWebServerRequest *request, JsonVariant &json) {
+  AsyncCallbackJsonWebHandler *handlerSave = new AsyncCallbackJsonWebHandler("/settings/save");
+  handlerSave->setMethod(HTTP_POST);
+  handlerSave->onRequest([](AsyncWebServerRequest *request, JsonVariant &json) {
     #ifdef DEBUG
-      Serial.println(F("\twebserver request...settings save"));
+      Serial.println(F("\twebserver request...settings save - start"));
     #endif
 
     #ifdef DEBUG
@@ -204,10 +204,55 @@ void web::configure() {
 
     AsyncJsonResponse *response = new AsyncJsonResponse();
     JsonObject responseResult = response->getRoot().to<JsonObject>();
+    responseResult["success"] = true;
     response->setLength();
     request->send(responseResult);
+    
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...settings save - finished"));
+    #endif
   });
-  _server->addHandler(handler);
+  _server->addHandler(handlerSave);
+
+  AsyncCallbackJsonWebHandler *handlerRequestTime = new AsyncCallbackJsonWebHandler("/settings/requestTime");
+  handlerRequestTime->setMethod(HTTP_POST);
+  handlerRequestTime->onRequest([](AsyncWebServerRequest *request, JsonVariant &json) {
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...requestTime - start"));
+    #endif
+
+    #ifdef DEBUG
+    Serial.println(F("\twebserver request...requestTime data"));
+    serializeJson(json, Serial);
+    Serial.println("");
+    #endif
+
+    unsigned long epoch = json["epoch"];
+    debug("epoch", epoch);
+    int hours = json["hours"];
+    debug("hours", hours);
+    int minutes = json["minutes"];
+    debug("minutes", minutes);
+    int seconds = json["seconds"];
+    debug("seconds", seconds);
+    int month = json["month"];
+    debug("month", month);
+    int day = json["day"];
+    debug("day", day);
+    int year = json["year"];
+    debug("year", year);
+
+    AsyncJsonResponse *response = new AsyncJsonResponse();
+    JsonObject responseResult = response->getRoot().to<JsonObject>();
+    responseResult["success"] = true;
+    response->setLength();
+    request->send(responseResult);
+    
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...requestTime - finished"));
+    #endif
+  });
+  _server->addHandler(handlerRequestTime);
 
   // Route to load style.css file
   _server->on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -513,35 +558,60 @@ void web::jsonHeader(JsonObject root) {
   root["version"] = String(MAJOR_VERSION) + "." + String(MINOR_VERSION);
 }
 
-void web::jsonLaunch(JsonObject root) {
-    root["launchDetect"] = _stateMachine.launchDetect();
+void web::jsonLaunch(JsonObject root, bool settings) {
+  root["launchDetect"] = _stateMachine.launchDetect();
+
+  if (settings) {
+    root["launchDetectValuesDefault"] = (int)ALTITUDE_LIFTOFF;
+    JsonArray launchDetectValues = root.createNestedArray("launchDetectValues");
+    _values(_stateMachine.launchDetectValues, launchDetectValues);
+  }
 }
 
 void web::jsonMonitor(JsonObject root) {
 #ifdef MONITOR_BATTERY
-    root["monitorBatteryStatus"] = true;
+  root["monitorBatteryStatus"] = true;
 #else
-    root["monitorBatteryStatus"] = false;
+  root["monitorBatteryStatus"] = false;
 #endif
-    root["monitorBatteryVoltage"] = "3.5";
-    root["monitorBatteryVoltageMax"] = "3.7";
+  root["monitorBatteryVoltage"] = "3.5";
+  root["monitorBatteryVoltageMax"] = "3.7";
 
-    root["monitorMemoryFree"] = _monitor.heap();
+  root["monitorMemoryFree"] = _monitor.heap();
 
-    root["fileSystemTotalBytes"] = fileSystemTotalBytes();
-    root["fileSystemUsedBytes"] = fileSystemUsedBytes();
+  root["fileSystemTotalBytes"] = fileSystemTotalBytes();
+  root["fileSystemUsedBytes"] = fileSystemUsedBytes();
 }
 
-void web::jsonSamples(JsonObject root) {
-    root["samplesAscent"] = _stateMachine.sampleRateAirborneAscent();
-    root["samplesDescent"] = _stateMachine.sampleRateAirborneDescent();
-    root["samplesGround"] = _stateMachine.sampleRateGround();
+void web::jsonSamples(JsonObject root, bool settings) {
+  root["samplesAscent"] = _stateMachine.sampleRateAirborneAscent();
+  root["samplesDescent"] = _stateMachine.sampleRateAirborneDescent();
+  root["samplesGround"] = _stateMachine.sampleRateGround();
+
+  if (settings) {
+    root["samplesAscentValuesDefault"] = (int)SAMPLE_RATE_AIRBORNE_ASCENT;
+    JsonArray samplesAscentValues = root.createNestedArray("samplesAscentValues");
+    _values(_stateMachine.sampleRateAirborneAscentValues, samplesAscentValues);
+
+    root["samplesDescentValuesDefault"] = (int)SAMPLE_RATE_AIRBORNE_DESCENT;
+    JsonArray samplesDescentValues = root.createNestedArray("samplesDescentValues");
+    _values(_stateMachine.sampleRateAirborneDecentValues, samplesDescentValues);
+    
+    root["samplesGroundValuesDefault"] = (int)SAMPLE_RATE_GROUND;
+    JsonArray samplesGroundValues = root.createNestedArray("samplesGroundValues");
+    _values(_stateMachine.sampleRateGroundValues, samplesGroundValues);
+  }
 }
 
 void web::jsonWifi(JsonObject root) {
-    root["wifiAddress"] = _wifi.ipAddress();
-    root["wifiPassword"] = _wifi.password();
-    root["wifiSSID"] = _wifi.ssid();
+  root["wifiAddress"] = _wifi.ipAddress();
+  root["wifiPassword"] = _wifi.password();
+  root["wifiSSID"] = _wifi.ssid();
+}
+
+void web::_values(int values[], JsonArray valuesJson) {
+  for (int i = 0; i < sizeof(values); i++)
+    valuesJson.add(values[i]);
 }
 
 web _web;

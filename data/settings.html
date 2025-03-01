@@ -23,10 +23,9 @@
   <table style="width: 100%;">
     <tr>
       <td colspan="2"></td>
-      <td colspan="2" class="right" style="width: 50%;"><a href="/">Home</a></td>
-    </tr>
-    <tr>
-      <td colspan="4">&nbsp;</td>
+      <td colspan="2" class="right" style="width: 50%;">
+        <button onclick="home()">Home</button>
+      </td>
     </tr>
     <tr>
       <td class="left" style="padding-right: 12px;white-space: nowrap;">Samples/sec</td>
@@ -35,10 +34,12 @@
       <td class="left" style="padding-right: 12px;white-space: nowrap;">&nbsp;&nbsp;Ascent</td>
       <td class="left" style="width: 50%;">
         <select id="samplesAscent">
+          <!--
           <option value="15">15</option>
           <option value="20">20 (default)</option>
           <option value="25">25</option>
           <option value="30">30</option>
+          -->
         </select>
       </td>
     </tr>
@@ -46,6 +47,7 @@
       <td class="left" style="padding-right: 12px;white-space: nowrap;">&nbsp;&nbsp;Descent</td>
       <td class="left" style="width: 50%;">
         <select id="samplesDescent">
+          <!--
           <option value="1">1</option>
           <option value="2">2 (default)</option>
           <option value="3">3</option>
@@ -54,6 +56,7 @@
           <option value="6">6</option>
           <option value="8">8</option>
           <option value="10">10</option>
+          -->
         </select>
       </td>
     </tr>
@@ -61,15 +64,17 @@
       <td class="left" style="padding-right: 12px;white-space: nowrap;">&nbsp;&nbsp;Ground</td>
       <td class="left" style="width: 50%;">
         <select id="samplesGround">
+          <!--
           <option value="2">2 (may false start)</option>
           <option value="5">5</option>
-          <option value="10">10</option>
+          <option value="10">10 (default)</option>
           <option value="15">15</option>
-          <option value="20">20 (default)</option>
+          <option value="20">20</option>
           <option value="25">25</option>
           <option value="30">30</option>
           <option value="35">35</option>
           <option value="40">40</option>
+          -->
         </select>
       </td>
     </tr>
@@ -77,6 +82,7 @@
       <td class="left" style="padding-right: 12px;white-space: nowrap;">Launch Detect</td>
       <td class="left" style="width: 50%;">
         <select id="launchDetect">
+          <!--
           <option value="5">5</option>
           <option value="10">10</option>
           <option value="15">15</option>
@@ -85,6 +91,7 @@
           <option value="30">30</option>
           <option value="35">35</option>
           <option value="40">40</option>
+          -->
         </select>
       </td>
     </tr>
@@ -113,34 +120,57 @@
         <button id="save" onclick="save()">Save</button>
       </td>
     </tr>
+    <tr>
+      <td colspan="4" class="right">
+        <p id="toast"></p>
+      </td>
+    </tr>
   </table>
   <pre id="debug" style="display: none"></pre>
 <script src="/script.js"></script>
 <script>
-var _json;
+let _json;
+let _launchDetectEl;
+let _samplesAscentEl;
+let _samplesDescentEl;
+let _samplesGroundEl;
+let _wifiPasswordEl;
+let _wifiSSIDEl;
+
+function createOptions(values, selectEl, defaultValue) {
+  for (let i = 0; i < values.length; i++) {
+    let value = values[i];
+    const newOption = document.createElement('option');
+    newOption.value = value;
+    newOption.text = value + (value === defaultValue ? ' (Default)' : '');
+    selectEl.add(newOption);
+  }
+}
+
+function home() {
+  location = '/';
+}
+
 function reset() {
   if (!confirm(`Are you sure?  This may resetart the WIFI device and shut down the current connection.`))
     return;
 
-  requestPostJSON('/settings/reset', {});
-  requestGet('/settings/data', set);
+  requestPostJSON('/settings/reset', {}, () => {
+    requestGet('/settings/data', set);
+    toast('Successfully reset.');
+  }, () => {;
+    toastError('Failed.');
+  });
 }
 
 function save() {
-  let wifiPasswordEl = document.getElementById("wifiPassword");
-  let wifiSSIDEl = document.getElementById("wifiSSID");
-  let launchDetectEl = document.getElementById("launchDetect");
-  let samplesAscentEl = document.getElementById("samplesAscent");
-  let samplesDescentEl = document.getElementById("samplesDescent");
-  let samplesGroundEl = document.getElementById("samplesGround");
-
   const json = {
-    wifiPassword: wifiPasswordEl.value,
-    wifiSSID: wifiSSIDEl.value,
-    launchDetect: launchDetectEl.value,
-    samplesAscent: samplesAscentEl.value,
-    samplesDescent: samplesDescentEl.value,
-    samplesGround: samplesGroundEl.value
+    launchDetect: _launchDetectEl.value,
+    samplesAscent: _samplesAscentEl.value,
+    samplesDescent: _samplesDescentEl.value,
+    samplesGround: _samplesGroundEl.value,
+    wifiPassword: _wifiPasswordEl.value,
+    wifiSSID: _wifiSSIDEl.value
   }
 
   if ((json.wifiPassword !== _json.wifiPassword) ||
@@ -149,13 +179,22 @@ function save() {
       return;
   }
 
-  requestPostJSON('/settings/save', json);
-  requestGet('/settings/data', set);
+  requestPostJSON('/settings/save', json, () => {
+    // requestGet('/settings/data', set);
+    toast('Successfully saved.');
+  }, () => {;
+    toastError('Failed.');
+  });
 }
 
 function set(json) {
-  let debugEl = document.getElementById("debug");
+  let debugEl = document.getElementById('debug');
   debug.innerHTML = JSON.stringify(json, null, '  ');
+
+  createOptions(json['launchDetectValues'], _launchDetectEl, json['launchDetectValuesDefault']);
+  createOptions(json['samplesAscentValues'], _samplesAscentEl, json['samplesAscentValuesDefault']);
+  createOptions(json['samplesDescentValues'], _samplesDescentEl, json['samplesDescentValuesDefault']);
+  createOptions(json['samplesGroundValues'], _samplesGroundEl, json['samplesGroundValuesDefault']);
   
   header(json);
   launch(json, true);
@@ -166,6 +205,13 @@ function set(json) {
 }
 
 function init() {
+  _launchDetectEl = document.getElementById('launchDetect');
+  _samplesAscentEl = document.getElementById('samplesAscent');
+  _samplesDescentEl = document.getElementById('samplesDescent');
+  _samplesGroundEl = document.getElementById('samplesGround');
+  _wifiPasswordEl = document.getElementById('wifiPassword');
+  _wifiSSIDEl = document.getElementById('wifiSSID');
+
   requestGet('/settings/data', set);
 }
 init();

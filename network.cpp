@@ -1,7 +1,7 @@
 // #include "ble.h"
 #include "network.h"
-#include "wifi.h"
 #include "web.h"
+#include "wifi.h"
 
 void networkDisable() {
   // _ble.disable();
@@ -11,8 +11,8 @@ void networkDisable() {
 
 void networkLoop() {
   // _ble.loop();
-  _wifi.loop();
-  _web.loop();
+  // _wifi.loop();
+  // _web.loop();
 }
 
 void networkStart() {

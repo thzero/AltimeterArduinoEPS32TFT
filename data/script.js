@@ -67,65 +67,95 @@ function battery_level(json) {
 
 function header(json) {
   let titleEl = document.getElementById('title');
-  titleEl.innerHTML = json.title;
+  if (titleEl)
+    titleEl.innerHTML = json.title;
+  
   let versionEl = document.getElementById('version');
-  versionEl.innerHTML = json.version;
+  if (versionEl)
+    versionEl.innerHTML = json.version;
+  
   let copyrightEl = document.getElementById('copyright');
-  copyrightEl.innerHTML = json.copyright + ' ' + json.copyrightYears;
+  if (copyrightEl)
+    copyrightEl.innerHTML = json.copyright + ' ' + json.copyrightYears;
 }
 
 function launch(json, editable) {
   let launchDetectEl = document.getElementById('launchDetect');
-   if (editable)
-    launchDetectEl.value = json.launchDetect;
-  else
-    launchDetectEl.innerHTML = json.launchDetect;
+  if (launchDetectEl) {
+    if (editable)
+      launchDetectEl.value = json.launchDetect;
+    else
+      launchDetectEl.innerHTML = json.launchDetect;
+  }
 }
 
 function monitor(json) {
   let fileSystemTotalBytesEl = document.getElementById('fileSystemTotalBytes');
-  fileSystemTotalBytesEl.innerHTML = Number(json.fileSystemTotalBytes / 1000).toFixed(2);
+  if (fileSystemTotalBytesEl)
+    fileSystemTotalBytesEl.innerHTML = Number(json.fileSystemTotalBytes / 1000).toFixed(2);
+  
   let fileSystemUsedBytesEl = document.getElementById('fileSystemUsedBytes');
-  fileSystemUsedBytesEl.innerHTML = Number(json.fileSystemUsedBytes / 1000).toFixed(2);
+  if (fileSystemUsedBytesEl)
+    fileSystemUsedBytesEl.innerHTML = Number(json.fileSystemUsedBytes / 1000).toFixed(2);
 
   let memoryEl = document.getElementById('memoryFree');
-  memoryEl.innerHTML = json.monitorMemoryFree;
+  if (memoryEl)
+    memoryEl.innerHTML = json.monitorMemoryFree;
 }
 
 function samples(json, editable) {
   let samplesAscentEl = document.getElementById('samplesAscent');
-  if (editable)
-    samplesAscentEl.value = json.samplesAscent;
-  else
-    samplesAscentEl.innerHTML = json.samplesAscent;
+  if (samplesAscentEl) {
+    if (editable)
+      samplesAscentEl.value = json.samplesAscent;
+    else
+      samplesAscentEl.innerHTML = json.samplesAscent;
+  }
+
   let samplesDescentEl = document.getElementById('samplesDescent');
-  if (editable)
-    samplesDescentEl.value = json.samplesDescent;
-  else
-    samplesDescentEl.innerHTML = json.samplesDescent;
+  if (samplesDescentEl) {
+    if (editable)
+      samplesDescentEl.value = json.samplesDescent;
+    else
+      samplesDescentEl.innerHTML = json.samplesDescent;
+  }
+
   let samplesGroundEl = document.getElementById('samplesGround');
-  if (editable)
-    samplesGroundEl.value = json.samplesGround;
-  else
-    samplesGroundEl.innerHTML = json.samplesGround;
+  if (samplesGroundEl) {
+    if (editable)
+      samplesGroundEl.value = json.samplesGround;
+    else
+      samplesGroundEl.innerHTML = json.samplesGround;
+  }
 }
 
 function wifi(json, editable) {
-  // let wifiAddressEl = document.getElementById('wifiAddress');
-  // wifiAddressEl.innerHTML = json.wifiAddress;
+  let wifiAddressEl = document.getElementById('wifiAddress');
+  if (wifiAddressEl) {
+    if (editable)
+      wifiAddressEl.value = json.wifiAddress;
+    else
+      wifiAddressEl.innerHTML = json.wifiAddress;
+  }
+  
   let wifiSSIDEl = document.getElementById('wifiSSID');
-  if (editable)
-    wifiSSIDEl.value = json.wifiSSID;
-  else
-    wifiSSIDEl.innerHTML = json.wifiSSID;
+  if (wifiSSIDEl) {
+    if (editable)
+      wifiSSIDEl.value = json.wifiSSID;
+    else
+      wifiSSIDEl.innerHTML = json.wifiSSID;
+  }
+
   let wifiPasswordEl = document.getElementById('wifiPassword');
-  if (editable)
-    wifiPasswordEl.value = json.wifiPassword;
-  else
-    wifiPasswordEl.innerHTML = json.wifiPassword;
+  if (wifiPasswordEl) {
+    if (editable)
+      wifiPasswordEl.value = json.wifiPassword;
+    else
+      wifiPasswordEl.innerHTML = json.wifiPassword;
+  }
 }
 
-function requestGet(url, callback) {
+function requestGet(url, callback, error) {
   /*
   let jsonDebug = {"altitudeASL":1003.247,"pressureAbove":83.63346,"pressureAt":1003.247,"temperature":31.45951,"title":"AltimeterEPS32TFT","copyright":"(C) thZero.com","copyrightYears":"2024-2024","version":"0.1","launchDetect":20,"monitorBatteryStatus":false,"monitorBatteryVoltage":"3.5","monitorBatteryVoltageMax":"3.7","monitorMemoryFree":1628,"samplesAscent":21,"samplesDescent":3,"samplesGround":8,"wifiAddress":"192.168.1.4","wifiSSID":"F1F618"};
   set(jsonDebug);
@@ -135,32 +165,74 @@ function requestGet(url, callback) {
   xhr.responseType = 'json';
   xhr.open('GET', url, true);
   xhr.onload  = function() {
+    console.log();
+    console.log(`requestGet.url '${url}' status: ${xhr.status}`);
+    console.log();
     if (xhr.status >= 200 && xhr.status < 300) {
       let jsonResponse = xhr.response;
       // console.log(JSON.stringify(jsonResponse));
       if (callback)
         callback(jsonResponse);
+      return;
     }
+    
+    if (error)
+      error(null, true);
   };
   xhr.send(null);
 }
 
-function requestPostJSON(url, json, callback) {
-  let xhr = new XMLHttpRequest();
-  // listen for `load` event
-  xhr.onload = () => {
-    if (xhr.status >= 200 && xhr.status < 300) {
-      let jsonResponse = req.response;
-      // console.log(JSON.stringify(jsonResponse));
-      if (callback)
-        callback(jsonResponse);
+function requestPostJSON(url, json, callback, error) {
+  const xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = () => {
+    if (xhr.readyState === XMLHttpRequest.DONE) {
+      const status = xhr.status;
+      // Not sure whats going on here, ESP32Async seems to return 1 instead
+      // of an expected 200 when returning a response from a POST...
+      if ((status == 1) || (status >= 200 && status < 300)) {
+        let jsonResponse = xhr.response;
+        // console.log(JSON.stringify(jsonResponse));
+        if (callback)
+          callback(jsonResponse);
+        return;
+      }
+    
+      if (error)
+        error(null, true);
     }
   };
-
-  // open request
-  xhr.open('POST', '/settings/save')
+  xhr.open('POST', url, true);
   // set `Content-Type` header
-  xhr.setRequestHeader('Content-Type', 'application/json')
+  xhr.setRequestHeader('Content-Type', 'application/json');
   // send rquest with JSON payload
   xhr.send(JSON.stringify(json))
+}
+
+var toastTimeoutId = null;
+function toast(message) {
+  let toastEl = document.getElementById('toast');
+  toastEl.style.display = null;
+  toastEl.style.color = null;
+  toastEl.innerHTML = message;
+  if (toastTimeoutId) {
+    clearTimeout(toastTimeoutId);
+    toastTimeoutId = null;
+  }
+  toastTimeoutId = setTimeout(function() {
+    toastEl.style.display = 'none';
+  }, 2000);
+}
+
+function toastError(message) {
+  let toastEl = document.getElementById('toast');
+  toastEl.style.display = null;
+  toastEl.style.color = 'red';
+  toastEl.innerHTML = message;
+  if (toastTimeoutId) {
+    clearTimeout(toastTimeoutId);
+    toastTimeoutId = null;
+  }
+  toastTimeoutId = setTimeout(function() {
+    toastEl.style.display = 'none';
+  }, 2000);
 }
