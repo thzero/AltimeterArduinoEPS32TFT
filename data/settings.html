@@ -192,9 +192,9 @@ function set(json) {
   debug.innerHTML = JSON.stringify(json, null, '  ');
 
   createOptions(json['launchDetectValues'], _launchDetectEl, json['launchDetectValuesDefault']);
-  createOptions(json['samplesAscentValues'], _samplesAscentEl, json['samplesAscentValuesDefault']);
-  createOptions(json['samplesDescentValues'], _samplesDescentEl, json['samplesDescentValuesDefault']);
-  createOptions(json['samplesGroundValues'], _samplesGroundEl, json['samplesGroundValuesDefault']);
+  createOptions(json['sampleRateAirborneAscentValues'], _samplesAscentEl, json['sampleRateAirborneAscentValuesDefault']);
+  createOptions(json['sampleRateAirborneDecentValues'], _samplesDescentEl, json['sampleRateAirborneDescentValuesDefault']);
+  createOptions(json['sampleRateGroundValues'], _samplesGroundEl, json['sampleRateGroundValuesDefault']);
   
   header(json);
   launch(json, true);

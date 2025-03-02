@@ -564,7 +564,7 @@ void web::jsonLaunch(JsonObject root, bool settings) {
   if (settings) {
     root["launchDetectValuesDefault"] = (int)ALTITUDE_LIFTOFF;
     JsonArray launchDetectValues = root.createNestedArray("launchDetectValues");
-    _values(_stateMachine.launchDetectValues, launchDetectValues);
+    _values("launchDetectValues", _stateMachine.launchDetectValues, launchDetectValues, sizeof(_stateMachine.launchDetectValues) / sizeof(_stateMachine.launchDetectValues[0]));
   }
 }
 
@@ -589,17 +589,17 @@ void web::jsonSamples(JsonObject root, bool settings) {
   root["samplesGround"] = _stateMachine.sampleRateGround();
 
   if (settings) {
-    root["samplesAscentValuesDefault"] = (int)SAMPLE_RATE_AIRBORNE_ASCENT;
-    JsonArray samplesAscentValues = root.createNestedArray("samplesAscentValues");
-    _values(_stateMachine.sampleRateAirborneAscentValues, samplesAscentValues);
+    root["sampleRateAirborneAscentValuesDefault"] = (int)SAMPLE_RATE_AIRBORNE_ASCENT;
+    JsonArray sampleRateAirborneAscentValues = root.createNestedArray("sampleRateAirborneAscentValues");
+    _values("sampleRateAirborneAscentValues", _stateMachine.sampleRateAirborneAscentValues, sampleRateAirborneAscentValues, sizeof(_stateMachine.sampleRateAirborneAscentValues) / sizeof(_stateMachine.sampleRateAirborneAscentValues[0]));
 
-    root["samplesDescentValuesDefault"] = (int)SAMPLE_RATE_AIRBORNE_DESCENT;
-    JsonArray samplesDescentValues = root.createNestedArray("samplesDescentValues");
-    _values(_stateMachine.sampleRateAirborneDecentValues, samplesDescentValues);
+    root["sampleRateAirborneDescentValuesDefault"] = (int)SAMPLE_RATE_AIRBORNE_DESCENT;
+    JsonArray sampleRateAirborneDecentValues = root.createNestedArray("sampleRateAirborneDecentValues");
+    _values("sampleRateAirborneDecentValues", _stateMachine.sampleRateAirborneDecentValues, sampleRateAirborneDecentValues, sizeof(_stateMachine.sampleRateAirborneDecentValues) / sizeof(_stateMachine.sampleRateAirborneDecentValues[0]));
     
-    root["samplesGroundValuesDefault"] = (int)SAMPLE_RATE_GROUND;
-    JsonArray samplesGroundValues = root.createNestedArray("samplesGroundValues");
-    _values(_stateMachine.sampleRateGroundValues, samplesGroundValues);
+    root["sampleRateGroundValuesDefault"] = (int)SAMPLE_RATE_GROUND;
+    JsonArray sampleRateGroundValues = root.createNestedArray("sampleRateGroundValues");
+    _values("sampleRateGroundValues", _stateMachine.sampleRateGroundValues, sampleRateGroundValues, sizeof(_stateMachine.sampleRateGroundValues) / sizeof(_stateMachine.sampleRateGroundValues[0]));
   }
 }
 
@@ -609,9 +609,17 @@ void web::jsonWifi(JsonObject root) {
   root["wifiSSID"] = _wifi.ssid();
 }
 
-void web::_values(int values[], JsonArray valuesJson) {
-  for (int i = 0; i < sizeof(values); i++)
+void web::_values(char *name, int values[], JsonArray valuesJson, int size) {
+  Serial.print("_values=");
+  Serial.println(name);
+  debug("values.length", size);
+  for (int i = 0; i < size; i++) {
+    Serial.print("_values[");
+    Serial.print(i);
+    Serial.print("]=");
+    Serial.println(values[i]);
     valuesJson.add(values[i]);
+  }
 }
 
 web _web;

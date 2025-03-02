@@ -26,7 +26,7 @@ class stateMachine {
     stateMachine();
     void loop(unsigned long timestamp, unsigned long delta);
     void reset();
-    void save(int launchDetect, int samplesAscent, int samplesDescent, int samplesGround);
+    void save(int launchDetect, int sampleRateAirborneAscent, int sampleRateAirborneDecent, int sampleRateGround);
     void setup();
 
     int launchDetect();
@@ -34,7 +34,7 @@ class stateMachine {
     int sampleRateAirborneDescent();
     int sampleRateGround();
 
-    int launchDetectValues[8] = { 5, 10, 15, 20, 25, 30, 35, 40 };
+    int launchDetectValues[10] = { 5, 10, 15, 20, 25, 30, 35, 40, 45, 50 };
     int sampleRateAirborneAscentValues[4] = { 15, 20, 25, 30 };
     int sampleRateAirborneDecentValues[8] = { 1, 2, 3, 4, 5, 6, 8, 10 };
     int sampleRateGroundValues[8] = { 5, 10, 15, 20, 25, 30, 35, 40 };
@@ -53,7 +53,7 @@ class stateMachine {
     void loopStateToGROUND();
     void loopStateGROUND(unsigned long timestamp, unsigned long deltaElapsed);
     void loopStateGROUNDToAIRBORNE_ASCENT(unsigned long timestamp);
-    int _checkValues(int values[], int value, int defaultValue);
+    int _checkValues(int values[], int value, int defaultValue, int size);
     void _displaySettings();
 
     int _altitudeLiftoff = 20;
