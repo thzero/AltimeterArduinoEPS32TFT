@@ -208,6 +208,23 @@ function requestPostJSON(url, json, callback, error) {
   xhr.send(JSON.stringify(json))
 }
 
+function requestTime() {
+  const now = new Date();
+
+  const json = {
+    epochS: Math.floor(now.getTime() / 1000),
+    epochMs: now.getTime() % 1000,
+    hours: now.getUTCHours(),
+    minutes: now.getUTCMinutes(),
+    seconds: now.getUTCSeconds(),
+    month: now.getUTCMonth(),
+    day: now.getUTCDate(),
+    year: now.getUTCFullYear()
+  }
+
+  requestPostJSON('/settings/requestTime', json);
+}
+
 var toastTimeoutId = null;
 function toast(message) {
   let toastEl = document.getElementById('toast');

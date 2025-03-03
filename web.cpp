@@ -10,9 +10,9 @@
 #include "flightLogger.h"
 #include "monitor.h"
 #include "stateMachine.h"
+#include "time.h"
 #include "web.h"
 #include "wifi.h"
-// #include "images/thzero_altimeters128x128.h"
 
 web::web() {
 }
@@ -227,8 +227,10 @@ void web::configure() {
     Serial.println("");
     #endif
 
-    unsigned long epoch = json["epoch"];
-    debug("epoch", epoch);
+    unsigned long epochS = json["epochS"];
+    debug("epochS", epochS);
+    int epochMs = json["epochMs"];
+    debug("epochMs", epochMs);
     int hours = json["hours"];
     debug("hours", hours);
     int minutes = json["minutes"];
@@ -242,6 +244,8 @@ void web::configure() {
     int year = json["year"];
     debug("year", year);
 
+    setTime(epochS);
+			
     AsyncJsonResponse *response = new AsyncJsonResponse();
     JsonObject responseResult = response->getRoot().to<JsonObject>();
     responseResult["success"] = true;

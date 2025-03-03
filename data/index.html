@@ -201,22 +201,8 @@ function set(json) {
   wifi(json);
 }
 
-function requestTime() {
-  const json = {
-    epoch: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-    month: 0,
-    day: 0,
-    year: 0
-  }
-
-  requestPostJSON('/settings/requestTime', json);
-}
-
 function init() {
-  // requestTime();
+  requestTime();
   requestGet('/data', set);
 }
 

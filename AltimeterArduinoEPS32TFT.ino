@@ -20,6 +20,7 @@
 #include "network.h"
 #include "stateMachine.h"
 #include "sensor.h"
+#include "time.h"
 #include "tft.h"
 #include "utilities.h"
 
@@ -212,4 +213,9 @@ void setup() {
   Serial.println(F(""));
   Serial.println(F("...finished."));
   Serial.println(F(""));
+
+  getTime();
+  getTime();
+  getTime();
+  getTime();
 }
