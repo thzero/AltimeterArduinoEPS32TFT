@@ -103,14 +103,10 @@ void loop() {
 void setupFlightLogger() {
   Serial.println(F("Setup flight logger..."));
 
-  Serial.println(F("Setup file system..."));
-
   if (!_flightLogger.instance.initFileSystem()) {
     Serial.println(F("Failed to initialize file system"));
     return;
   }
-
-  Serial.println(F("...file system successful."));
 
   Serial.println(F("...flight logger successful."));
 }
@@ -140,6 +136,11 @@ void setup() {
   Serial.setDebugOutput(true);
 #endif
 
+  Wire.begin();
+  Serial.begin(SERIAL_BAUD);
+
+  delay(500);
+
   // put your setup code here, to run once:
   Serial.println(F("Setup..."));
   Serial.println(F(""));
@@ -148,9 +149,6 @@ void setup() {
   _neoPixelBlinker.setup();
 
   _ledsBuiltin.on();
-
-  Wire.begin();
-  Serial.begin(SERIAL_BAUD);
 
   setupFileSystem();
 
@@ -213,9 +211,4 @@ void setup() {
   Serial.println(F(""));
   Serial.println(F("...finished."));
   Serial.println(F(""));
-
-  getTime();
-  getTime();
-  getTime();
-  getTime();
 }

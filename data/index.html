@@ -29,20 +29,20 @@
       </td>
     </tr>
     <tr>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">Memory Free</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">Memory Free</td>
       <td class="left" style="width: 50%;"><span id="memoryFree"></span>kb</td>
     </tr>
     <tr>
-      <td class="left" colspan="2">File System</span></td>
+      <td class="heading left" colspan="2">File System</span></td>
     </tr>
     <tr>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">Total Bytes</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">Total Bytes</td>
       <td class="left" style="width: 50%;"><span id="fileSystemTotalBytes"></span>kb</td>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">Used Bytes</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">Used Bytes</td>
       <td class="left" style="width: 50%;"><span id="fileSystemUsedBytes"></span>kb</td>
     </tr>
     <tr id="battery">
-      <td class="left" style="padding-right: 12px;">Battery</td>
+      <td class="heading left" style="padding-right: 12px;">Battery</td>
       <td class="left" colspan="2">
         <img id="battery-full" class="battery battery-full battery-sm" src="/transparent.png" style="display: none;" />
         <img id="battery-full-charging" class="battery battery-full-charging battery-sm" src="/transparent.png" style="display: none;" />
@@ -57,49 +57,54 @@
       <td colspan="4">&nbsp;</td>
     </tr>
     <tr>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">Pressure<br><span style="font-size: 75%">at sea level</span></td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">Pressure<br><span style="font-size: 75%">at sea level</span></td>
       <td id="pressureAt" class="left" style="width: 50%;"></td>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">Samples/sec</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">Samples/sec</td>
     </tr>
     <tr>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">Pressure</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">Pressure</td>
       <td id="pressureAbove" class="left" style="width: 50%;"></td>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">&nbsp;&nbsp;Ascent</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">&nbsp;&nbsp;Ascent</td>
       <td id="samplesAscent" class="left" style="width: 50%;"></td>
     </tr>
     <tr>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">Temperature</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">Temperature</td>
       <td id="temperature" class="left" style="width: 50%;"></td>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">&nbsp;&nbsp;Descent</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">&nbsp;&nbsp;Descent</td>
       <td id="samplesDescent" class="left" style="width: 50%;"></td>
     </tr>
     <tr>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">Altitude<br><span style="font-size: 75%">above sea level</span></td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">Altitude<br><span style="font-size: 75%">above sea level</span></td>
       <td id="altitudeASL" class="left" style="width: 50%;"></td>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">&nbsp;&nbsp;Ground</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">&nbsp;&nbsp;Ground</td>
       <td id="samplesGround" class="left" style="width: 50%;"></td>
     </tr>
     <tr>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">Launch Detect</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">Launch Detect</td>
       <td id="launchDetect" class="left" style="width: 50%;"></td>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">WIFI SSID</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">WIFI SSID</td>
       <td id="wifiSSID" class="left" style="width: 50%;"></td>
     </tr>
   </table>
-  <div style="padding-top: 8px">
-    <button class='home_buttons'><a href='/datalog'>Data Log Download</a></button>
-    <button class='home_buttons' onclick="upload_handler()">Upload Firmware</button>
-  </div>
   <!--
   <p id="status"></p>
   <p id="upload_header"></p>
   <p id="upload"></p>
   -->
-  <table style="width: 100%;">
+  <table id="flightLogs" style="width: 100%;">
     <tr>
-      <td style="text-align: center;">
+      <td colspan="3" style="text-align: center;">
         <h1>Flight Logs</h1>
       </td>
+    </tr>
+    <tr>
+      <th>
+        #
+      </th>
+      <th>
+        Date
+      </th>
+      <th></th>
     </tr>
   </table>
 <script src="/script.js"></script>
@@ -191,6 +196,30 @@ function upload_abort_handler(event) {
   _('status').innerHTML = 'Aborted';
 }
 
+function flightLogs() {
+  let flightLogsEl = document.getElementById('flightLogs');
+  const now = new Date();
+  requestGet('/flightLogs', (json) => {
+    let flightLogs = json['flightLogs'];
+    flightLogs = flightLogs.sort(function(a, b) { return a['epochS'] - b['epochS'] });
+    console.log(json);
+    for (let log of flightLogs) {
+      let rowEl = flightLogsEl.insertRow();
+      let cellEl = rowEl.insertCell();
+      cellEl.innerHTML = log['number'];
+      cellEl = rowEl.insertCell();
+      let date = new Date(log['epochS']);
+      cellEl.innerHTML = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+      cellEl = rowEl.insertCell();
+      cellEl.className = 'download';
+      // cellEl.innerHTML = `<button onclick="flightLogDownload(${log['number']})">Download</button>`;
+      // cellEl.innerHTML = `<a href='/flightLogs/${log['number']}'>Download</a>`;
+      // cellEl.innerHTML = `<a href="/test/${log['number']}"><button>Download</button></a>`;
+      cellEl.innerHTML = `<a href="/flightLog?number=${log['number']}"><button>Download</button></a>`;
+    }
+  });
+}
+
 function set(json) {
   header(json);
   atmosphere(json);
@@ -204,6 +233,7 @@ function set(json) {
 function init() {
   requestTime();
   requestGet('/data', set);
+  flightLogs();
 }
 
 init();

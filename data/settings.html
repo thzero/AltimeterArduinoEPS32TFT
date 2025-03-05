@@ -28,10 +28,10 @@
       </td>
     </tr>
     <tr>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">Samples/sec</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">Samples/sec</td>
     </tr>
     <tr>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">&nbsp;&nbsp;Ascent</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">&nbsp;&nbsp;Ascent</td>
       <td class="left" style="width: 50%;">
         <select id="samplesAscent">
           <!--
@@ -44,7 +44,7 @@
       </td>
     </tr>
     <tr>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">&nbsp;&nbsp;Descent</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">&nbsp;&nbsp;Descent</td>
       <td class="left" style="width: 50%;">
         <select id="samplesDescent">
           <!--
@@ -61,7 +61,7 @@
       </td>
     </tr>
     <tr>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">&nbsp;&nbsp;Ground</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">&nbsp;&nbsp;Ground</td>
       <td class="left" style="width: 50%;">
         <select id="samplesGround">
           <!--
@@ -79,7 +79,7 @@
       </td>
     </tr>
     <tr>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">Launch Detect</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">Launch Detect</td>
       <td class="left" style="width: 50%;">
         <select id="launchDetect">
           <!--
@@ -99,13 +99,13 @@
       <td colspan="4">&nbsp;</td>
     </tr>
     <tr>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">WIFI SSID</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">WIFI SSID</td>
       <td class="left" style="width: 50%;">
         <input type="text" id="wifiSSID"></input>
       </td>
     </tr>
     <tr>
-      <td class="left" style="padding-right: 12px;white-space: nowrap;">WIFI Password</td>
+      <td class="heading left" style="padding-right: 12px;white-space: nowrap;">WIFI Password</td>
       <td class="left" style="width: 50%;">
         <input type="text" id="wifiPassword"></input>
       </td>
@@ -126,6 +126,12 @@
       </td>
     </tr>
   </table>
+  
+  <h1>Other</h1>
+
+  <div style="padding-top: 8px; text-align: right;">
+    <button class='home_buttons' onclick="upload_handler()">Upload Firmware</button>
+  </div>
   <pre id="debug" style="display: none"></pre>
 <script src="/script.js"></script>
 <script>

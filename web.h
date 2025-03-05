@@ -32,6 +32,7 @@ class web {
     void jsonMonitor(JsonObject root);
     void jsonSamples(JsonObject root, bool settings);
     void jsonWifi(JsonObject root);
+    int _chunkedRead(File file, uint8_t* buffer, size_t maxLen, size_t index);
     void _values(char *name, int values[], JsonArray valuesJson, int size);
 };
 

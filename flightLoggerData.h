@@ -1,6 +1,8 @@
 #ifndef _FLIGHT_LOGGER_DATA_H
 #define _FLIGHT_LOGGER_DATA_H
 
+#include <ArduinoJson.h>
+
 struct flightDataStruct {
   float altitudeApogee;
   float altitudeApogeeFirstMeasure;
@@ -9,12 +11,18 @@ struct flightDataStruct {
   float altitudeLast;
   float altitudeLaunch;
   float altitudeTouchdown;
-  unsigned long timestampLaunch = 0;
-  unsigned long timestampCurrent = 0;
-  unsigned long timestampPrevious = 0;
+  unsigned long epochS = 0;
   unsigned long timestampApogee = 0;
   unsigned long timestampApogeeFirstMeasure = 0;
+  unsigned long timestampCurrent = 0;
+  unsigned long timestampLaunch = 0;
+  unsigned long timestampPrevious = 0;
   unsigned long timestampTouchdown = 0;
+};
+
+struct flightDataReadResultsStruct {
+    bool success;
+    JsonObject results;
 };
 
 struct flightDataTraceStruct {

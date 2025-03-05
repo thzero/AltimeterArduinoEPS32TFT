@@ -1,3 +1,5 @@
+#include <ArduinoJson.h>
+
 #include "commands.h"
 #include "constants.h"
 #include "debug.h"
@@ -144,6 +146,19 @@ void interpretCommandBufferI() {
   // telemetry on/off
   if (command == 't')
   {
+    StaticJsonDocument<200> doc;
+    char json[] = "{}";
+    DeserializationError error = deserializeJson(doc, json);
+    Serial.println(F("\tsdfsdfds....1"));
+    serializeJson(doc, Serial);
+    Serial.println(F(""));
+    Serial.println(F("\tsdfsdfds....2"));
+    JsonArray flightLogs = doc.createNestedArray("flightLogs");
+    Serial.println(F("\tsdfsdfds....3"));
+    _flightLogger.instance.readFlightsAsJson(flightLogs);
+    serializeJson(doc, Serial);
+    Serial.println(F(""));
+    Serial.println(F("\tsdfsdfds....4"));
     // not implemented
     return;
   }

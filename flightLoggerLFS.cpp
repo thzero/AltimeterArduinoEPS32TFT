@@ -1,6 +1,8 @@
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 
+#include "constants.h"
+#include "debug.h"
 #include "flightLoggerLFS.h"
 #include "utilities.h"
 
@@ -59,6 +61,21 @@ bool flightLoggerLFS::clearFlightList() {
   return true;
 }
 
+bool flightLoggerLFS::existsFlight(int flightNbr) {
+  char flightName [15];
+  sprintf(flightName, "/flight%i.json", flightNbr);
+#if defined(DEBUG) || defined(DEBUG_LOGGER)
+  Serial.print(F("existsFlight..."));
+  Serial.println(flightName);
+#endif
+
+  File file = LittleFS.open(flightName, "r");
+  if (!file) 
+    return false;
+
+  return true;
+}
+
 long flightLoggerLFS::geFlightNbrLast() {
   long maxFlightNumber = 0; // Default to 0 if no valid flight file is found
 
@@ -100,23 +117,9 @@ long flightLoggerLFS::geFlightNbrLast() {
 }
 
 bool flightLoggerLFS::initFileSystem() {
-//   if (!LittleFS.begin(false)) {
-// #if defined(DEBUG) || defined(DEBUG_LOGGER)
-//     Serial.println(F("LittleFS mount failed");
-//     Serial.println(F("Did not find filesystem; starting format"));
-// #endif
+  Serial.println(F("\tInitialize flightLogger file system..."));
 
-//     // format if begin fails
-//     if (!LittleFS.begin(true)) {
-// #if defined(DEBUG) || defined(DEBUG_LOGGER)
-//       Serial.println(F("LittleFS mount failed"));
-//       Serial.println(F("Formatting not possible"));
-// #endif
-//       return false;
-//     }
-
-//     Serial.println(F("Formatting"));
-//   }
+  Serial.println(F("\t...flightLogger file system initialized."));
 
   return true;
 }
@@ -136,21 +139,30 @@ bool flightLoggerLFS::readFlight(int flightNbr) {
   deserializeJson(doc, file);
   file.close();
 
-  JsonObject flight = doc[flightName];
-  if (flight.isNull())
+  JsonObject flightLog = doc.as<JsonObject>();
+  if (flightLog.isNull())
     return false;
 
-  _dataPos = flight.size();
+  _dataPos = flightLog.size();
   if (_flightDataTrace != nullptr)
     free(_flightDataTrace);
 
   _flightDataTrace = (flightDataTraceStruct*)malloc(sizeof(flightDataTraceStruct) * _dataPos);
   if (!_flightDataTrace)
     return false;
+    
+  _flightData.epochS = flightLog["epochS"];
+  _flightData.altitudeApogee = flightLog["altitudeApogee"];
+  _flightData.altitudeInitial = flightLog["altitudeInitial"];
+  _flightData.altitudeLaunch = flightLog["altitudeLaunch"];
+  _flightData.altitudeTouchdown = flightLog["altitudeTouchdown"];
+  _flightData.timestampLaunch = flightLog["timestampLaunch"];
+  _flightData.timestampApogee = flightLog["timestampApogee"];
+  _flightData.timestampTouchdown = flightLog["timestampTouchdown"];
 
+  JsonArray traces = (flightLog["traces"]).as<JsonArray>();
   long index = 0;
-  for (JsonPair pair : flight) {
-    JsonObject record = pair.value().as<JsonObject>();
+  for (JsonVariant record : traces) {
     _flightDataTrace[index].diffTime = record["diffTime"];
     _flightDataTrace[index].accelX = record["accelX"];
     _flightDataTrace[index].accelY = record["accelY"];
@@ -169,27 +181,113 @@ bool flightLoggerLFS::readFlight(int flightNbr) {
   return true;
 }
 
+flightDataReadResultsStruct flightLoggerLFS::readFlightAsJson(int flightNbr) {
+  char flightName [15];
+  sprintf(flightName, "/flight%i.json", flightNbr);
+#if defined(DEBUG) || defined(DEBUG_LOGGER)
+  Serial.println(flightName);
+#endif
+
+  flightDataReadResultsStruct results;
+
+  File file = LittleFS.open(flightName, "r");
+  if (!file) {
+    results.success = false;
+    return results;
+  }
+
+  DynamicJsonDocument doc(4096);
+  deserializeJson(doc, file);
+  file.close();
+  results.results = doc.as<JsonObject>();
+
+  results.success = true;
+  return results;
+}
+
+void flightLoggerLFS::readFlightsAsJson(JsonArray flightLogs) {
+  #ifdef DEBUG
+    Serial.println(F("\tflightLoggerLFS.readFlightsAsJson..."));
+  #endif
+  
+  // Open the root directory
+  File root = LittleFS.open("/");
+  if (!root || !root.isDirectory()) {
+#if defined(DEBUG) || defined(DEBUG_LOGGER)
+    Serial.println(F("Failed to open the root directory"));
+#endif
+  }
+
+  // Iterate over all files in the root directory
+  File file = root.openNextFile();
+  while (file) {
+    String fileName = file.name();
+#if defined(DEBUG) || defined(DEBUG_LOGGER)
+    Serial.print(F("Found file: "));
+    Serial.println(fileName);
+#endif
+
+    // Check if the filename matches the pattern "flight<number>.json"
+    if (!(fileName.startsWith("flight") && fileName.endsWith(".json"))) {
+      // Move to the next file
+      file = root.openNextFile();
+      continue;
+    }
+
+    DynamicJsonDocument doc(4096);
+    deserializeJson(doc, file);
+
+    JsonObject flightLog = flightLogs.createNestedObject();
+    flightLog["number"] = doc["number"];
+    flightLog["epochS"] = doc["epochS"];
+
+    // Move to the next file
+    file = root.openNextFile();
+  }
+
+  #ifdef DEBUG
+  Serial.println(F("\treadFlightsAsJson"));
+  serializeJson(flightLogs, Serial);
+  Serial.println("");
+  #endif
+
+  #ifdef DEBUG
+    Serial.println(F("\tflightLoggerLFS.readFlightsAsJson...finisshed"));
+  #endif
+}
+
 bool flightLoggerLFS::writeFlight(int flightNbr) {
   char flightName [15];
   sprintf(flightName, "/flight%i.json", flightNbr);
 
   DynamicJsonDocument doc(4096);
-  JsonObject flight = doc.createNestedObject(flightName);
+  JsonObject flightLog = doc.as<JsonObject>();
+  flightLog["number"] = flightNbr;
+  flightLog["epochS"] = _flightData.epochS;
+  flightLog["altitudeApogee"] = _flightData.altitudeApogee;
+  flightLog["altitudeInitial"] = _flightData.altitudeInitial;
+  flightLog["altitudeLaunch"] = _flightData.altitudeLaunch;
+  flightLog["altitudeTouchdown"] = _flightData.altitudeTouchdown;
+  flightLog["timestampLaunch"] = _flightData.timestampLaunch;
+  flightLog["timestampApogee"] = _flightData.timestampApogee;
+  flightLog["timestampTouchdown"] = _flightData.timestampTouchdown;
+
+  JsonArray traces = flightLog.createNestedArray("traces");
 
   for (long i = 0; i < _dataPos; i++) {
-    JsonObject record = flight.createNestedObject(String(i));
-    record["diffTime"] = _flightDataTrace[i].diffTime;
-    record["accelX"] = _flightDataTrace[i].accelX;
-    record["accelY"] = _flightDataTrace[i].accelY;
-    record["accelZ"] = _flightDataTrace[i].accelZ;
-    record["altitude"] = _flightDataTrace[i].altitude;
-    record["gyroX"] = _flightDataTrace[i].gyroX;
-    record["gyroY"] = _flightDataTrace[i].gyroY;
-    record["gyroZ"] = _flightDataTrace[i].gyroZ;
-    record["humidity"] = _flightDataTrace[i].humidity;
-    record["pressure"] = _flightDataTrace[i].pressure;
-    record["temperature"] = _flightDataTrace[i].temperature;
-    record["velocity"] = _flightDataTrace[i].velocity;
+    JsonObject trace = traces.createNestedObject();
+    trace["diffTime"] = _flightDataTrace[i].diffTime;
+    trace["accelX"] = _flightDataTrace[i].accelX;
+    trace["accelY"] = _flightDataTrace[i].accelY;
+    trace["accelZ"] = _flightDataTrace[i].accelZ;
+    trace["altitude"] = _flightDataTrace[i].altitude;
+    trace["gyroX"] = _flightDataTrace[i].gyroX;
+    trace["gyroY"] = _flightDataTrace[i].gyroY;
+    trace["gyroZ"] = _flightDataTrace[i].gyroZ;
+    trace["humidity"] = _flightDataTrace[i].humidity;
+    trace["pressure"] = _flightDataTrace[i].pressure;
+    trace["temperature"] = _flightDataTrace[i].temperature;
+    trace["velocity"] = _flightDataTrace[i].velocity;
   }
 
   // Serial.println(String(doc)));

@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 
+extern unsigned long getEpoch();
 extern void getTime();
 extern void setTime(unsigned long time);
 

@@ -2,6 +2,7 @@
 
 #include "constants.h"
 #include "flightLoggerBase.h"
+#include "time.h"
 #include "utilities.h"
 
 bool flightLoggerBase::clearFlightList() {
@@ -80,8 +81,8 @@ void flightLoggerBase::determineFlightMinAndMax(int flightNbr) {
   }
 }
 
-long flightLoggerBase::getFlightDuration() {
-  return _flightMinAndMax.duration;
+bool flightLoggerBase::existsFlight(int flightNbr) {
+  return false;
 }
 
 float flightLoggerBase::getFlightAccelXMax() {
@@ -124,6 +125,10 @@ flightDataTraceStruct* flightLoggerBase::getFlightDataTrace() {
   return _flightDataTrace;
 }
 
+long flightLoggerBase::getFlightDuration() {
+  return _flightMinAndMax.duration;
+}
+
 float flightLoggerBase::getFlightHumidityMax() {
   return _flightMinAndMax.humidityMax;
 }
@@ -132,12 +137,20 @@ float flightLoggerBase::getFlightHumidityMin() {
   return _flightMinAndMax.humidityMin;
 }
 
+long flightLoggerBase::geFlightNbrLast() {
+  return _dataPos;
+}
+
 float flightLoggerBase::getFlightPressureMax() {
   return _flightMinAndMax.pressureMax;
 }
 
 float flightLoggerBase::getFlightPressureMin() {
   return _flightMinAndMax.pressureMin;
+}
+
+long flightLoggerBase::getFlightSize() {
+  return _dataPos;
 }
 
 float flightLoggerBase::getFlightTemperatureMax() {
@@ -156,20 +169,13 @@ float flightLoggerBase::getFlightVelocityMin() {
   return _flightMinAndMax.velocityMin;
 }
 
-long flightLoggerBase::geFlightNbrLast() {
-  return 0;
-}
-
-long flightLoggerBase::getFlightSize() {
-  return _dataPos;
-}
-
 bool flightLoggerBase::initFileSystem() {
   return false;
 }
 
 void flightLoggerBase::initFlight(unsigned long timestamp) {
   resetFlight();
+  _flightData.epochS = getEpoch();
   _flightData.timestampLaunch = timestamp;
 }
 
@@ -182,14 +188,29 @@ void flightLoggerBase::printFlightData(int flightNbr) {
   char format[4] = "%i,";
   char formatF[6] = "%.2f,";
 
+  Serial.print(F("$"));
+  Serial.print(_flightData.epochS);
+  Serial.print(F("$"));
+  Serial.print(_flightData.altitudeApogee);
+  Serial.print(F("$"));
+  Serial.print(_flightData.altitudeInitial);
+  Serial.print(F("$"));
+  Serial.print(_flightData.altitudeLaunch);
+  Serial.print(F("$"));
+  Serial.print(_flightData.altitudeTouchdown);
+  Serial.print(F("$"));
+  Serial.print(_flightData.timestampLaunch);
+  Serial.print(F("$"));
+  Serial.print(_flightData.timestampApogee);
+  Serial.print(F("$"));
+  Serial.print(_flightData.timestampTouchdown);
+
   for (int i = 0; i < _dataPos ; i++)
   {
     char flightDt[120] = "";
     char temp[20] = "";
     currentTime = currentTime + _flightDataTrace[i].diffTime;
     strcat(flightDt, "data,");
-    sprintf(temp, format, flightNbr-1);
-    strcat(flightDt, temp);
     sprintf(temp, format, currentTime);
     strcat(flightDt, temp);
     sprintf(temp, formatF, _flightDataTrace[i].accelX * 1000);
@@ -232,6 +253,7 @@ void flightLoggerBase::resetFlight() {
   _flightData.altitudeLast = 0;
   _flightData.altitudeLaunch = 0;
   _flightData.altitudeTouchdown = 0;
+  _flightData.epochS = 0;
   _flightData.timestampApogee = 0;
   _flightData.timestampApogeeFirstMeasure = 0;
   _flightData.timestampLaunch = 0;
@@ -247,6 +269,17 @@ void flightLoggerBase::resetFlight() {
 
 bool flightLoggerBase::readFlight(int flightNbr) {
   return false;
+}
+
+JsonObject flightLoggerBase::readFlightAsJson(int flightNbr) {
+  DynamicJsonDocument doc(256);
+  return doc.as<JsonObject>();
+}
+
+void flightLoggerBase::readFlightsAsJson(JsonArray flightLogs) {
+  #ifdef DEBUG
+    Serial.println(F("\tflightLoggerLFS.readFlightsAsJson..."));
+  #endif
 }
 
 void flightLoggerBase::setFlightAccelX(float x) {

@@ -10,8 +10,6 @@ body {
 }
 	
 button {
-	margin-bottom: 0.5rem;
-	margin-top: 0.5rem;
 	border-radius: 0.5em;
 	background: #558ED5;
 	padding: 0.3em 0.3em;
@@ -71,6 +69,10 @@ section {
 
 td {
   vertical-align: top;
+}
+
+td.heading {
+	font-weight: bold;
 }
 
 td.left {
@@ -268,4 +270,17 @@ ul {
   position: relative;
   top: 50%;
   transform: translateY(-50%);
+}
+
+#flightLogs td {
+	text-align: left;
+	vertical-align: middle;
+}
+
+#flightLogs th {
+	text-align: left;
+}
+
+#flightLogs td.download {
+	width: 85px;
 }

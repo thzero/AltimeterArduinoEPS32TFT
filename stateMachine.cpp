@@ -11,6 +11,7 @@
 #include "network.h"
 #include "sensor.h"
 #include "stateMachine.h"
+#include "time.h"
 #include "tft.h"
 #include "utilities.h"
 

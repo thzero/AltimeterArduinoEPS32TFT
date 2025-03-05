@@ -85,15 +85,85 @@ void web::configure() {
     #endif
 
     AsyncJsonResponse *response = new AsyncJsonResponse();
-    JsonObject root = response->getRoot().to<JsonObject>();
-    this->jsonAtmosphere(root);
-    this->jsonHeader(root);
-    this->jsonLaunch(root, false);
-    this->jsonMonitor(root);
-    this->jsonSamples(root, false);
-    this->jsonWifi(root);
+    JsonObject responseResult = response->getRoot().to<JsonObject>();
+    this->jsonAtmosphere(responseResult);
+    this->jsonHeader(responseResult);
+    this->jsonLaunch(responseResult, false);
+    this->jsonMonitor(responseResult);
+    this->jsonSamples(responseResult, false);
+    this->jsonWifi(responseResult);
     response->setLength();
     request->send(response);
+  });
+
+  // _server->on("^\\/flightLogs\\/([0-9]+)$", HTTP_GET, [](AsyncWebServerRequest * request) {
+  _server->on("/flightLog", HTTP_GET, [](AsyncWebServerRequest * request) {
+    // String flightNbrStr = request->pathArg(0);
+    String flightNbrStr = request->getParam("number")->value();
+    int flightNbr;
+    sscanf(flightNbrStr.c_str(), "%d", &flightNbr);
+    #ifdef DEBUG
+      Serial.print(F("\twebserver request...flightLogs download #"));
+      Serial.print(flightNbrStr);
+      Serial.print(F(", "));
+      Serial.println(flightNbr);
+    #endif
+
+    bool exists = _flightLogger.instance.existsFlight(flightNbr);
+    if (exists) {
+      AsyncJsonResponse *response = new AsyncJsonResponse();
+      JsonObject responseResult = response->getRoot().to<JsonObject>();
+      flightDataReadResultsStruct flightLogResult = _flightLogger.instance.readFlightAsJson(flightNbr);
+      responseResult["success"] = true;
+      #ifdef DEBUG
+      Serial.print(F("\twebserver request...flightLogs download data #"));
+      Serial.println(flightNbr);
+      serializeJson(responseResult, Serial);
+      Serial.println(F(""));
+      #endif
+      char szBuf[80];
+      sprintf(szBuf, "attachment; filename=flight%s.json", flightNbr);
+      response->addHeader("Content-Disposition", szBuf);
+      response->addHeader("Connection", "close");
+      response->setLength();
+      request->send(response);
+    }
+    else {
+      Serial.print(F("\twebserver request...flightLogs download #"));
+      Serial.print(flightNbr);
+      Serial.println(F(" - not found"));
+      request->send(400, "text/plain", "ERROR : no flight log found");
+    }
+    
+    #ifdef DEBUG
+      Serial.print(F("\twebserver request...flightLogs download #"));
+      Serial.print(flightNbr);
+      Serial.println(F(" - finished"));
+    #endif
+  });
+
+  // Route to load flightLogs JSON
+  _server->on("/flightLogs", HTTP_GET, [this](AsyncWebServerRequest *request) {
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...flightLogs"));
+    #endif
+
+    AsyncJsonResponse *response = new AsyncJsonResponse();
+    JsonObject responseResult = response->getRoot().to<JsonObject>();
+    JsonArray flightLogs = responseResult.createNestedArray("flightLogs");
+    _flightLogger.instance.readFlightsAsJson(flightLogs);
+    responseResult["success"] = true;
+    #ifdef DEBUG
+    Serial.println(F("\twebserver request...flightLogs data"));
+    serializeJson(responseResult, Serial);
+    Serial.println(F(""));
+    #endif
+    response->setLength();
+    request->send(response);
+    
+    #ifdef DEBUG
+      Serial.println(F("\twebserver request...flightLogs - finished"));
+    #endif
   });
 
   // Route to load settings data JSON
@@ -103,16 +173,16 @@ void web::configure() {
     #endif
 
     AsyncJsonResponse *response = new AsyncJsonResponse();
-    JsonObject root = response->getRoot().to<JsonObject>();
-    this->jsonHeader(root);
-    this->jsonLaunch(root, true);
-    this->jsonSamples(root, true);
-    this->jsonWifi(root);
+    JsonObject responseResult = response->getRoot().to<JsonObject>();
+    this->jsonHeader(responseResult);
+    this->jsonLaunch(responseResult, true);
+    this->jsonSamples(responseResult, true);
+    this->jsonWifi(responseResult);
 
     #ifdef DEBUG
-    Serial.println("");
-    serializeJson(root, Serial);
-    Serial.println("");
+    Serial.println(F(""));
+    serializeJson(responseResult, Serial);
+    Serial.println(F(""));
     #endif
 
     response->setLength();
@@ -157,7 +227,7 @@ void web::configure() {
     AsyncJsonResponse *response = new AsyncJsonResponse();
     JsonObject responseResult = response->getRoot().to<JsonObject>();
     response->setLength();
-    request->send(responseResult);
+    request->send(response);
   });
   _server->addHandler(handlerReset);
 
@@ -171,7 +241,7 @@ void web::configure() {
     #ifdef DEBUG
     Serial.println(F("\twebserver request...settings inbound data"));
     serializeJson(json, Serial);
-    Serial.println("");
+    Serial.println(F(""));
 
     const char* wifiPassword = json["wifiPassword"];
     debug("wifiPassword", wifiPassword);
@@ -206,7 +276,7 @@ void web::configure() {
     JsonObject responseResult = response->getRoot().to<JsonObject>();
     responseResult["success"] = true;
     response->setLength();
-    request->send(responseResult);
+    request->send(response);
     
     #ifdef DEBUG
       Serial.println(F("\twebserver request...settings save - finished"));
@@ -224,7 +294,7 @@ void web::configure() {
     #ifdef DEBUG
     Serial.println(F("\twebserver request...requestTime data"));
     serializeJson(json, Serial);
-    Serial.println("");
+    Serial.println(F(""));
     #endif
 
     unsigned long epochS = json["epochS"];
@@ -249,8 +319,13 @@ void web::configure() {
     AsyncJsonResponse *response = new AsyncJsonResponse();
     JsonObject responseResult = response->getRoot().to<JsonObject>();
     responseResult["success"] = true;
+    #ifdef DEBUG
+    Serial.println(F("\twebserver request...requestTime data"));
+    serializeJson(responseResult, Serial);
+    Serial.println(F(""));
+    #endif
     response->setLength();
-    request->send(responseResult);
+    request->send(response);
     
     #ifdef DEBUG
       Serial.println(F("\twebserver request...requestTime - finished"));
@@ -292,74 +367,6 @@ void web::configure() {
     Serial.println(F("\twebserver request /transparent.png"));
     request->send(LittleFS, "/transparent.png", "image/png");
   });
-
-  // server->on("/datalog", HTTP_GET, [](AsyncWebServerRequest * request) {
-  //   ESP_LOGD(TAG,"Client: %s %s",request->client()->remoteIP().toString().c_str(), request->url().c_str());
-  //   if (FlashLogFreeAddress) {
-  //     AsyncWebServerResponse *response = request->beginResponse("application/octet-stream", FlashLogFreeAddress, [](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-  //       feedWatchdog(); // prevent watchdog resets when downloading large files
-  //       return datalog_chunked_read(buffer, maxLen, index);
-  //     });
-  //     response->addHeader("Content-Disposition", "attachment; filename=datalog");
-  //     response->addHeader("Connection", "close");
-  //     request->send(response);
-  //     }
-  //   else {
-  //     request->send(400, "text/plain", "ERROR : no data log found");
-  //     }
-  //   ESP_LOGD(TAG," Datalog Download : Success");
-  //   });
-
-  // server->on("/file", HTTP_GET, [](AsyncWebServerRequest * request) {
-  //   ESP_LOGD(TAG,"Client: %s %s",request->client()->remoteIP().toString().c_str(), request->url().c_str());
-  //   if (server_authenticate(request)) {
-  //     ESP_LOGD(TAG," Auth: Success");
-  //     if (request->hasParam("name") && request->hasParam("action")) {
-  //       String fname = "/" + request->getParam("name")->value();
-  //       const char* fileName = fname.c_str();
-  //       const char *fileAction = request->getParam("action")->value().c_str();
-  //       ESP_LOGD(TAG, "Client : %s %s ?name = %s &action = %s",request->client()->remoteIP().toString().c_str(), request->url().c_str(), fileName, fileAction);
-  //       if (!LittleFS.exists(fileName)) {
-  //         ESP_LOGE(TAG," ERROR: file does not exist");
-  //         request->send(400, "text/plain", "ERROR: file does not exist");
-  //         } 
-  //       else {
-  //         ESP_LOGD(TAG," file exists");
-  //         if (strcmp(fileAction, "download") == 0) {
-  //           ESP_LOGD(TAG, " downloaded");
-  //           fileLittleFS = LittleFS.open(fileName, "r");
-  //           int sizeBytes = fileLittleFS.size();
-  //           AsyncWebServerResponse *response = request->beginResponse("application/octet-stream", sizeBytes, [](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-  //             feedWatchdog();
-  //             return littlefs_chunked_read(buffer, maxLen);
-  //             });
-  //           char szBuf[80];
-  //           sprintf(szBuf, "attachment; filename=%s", &fileName[1]);// get past the leading '/'
-  //           response->addHeader("Content-Disposition", szBuf);
-  //           response->addHeader("Connection", "close");
-  //           request->send(response);
-  //           } 
-  //         else if (strcmp(fileAction, "delete") == 0) {
-  //           ESP_LOGD(TAG, " deleted");
-  //           LittleFS.remove(fileName);
-  //           request->send(200, "text/plain", "Deleted File: " + String(fileName));
-  //           } 
-  //         else {
-  //           ESP_LOGE(TAG," ERROR: invalid action param supplied");
-  //           request->send(400, "text/plain", "ERROR: invalid action param supplied");
-  //           }
-  //         }
-  //       } 
-  //     else {
-  //       ESP_LOGE(TAG," ERROR: name and action param required");
-  //       request->send(400, "text/plain", "ERROR: name and action params required");
-  //       }
-  //     } 
-  //   else {
-  //     ESP_LOGD(TAG," Auth: Failed");
-  //     return request->requestAuthentication();
-  //     }
-  //   });
 }
 
 void web::serverNotFound(AsyncWebServerRequest *request) {
