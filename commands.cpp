@@ -104,8 +104,7 @@ void interpretCommandBufferI() {
   //   return;
   // }
   // erase all flight
-  // if (command == 'e')
-  // {
+  // if (command == 'e') {
   //   handeFlightErase(commandbuffer);
   //   return;
   // }
@@ -120,9 +119,18 @@ void interpretCommandBufferI() {
   }
 #endif
   // // list all flights
-  // if (command == 'l')
-  // {
+  // if (command == 'l') {
   //   // logger.printFlightList();
+  //   return;
+  // }
+  // number of flight
+  // if (command == 'n') {
+  //   handleFlightList(commandbuffer);
+  //   return;
+  // }
+  // read one flight
+  // if (command == 'r') {
+  //   handleFlightRead(commandbuffer);
   //   return;
   // }
 #ifdef DEV_SIM
@@ -131,21 +139,8 @@ void interpretCommandBufferI() {
     return;
   }
 #endif
-  // number of flight
-  // if (command == 'n')
-  // {
-  //   handleFlightList(commandbuffer);
-  //   return;
-  // }
-  // read one flight
-  // if (command == 'r')
-  // {
-  //   handleFlightRead(commandbuffer);
-  //   return;
-  // }
   // telemetry on/off
-  if (command == 't')
-  {
+  if (command == 't') {
     StaticJsonDocument<200> doc;
     char json[] = "{}";
     DeserializationError error = deserializeJson(doc, json);
@@ -163,14 +158,12 @@ void interpretCommandBufferI() {
     return;
   }
   // recording
-  if (command == 'w')
-  {
+  if (command == 'w') {
     // readSensorAltitude();
     return;
   }
   // delete last flight
-  if (command == 'x')
-  {
+  if (command == 'x') {
     /*logger.eraseLastFlight();
       logger.readFlightList();
       long lastFlightNbr = _flightLogger.instance.geFlightNbrLast();
