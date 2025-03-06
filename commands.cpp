@@ -63,7 +63,6 @@ void interpretCommandBufferSimulation(char command1) {
     _simulation.start(simulationConfigDefault, _flightLogger.altitudeInitial);
 }
 
-//
 //    Available commands.
 //    The commands can be used via the serial command line or via the Android console
 
