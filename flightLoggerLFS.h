@@ -15,9 +15,10 @@ class flightLoggerLFS : public flightLoggerBase {
     bool exists(int flightNbr);
     long geFlightNbrLast();
     bool initFileSystem();
+    void listAsJson(JsonArray flightLogs);
+    void outputSerialList();
     bool readFile(int flightNbr);
     flightDataReadResultsStruct readFileAsJson(int flightNbr);
-    void readFlightsAsJson(JsonArray flightLogs);
     bool writeFile(int flightNbr);
 };
 

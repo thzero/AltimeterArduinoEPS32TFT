@@ -27,9 +27,13 @@ void interpretCommandBufferHelp() {
     Serial.println(F(""));
 
     Serial.println(F("command\tdescription"));
-    Serial.println(F("h;\tHelp menu"));
+    Serial.println(F("h;\thelp menu"));
 #ifdef DEV
     Serial.println(F("i;\tI2C scanner"));
+#endif
+    Serial.println(F("l;\tlist all flights"));
+#ifdef DEV
+    Serial.println(F("lj;\tlist all flights; json"));
 #endif
 #ifdef DEV_SIM
     Serial.println(F("s;\tsimulation"));
@@ -93,6 +97,8 @@ void interpretCommandBufferI() {
 #ifdef DEBUG
     Serial.println(F(""));
     Serial.println(F(""));
+    Serial.println(commandbuffer[0]);
+    Serial.println(commandbuffer[1]);
     Serial.println(F(""));
     Serial.println(F(""));
     Serial.println(F(""));
@@ -118,11 +124,29 @@ void interpretCommandBufferI() {
     return;
   }
 #endif
-  // // list all flights
-  // if (command == 'l') {
-  //   // logger.printFlightList();
-  //   return;
-  // }
+  // list all flights
+  if (command == 'l') {
+#ifdef DEV
+    if (command1 == 'j') {
+      StaticJsonDocument<200> doc;
+      char json[] = "{}";
+      DeserializationError error = deserializeJson(doc, json);
+      Serial.println(F("\tlistAsJson....1"));
+      serializeJson(doc, Serial);
+      Serial.println(F(""));
+      Serial.println(F("\tlistAsJson....2"));
+      JsonArray flightLogs = doc.createNestedArray("flightLogs");
+      Serial.println(F("\tlistAsJson....3"));
+      _flightLogger.instance.listAsJson(flightLogs);
+      serializeJson(doc, Serial);
+      Serial.println(F(""));
+      Serial.println(F("\tlistAsJson...4"));
+      return;
+    }
+#endif
+    _flightLogger.instance.outputSerialList();;
+    return;
+  }
   // number of flight
   // if (command == 'n') {
   //   handleFlightList(commandbuffer);
@@ -144,16 +168,16 @@ void interpretCommandBufferI() {
     StaticJsonDocument<200> doc;
     char json[] = "{}";
     DeserializationError error = deserializeJson(doc, json);
-    Serial.println(F("\tsdfsdfds....1"));
+    Serial.println(F("\tlistAsJson....1"));
     serializeJson(doc, Serial);
     Serial.println(F(""));
-    Serial.println(F("\tsdfsdfds....2"));
+    Serial.println(F("\tlistAsJson....2"));
     JsonArray flightLogs = doc.createNestedArray("flightLogs");
-    Serial.println(F("\tsdfsdfds....3"));
-    _flightLogger.instance.getFlightsAsJson(flightLogs);
+    Serial.println(F("\tlistAsJson....3"));
+    _flightLogger.instance.listAsJson(flightLogs);
     serializeJson(doc, Serial);
     Serial.println(F(""));
-    Serial.println(F("\tsdfsdfds....4"));
+    Serial.println(F("\tlistAsJson...4"));
     // not implemented
     return;
   }

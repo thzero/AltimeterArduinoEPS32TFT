@@ -34,13 +34,14 @@ class flightLoggerBase {
     float getVelocityMin();
     void init(unsigned long timestamp);
     bool initFileSystem();
+    void listAsJson(JsonArray flightLogs);
     void outputSerial();
     void outputSerial(int flightNbr);
     void outputSerialExpanded();
     void outputSerialExpanded(int flightNbr);
+    void outputSerialList();
     bool readFile(int flightNbr);
     JsonObject readFileAsJson(int flightNbr);
-    void readFlightsAsJson(JsonArray flightLogs);
     void reset();
     void setTraceCurrentAccelX(float x);
     void setTraceCurrentAccelY(float y);

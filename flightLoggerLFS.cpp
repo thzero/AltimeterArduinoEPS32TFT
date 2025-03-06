@@ -4,6 +4,7 @@
 #include "constants.h"
 #include "debug.h"
 #include "flightLoggerLFS.h"
+#include "time.h"
 #include "utilities.h"
 
 flightLoggerLFS::flightLoggerLFS() {
@@ -124,6 +125,106 @@ bool flightLoggerLFS::initFileSystem() {
   return true;
 }
 
+void flightLoggerLFS::listAsJson(JsonArray flightLogs) {
+  #ifdef DEBUG
+    Serial.println(F("\tflightLoggerLFS.listAsJson..."));
+  #endif
+  
+  // Open the root directory
+  File root = LittleFS.open("/");
+  if (!root || !root.isDirectory()) {
+#if defined(DEBUG) || defined(DEBUG_LOGGER)
+    Serial.println(F("Failed to open the root directory"));
+#endif
+  }
+
+  // Iterate over all files in the root directory
+  File file = root.openNextFile();
+  while (file) {
+    String fileName = file.name();
+#if defined(DEBUG) || defined(DEBUG_LOGGER)
+    Serial.print(F("Found file: "));
+    Serial.println(fileName);
+#endif
+
+    // Check if the filename matches the pattern "flight<number>.json"
+    if (!(fileName.startsWith("flight") && fileName.endsWith(".json"))) {
+      // Move to the next file
+      file = root.openNextFile();
+      continue;
+    }
+
+    DynamicJsonDocument doc(4096);
+    deserializeJson(doc, file);
+
+    JsonObject flightLog = flightLogs.createNestedObject();
+    flightLog["number"] = doc["number"];
+    flightLog["epochS"] = doc["epochS"];
+
+    // Move to the next file
+    file = root.openNextFile();
+  }
+
+  #ifdef DEBUG
+  Serial.println(F("\tlistAsJson"));
+  serializeJson(flightLogs, Serial);
+  Serial.println("");
+  #endif
+
+  #ifdef DEBUG
+    Serial.println(F("\tflightLoggerLFS.listAsJson...finished"));
+  #endif
+}
+
+void flightLoggerLFS::outputSerialList() {
+  #ifdef DEBUG
+    Serial.println(F("\tflightLoggerLFS.outputSerialList..."));
+  #endif
+  
+  // Open the root directory
+  File root = LittleFS.open("/");
+  if (!root || !root.isDirectory()) {
+#if defined(DEBUG) || defined(DEBUG_LOGGER)
+    Serial.println(F("Failed to open the root directory"));
+#endif
+  }
+
+  // Iterate over all files in the root directory
+  File file = root.openNextFile();
+  while (file) {
+    String fileName = file.name();
+#if defined(DEBUG) || defined(DEBUG_LOGGER)
+    Serial.print(F("Found file: "));
+    Serial.println(fileName);
+#endif
+
+    // Check if the filename matches the pattern "flight<number>.json"
+    if (!(fileName.startsWith("flight") && fileName.endsWith(".json"))) {
+      // Move to the next file
+      file = root.openNextFile();
+      continue;
+    }
+
+    DynamicJsonDocument doc(4096);
+    deserializeJson(doc, file);
+
+    Serial.println(F("Number\tEpcoh (seconds)"));
+    String number = doc["number"];
+    Serial.print(number);
+    Serial.print(F("\t\t"));
+    unsigned long epochS = doc["epochS"];
+    Serial.print(convertTime(epochS));
+    Serial.print(F(""));
+
+    // Move to the next file
+    file = root.openNextFile();
+  }
+
+  #ifdef DEBUG
+    Serial.println(F("\tflightLoggerLFS.outputSerialList...finished"));
+  #endif
+}
+
 bool flightLoggerLFS::readFile(int flightNbr) {
   char flightName [15];
   sprintf(flightName, "/flight%i.json", flightNbr);
@@ -203,57 +304,6 @@ flightDataReadResultsStruct flightLoggerLFS::readFileAsJson(int flightNbr) {
 
   results.success = true;
   return results;
-}
-
-void flightLoggerLFS::readFlightsAsJson(JsonArray flightLogs) {
-  #ifdef DEBUG
-    Serial.println(F("\tflightLoggerLFS.readFlightsAsJson..."));
-  #endif
-  
-  // Open the root directory
-  File root = LittleFS.open("/");
-  if (!root || !root.isDirectory()) {
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
-    Serial.println(F("Failed to open the root directory"));
-#endif
-  }
-
-  // Iterate over all files in the root directory
-  File file = root.openNextFile();
-  while (file) {
-    String fileName = file.name();
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
-    Serial.print(F("Found file: "));
-    Serial.println(fileName);
-#endif
-
-    // Check if the filename matches the pattern "flight<number>.json"
-    if (!(fileName.startsWith("flight") && fileName.endsWith(".json"))) {
-      // Move to the next file
-      file = root.openNextFile();
-      continue;
-    }
-
-    DynamicJsonDocument doc(4096);
-    deserializeJson(doc, file);
-
-    JsonObject flightLog = flightLogs.createNestedObject();
-    flightLog["number"] = doc["number"];
-    flightLog["epochS"] = doc["epochS"];
-
-    // Move to the next file
-    file = root.openNextFile();
-  }
-
-  #ifdef DEBUG
-  Serial.println(F("\treadFlightsAsJson"));
-  serializeJson(flightLogs, Serial);
-  Serial.println("");
-  #endif
-
-  #ifdef DEBUG
-    Serial.println(F("\tflightLoggerLFS.readFlightsAsJson...finisshed"));
-  #endif
 }
 
 bool flightLoggerLFS::writeFile(int flightNbr) {

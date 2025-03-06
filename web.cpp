@@ -151,7 +151,7 @@ void web::configure() {
     AsyncJsonResponse *response = new AsyncJsonResponse();
     JsonObject responseResult = response->getRoot().to<JsonObject>();
     JsonArray flightLogs = responseResult.createNestedArray("flightLogs");
-    _flightLogger.instance.readFlightsAsJson(flightLogs);
+    _flightLogger.instance.listAsJson(flightLogs);
     responseResult["success"] = true;
     #ifdef DEBUG
     Serial.println(F("\twebserver request...flightLogs data"));

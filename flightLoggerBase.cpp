@@ -179,6 +179,12 @@ bool flightLoggerBase::initFileSystem() {
   return false;
 }
 
+void flightLoggerBase::listAsJson(JsonArray flightLogs) {
+  #ifdef DEBUG
+    Serial.println(F("\tflightLoggerLFS.listAsJson..."));
+  #endif
+}
+
 void flightLoggerBase::outputSerial() {
   unsigned long currentTime = 0;
 
@@ -293,6 +299,9 @@ void flightLoggerBase::outputSerialExpanded() {
   }
 }
 
+void flightLoggerBase::outputSerialList() {
+}
+
 void flightLoggerBase::outputSerialExpanded(int flightNbr) {
   if (!readFile(flightNbr))
     return;
@@ -328,12 +337,6 @@ bool flightLoggerBase::readFile(int flightNbr) {
 JsonObject flightLoggerBase::readFileAsJson(int flightNbr) {
   DynamicJsonDocument doc(256);
   return doc.as<JsonObject>();
-}
-
-void flightLoggerBase::readFlightsAsJson(JsonArray flightLogs) {
-  #ifdef DEBUG
-    Serial.println(F("\tflightLoggerLFS.readFlightsAsJson..."));
-  #endif
 }
 
 void flightLoggerBase::setTraceCurrentAccelX(float x) {
