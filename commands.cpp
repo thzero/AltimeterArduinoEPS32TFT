@@ -155,7 +155,7 @@ void interpretCommandBufferI() {
     Serial.println(F("\tsdfsdfds....2"));
     JsonArray flightLogs = doc.createNestedArray("flightLogs");
     Serial.println(F("\tsdfsdfds....3"));
-    _flightLogger.instance.readFlightsAsJson(flightLogs);
+    _flightLogger.instance.getFlightsAsJson(flightLogs);
     serializeJson(doc, Serial);
     Serial.println(F(""));
     Serial.println(F("\tsdfsdfds....4"));

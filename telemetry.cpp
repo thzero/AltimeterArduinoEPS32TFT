@@ -33,23 +33,23 @@
 
 //   strcat(altiTelem, "telemetry,");
 
-//   sprintf(temp, formatFloatComma, _flightLogger.instance.getFlightData().altitudeCurrent);
+//   sprintf(temp, formatFloatComma, _flightLogger.instance.getData().altitudeCurrent);
 //   strcat(altiTelem, temp);
 //   sprintf(temp, formatComma, airborne);
 //   strcat(altiTelem, temp);
-//   sprintf(temp, formatComma, _flightLogger.instance.getFlightData().altitudeLaunch);
+//   sprintf(temp, formatComma, _flightLogger.instance.getData().altitudeLaunch);
 //   strcat(altiTelem, temp);
-//   sprintf(temp, formatComma, _flightLogger.instance.getFlightData().timestampLaunch);
+//   sprintf(temp, formatComma, _flightLogger.instance.getData().timestampLaunch);
 //   strcat(altiTelem, temp);
-//   sprintf(temp, formatFloatComma, _flightLogger.instance.getFlightData().altitudeApogee);
+//   sprintf(temp, formatFloatComma, _flightLogger.instance.getData().altitudeApogee);
 //   strcat(altiTelem, temp);
-//   sprintf(temp, formatFloatComma, _flightLogger.instance.getFlightData().timestampApogee);
+//   sprintf(temp, formatFloatComma, _flightLogger.instance.getData().timestampApogee);
 //   strcat(altiTelem, temp);
 //   sprintf(temp, formatComma, -1);
 //   strcat(altiTelem, temp);
 //   sprintf(temp, formatComma, touchdown);
 //   strcat(altiTelem, temp);
-//   sprintf(temp, formatComma, _flightLogger.instance.getFlightData().timestampTouchdown);
+//   sprintf(temp, formatComma, _flightLogger.instance.getData().timestampTouchdown);
 //   strcat(altiTelem, temp);
 //   sprintf(temp, formatComma, timestamp);
 //   strcat(altiTelem, temp);

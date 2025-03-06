@@ -8,10 +8,10 @@
 
 flightLoggerLFS::flightLoggerLFS() {
   _flightDataTrace = nullptr;
-  _dataPos = 0;
+  _flightDataTraceIndex = 0;
 }
 
-bool flightLoggerLFS::clearFlightList() {
+bool flightLoggerLFS::clearFlights() {
 #if defined(DEBUG) || defined(DEBUG_LOGGER)
   Serial.println(F("Clearing all flights..."));
 #endif
@@ -61,7 +61,7 @@ bool flightLoggerLFS::clearFlightList() {
   return true;
 }
 
-bool flightLoggerLFS::existsFlight(int flightNbr) {
+bool flightLoggerLFS::exists(int flightNbr) {
   char flightName [15];
   sprintf(flightName, "/flight%i.json", flightNbr);
 #if defined(DEBUG) || defined(DEBUG_LOGGER)
@@ -124,7 +124,7 @@ bool flightLoggerLFS::initFileSystem() {
   return true;
 }
 
-bool flightLoggerLFS::readFlight(int flightNbr) {
+bool flightLoggerLFS::readFile(int flightNbr) {
   char flightName [15];
   sprintf(flightName, "/flight%i.json", flightNbr);
 #if defined(DEBUG) || defined(DEBUG_LOGGER)
@@ -143,11 +143,11 @@ bool flightLoggerLFS::readFlight(int flightNbr) {
   if (flightLog.isNull())
     return false;
 
-  _dataPos = flightLog.size();
+  _flightDataTraceIndex = flightLog.size();
   if (_flightDataTrace != nullptr)
     free(_flightDataTrace);
 
-  _flightDataTrace = (flightDataTraceStruct*)malloc(sizeof(flightDataTraceStruct) * _dataPos);
+  _flightDataTrace = (flightDataTraceStruct*)malloc(sizeof(flightDataTraceStruct) * _flightDataTraceIndex);
   if (!_flightDataTrace)
     return false;
     
@@ -181,7 +181,7 @@ bool flightLoggerLFS::readFlight(int flightNbr) {
   return true;
 }
 
-flightDataReadResultsStruct flightLoggerLFS::readFlightAsJson(int flightNbr) {
+flightDataReadResultsStruct flightLoggerLFS::readFileAsJson(int flightNbr) {
   char flightName [15];
   sprintf(flightName, "/flight%i.json", flightNbr);
 #if defined(DEBUG) || defined(DEBUG_LOGGER)
@@ -256,7 +256,7 @@ void flightLoggerLFS::readFlightsAsJson(JsonArray flightLogs) {
   #endif
 }
 
-bool flightLoggerLFS::writeFlight(int flightNbr) {
+bool flightLoggerLFS::writeFile(int flightNbr) {
   char flightName [15];
   sprintf(flightName, "/flight%i.json", flightNbr);
 
@@ -274,7 +274,7 @@ bool flightLoggerLFS::writeFlight(int flightNbr) {
 
   JsonArray traces = flightLog.createNestedArray("traces");
 
-  for (long i = 0; i < _dataPos; i++) {
+  for (long i = 0; i < _flightDataTraceIndex; i++) {
     JsonObject trace = traces.createNestedObject();
     trace["diffTime"] = _flightDataTrace[i].diffTime;
     trace["accelX"] = _flightDataTrace[i].accelX;

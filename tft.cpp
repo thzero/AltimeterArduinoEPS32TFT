@@ -39,7 +39,7 @@ void drawTftFlightAirborne(unsigned long timestamp, unsigned long delta) {
   sprintf(altitude, "Initial: %.2fm", _flightLogger.altitudeInitial);
   _tft.println(altitude);
 
-  sprintf(altitude, "Current: %.2fm", _flightLogger.instance.getFlightData().altitudeCurrent + _flightLogger.altitudeInitial);
+  sprintf(altitude, "Current: %.2fm", _flightLogger.instance.getData().altitudeCurrent + _flightLogger.altitudeInitial);
   _tft.println(altitude);
 
   drawTftSensorImu();
@@ -121,21 +121,21 @@ void drawTftGraphForlightNbr(int flightNbr, int curveType) {
 
   Serial.println(F("...display graph on tft successful."));
 
-  if (!_flightLogger.instance.readFlight(flightNbr))
+  if (!_flightLogger.instance.readFile(flightNbr))
     return;
 
   flightDataTraceStruct *currentFlight;
-  currentFlight = _flightLogger.instance.getFlightDataTrace();
-  _flightLogger.instance.determineFlightMinAndMax(flightNbr);
+  currentFlight = _flightLogger.instance.getDataTrace();
+  _flightLogger.instance.determineTraceMinAndMax(flightNbr);
 
   //altitude
   if (curveType == 0) {
     // Start altitude trace
     _graphTraceAltitude.startTrace(TFT_GREEN);
-    if ((float)_flightLogger.instance.getFlightAltitudeMax() < 1000)
-      drawTftGraphAxesXY(0.0, _flightLogger.instance.getFlightDuration(), 0, (float)_flightLogger.instance.getFlightAltitudeMax(), flightNbr, "Altitude (meters)");
+    if ((float)_flightLogger.instance.getAltitudeMax() < 1000)
+      drawTftGraphAxesXY(0.0, _flightLogger.instance.getDuration(), 0, (float)_flightLogger.instance.getAltitudeMax(), flightNbr, "Altitude (meters)");
     else
-      drawTftGraphAxesXY(0.0, _flightLogger.instance.getFlightDuration(), 0, (float)_flightLogger.instance.getFlightAltitudeMax(), flightNbr, "Altitude (km)");
+      drawTftGraphAxesXY(0.0, _flightLogger.instance.getDuration(), 0, (float)_flightLogger.instance.getAltitudeMax(), flightNbr, "Altitude (km)");
   }
 
   //accel
@@ -145,34 +145,34 @@ void drawTftGraphForlightNbr(int flightNbr, int curveType) {
     _graphTraceAccelY.startTrace(TFT_YELLOW);
 
     float maxAccel = 0.0f;
-    if (_flightLogger.instance.getFlightAccelXMax() > maxAccel)
-      maxAccel = (float)_flightLogger.instance.getFlightAccelXMax();
-    if (_flightLogger.instance.getFlightAccelYMax() > maxAccel)
-      maxAccel = (float)_flightLogger.instance.getFlightAccelYMax();
-    if (_flightLogger.instance.getFlightAccelZMax() > maxAccel)
-      maxAccel = (float)_flightLogger.instance.getFlightAccelZMax();
+    if (_flightLogger.instance.getAccelXMax() > maxAccel)
+      maxAccel = (float)_flightLogger.instance.getAccelXMax();
+    if (_flightLogger.instance.getAccelYMax() > maxAccel)
+      maxAccel = (float)_flightLogger.instance.getAccelYMax();
+    if (_flightLogger.instance.getAccelZMax() > maxAccel)
+      maxAccel = (float)_flightLogger.instance.getAccelZMax();
 
     // Serial.println(maxAccel);
-    drawTftGraphAxesXY(0.0, _flightLogger.instance.getFlightDuration(), 0, (float)roundUp(maxAccel), flightNbr, "Accel X,Y,Z (m/s)");
+    drawTftGraphAxesXY(0.0, _flightLogger.instance.getDuration(), 0, (float)roundUp(maxAccel), flightNbr, "Accel X,Y,Z (m/s)");
   }
 
   // pressure
   if (curveType == 2) {
     _graphTracePressure.startTrace(TFT_GREY);
-    //Serial.println(_flightLogger.instance.getFlightPressureMax());
-    drawTftGraphAxesXY(0.0, _flightLogger.instance.getFlightDuration(), 0, (float)roundUp(_flightLogger.instance.getFlightPressureMax()), flightNbr, "Pressure (mBar)");
+    //Serial.println(_flightLogger.instance.getPressureMax());
+    drawTftGraphAxesXY(0.0, _flightLogger.instance.getDuration(), 0, (float)roundUp(_flightLogger.instance.getPressureMax()), flightNbr, "Pressure (mBar)");
   }
   // temperature
   if (curveType == 3) {
     _graphTraceTemperature.startTrace(TFT_BROWN);
-    //Serial.println(_flightLogger.instance.getFlightTemperatureMax());
-    drawTftGraphAxesXY(0.0, _flightLogger.instance.getFlightDuration(), 0, (float)roundUp(_flightLogger.instance.getFlightTemperatureMax()), flightNbr, "Temp (°C)");
+    //Serial.println(_flightLogger.instance.getTemperatureMax());
+    drawTftGraphAxesXY(0.0, _flightLogger.instance.getDuration(), 0, (float)roundUp(_flightLogger.instance.getTemperatureMax()), flightNbr, "Temp (°C)");
   }
   // humidity
   if (curveType == 4) {
     _graphTraceHumidity.startTrace(TFT_YELLOW);
-    Serial.println(_flightLogger.instance.getFlightHumidityMax());
-    drawTftGraphAxesXY(0.0, _flightLogger.instance.getFlightDuration(), 0, (float)roundUp(_flightLogger.instance.getFlightHumidityMax() + 1), flightNbr, "Hum %");
+    Serial.println(_flightLogger.instance.getHumidityMax());
+    drawTftGraphAxesXY(0.0, _flightLogger.instance.getDuration(), 0, (float)roundUp(_flightLogger.instance.getHumidityMax() + 1), flightNbr, "Hum %");
   }
 
   unsigned long currentTime = 0;

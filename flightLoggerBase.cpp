@@ -5,214 +5,261 @@
 #include "time.h"
 #include "utilities.h"
 
-bool flightLoggerBase::clearFlightList() {
+bool flightLoggerBase::clearFlights() {
   return false;
 }
 
-// Add to the _currentRecord to the _flightDataTrace array
-bool flightLoggerBase::copyFlightDataTrace() {
-  flightDataTraceStruct* newFlightData = (flightDataTraceStruct*)realloc(_flightDataTrace, (_dataPos + 1) * sizeof(flightDataTraceStruct));
+// Add to the _flightDataTraceCurrent to the _flightDataTrace array
+bool flightLoggerBase::copyTraceCurrentToArray() {
+  flightDataTraceStruct* newFlightData = (flightDataTraceStruct*)realloc(_flightDataTrace, (_flightDataTraceIndex + 1) * sizeof(flightDataTraceStruct));
   if (!newFlightData)
     return false;
 
   _flightDataTrace = newFlightData;
-  _flightDataTrace[_dataPos] = _currentRecord;
-  _dataPos++;
+  _flightDataTrace[_flightDataTraceIndex] = _flightDataTraceCurrent;
+  _flightDataTraceIndex++;
   return true;
 }
 
-void flightLoggerBase::determineFlightMinAndMax(int flightNbr) {
-  _flightMinAndMax.accelXMax = 0;
-  _flightMinAndMax.accelXMin = 0;
-  _flightMinAndMax.accelYMax = 0;
-  _flightMinAndMax.accelYMin = 0;
-  _flightMinAndMax.accelZMax = 0;
-  _flightMinAndMax.accelZMin = 0;
-  _flightMinAndMax.accelZMin = 0;
-  _flightMinAndMax.altitudeMax = 0;
-  _flightMinAndMax.duration = 0;
-  _flightMinAndMax.pressureMax = 0;
-  _flightMinAndMax.pressureMin = 0;
-  _flightMinAndMax.temperatureMax = 0;
-  _flightMinAndMax.temperatureMin = 0;
-  _flightMinAndMax.velocityMax = 0;
-  _flightMinAndMax.velocityMin = 0;
+void flightLoggerBase::determineTraceMinAndMax(int flightNbr) {
+  _flightDataTraceMinMax.accelXMax = 0;
+  _flightDataTraceMinMax.accelXMin = 0;
+  _flightDataTraceMinMax.accelYMax = 0;
+  _flightDataTraceMinMax.accelYMin = 0;
+  _flightDataTraceMinMax.accelZMax = 0;
+  _flightDataTraceMinMax.accelZMin = 0;
+  _flightDataTraceMinMax.accelZMin = 0;
+  _flightDataTraceMinMax.altitudeMax = 0;
+  _flightDataTraceMinMax.duration = 0;
+  _flightDataTraceMinMax.pressureMax = 0;
+  _flightDataTraceMinMax.pressureMin = 0;
+  _flightDataTraceMinMax.temperatureMax = 0;
+  _flightDataTraceMinMax.temperatureMin = 0;
+  _flightDataTraceMinMax.velocityMax = 0;
+  _flightDataTraceMinMax.velocityMin = 0;
 
-  if (readFlight(flightNbr)) {
-    for (int i = 0; i < _dataPos ; i++)
+  if (readFile(flightNbr)) {
+    for (int i = 0; i < _flightDataTraceIndex; i++)
     {
-      _flightMinAndMax.duration = _flightMinAndMax.duration + _flightDataTrace[i].diffTime;
+      _flightDataTraceMinMax.duration = _flightDataTraceMinMax.duration + _flightDataTrace[i].diffTime;
 
-      if (_flightDataTrace[i].accelX < _flightMinAndMax.accelXMin)
-        _flightMinAndMax.accelXMin = _flightDataTrace[i].accelX;
-      if (_flightDataTrace[i].accelX > _flightMinAndMax.accelXMax)
-        _flightMinAndMax.accelXMax = _flightDataTrace[i].accelX;
+      if (_flightDataTrace[i].accelX < _flightDataTraceMinMax.accelXMin)
+        _flightDataTraceMinMax.accelXMin = _flightDataTrace[i].accelX;
+      if (_flightDataTrace[i].accelX > _flightDataTraceMinMax.accelXMax)
+        _flightDataTraceMinMax.accelXMax = _flightDataTrace[i].accelX;
 
-      if (_flightDataTrace[i].accelY < _flightMinAndMax.accelYMin)
-        _flightMinAndMax.accelXMin = _flightDataTrace[i].accelY;
-      if (_flightDataTrace[i].accelY > _flightMinAndMax.accelYMax)
-        _flightMinAndMax.accelXMax = _flightDataTrace[i].accelY;
+      if (_flightDataTrace[i].accelY < _flightDataTraceMinMax.accelYMin)
+        _flightDataTraceMinMax.accelXMin = _flightDataTrace[i].accelY;
+      if (_flightDataTrace[i].accelY > _flightDataTraceMinMax.accelYMax)
+        _flightDataTraceMinMax.accelXMax = _flightDataTrace[i].accelY;
 
-      if (_flightDataTrace[i].accelZ < _flightMinAndMax.accelZMin)
-        _flightMinAndMax.accelZMin = _flightDataTrace[i].accelZ;
-      if (_flightDataTrace[i].accelZ > _flightMinAndMax.accelZMax)
-        _flightMinAndMax.accelZMax = _flightDataTrace[i].accelZ;
+      if (_flightDataTrace[i].accelZ < _flightDataTraceMinMax.accelZMin)
+        _flightDataTraceMinMax.accelZMin = _flightDataTrace[i].accelZ;
+      if (_flightDataTrace[i].accelZ > _flightDataTraceMinMax.accelZMax)
+        _flightDataTraceMinMax.accelZMax = _flightDataTrace[i].accelZ;
 
-      if (_flightDataTrace[i].altitude < _flightMinAndMax.altitudeMin)
-        _flightMinAndMax.altitudeMin = _flightDataTrace[i].altitude;
-      if (_flightDataTrace[i].altitude > _flightMinAndMax.altitudeMax)
-        _flightMinAndMax.altitudeMax = _flightDataTrace[i].altitude;
+      if (_flightDataTrace[i].altitude < _flightDataTraceMinMax.altitudeMin)
+        _flightDataTraceMinMax.altitudeMin = _flightDataTrace[i].altitude;
+      if (_flightDataTrace[i].altitude > _flightDataTraceMinMax.altitudeMax)
+        _flightDataTraceMinMax.altitudeMax = _flightDataTrace[i].altitude;
 
-      if (_flightDataTrace[i].pressure < _flightMinAndMax.pressureMin)
-        _flightMinAndMax.pressureMin = _flightDataTrace[i].pressure;
-      if (_flightDataTrace[i].pressure > _flightMinAndMax.temperatureMax)
-        _flightMinAndMax.pressureMax = _flightDataTrace[i].pressure;
+      if (_flightDataTrace[i].pressure < _flightDataTraceMinMax.pressureMin)
+        _flightDataTraceMinMax.pressureMin = _flightDataTrace[i].pressure;
+      if (_flightDataTrace[i].pressure > _flightDataTraceMinMax.temperatureMax)
+        _flightDataTraceMinMax.pressureMax = _flightDataTrace[i].pressure;
 
-      if (_flightDataTrace[i].temperature < _flightMinAndMax.temperatureMin)
-        _flightMinAndMax.temperatureMin = _flightDataTrace[i].temperature;
-      if (_flightDataTrace[i].temperature > _flightMinAndMax.temperatureMax)
-        _flightMinAndMax.temperatureMax = _flightDataTrace[i].temperature;
+      if (_flightDataTrace[i].temperature < _flightDataTraceMinMax.temperatureMin)
+        _flightDataTraceMinMax.temperatureMin = _flightDataTrace[i].temperature;
+      if (_flightDataTrace[i].temperature > _flightDataTraceMinMax.temperatureMax)
+        _flightDataTraceMinMax.temperatureMax = _flightDataTrace[i].temperature;
 
-      if (_flightDataTrace[i].velocity < _flightMinAndMax.velocityMin)
-        _flightMinAndMax.temperatureMin = _flightDataTrace[i].velocity;
-      if (_flightDataTrace[i].velocity > _flightMinAndMax.velocityMax)
-        _flightMinAndMax.velocityMax = _flightDataTrace[i].velocity;
+      if (_flightDataTrace[i].velocity < _flightDataTraceMinMax.velocityMin)
+        _flightDataTraceMinMax.temperatureMin = _flightDataTrace[i].velocity;
+      if (_flightDataTrace[i].velocity > _flightDataTraceMinMax.velocityMax)
+        _flightDataTraceMinMax.velocityMax = _flightDataTrace[i].velocity;
     }
   }
 }
 
-bool flightLoggerBase::existsFlight(int flightNbr) {
+bool flightLoggerBase::exists(int flightNbr) {
   return false;
 }
 
-float flightLoggerBase::getFlightAccelXMax() {
-  return _flightMinAndMax.accelXMax;
+float flightLoggerBase::getAccelXMax() {
+  return _flightDataTraceMinMax.accelXMax;
 }
 
-float flightLoggerBase::getFlightAccelXMin() {
-  return _flightMinAndMax.accelXMin;
+float flightLoggerBase::getAccelXMin() {
+  return _flightDataTraceMinMax.accelXMin;
 }
 
-float flightLoggerBase::getFlightAccelYMax() {
-  return _flightMinAndMax.accelYMax;
+float flightLoggerBase::getAccelYMax() {
+  return _flightDataTraceMinMax.accelYMax;
 }
 
-float flightLoggerBase::getFlightAccelYMin() {
-  return _flightMinAndMax.accelYMin;
+float flightLoggerBase::getAccelYMin() {
+  return _flightDataTraceMinMax.accelYMin;
 }
 
-float flightLoggerBase::getFlightAccelZMax() {
-  return _flightMinAndMax.accelZMax;
+float flightLoggerBase::getAccelZMax() {
+  return _flightDataTraceMinMax.accelZMax;
 }
 
-float flightLoggerBase::getFlightAccelZMin() {
-  return _flightMinAndMax.accelZMin;
+float flightLoggerBase::getAccelZMin() {
+  return _flightDataTraceMinMax.accelZMin;
 }
 
-float flightLoggerBase::getFlightAltitudeMax() {
-  return _flightMinAndMax.altitudeMax;
+float flightLoggerBase::getAltitudeMax() {
+  return _flightDataTraceMinMax.altitudeMax;
 }
 
-float flightLoggerBase::getFlightAltitudeMin() {
-  return _flightMinAndMax.altitudeMin;
+float flightLoggerBase::getltitudeMin() {
+  return _flightDataTraceMinMax.altitudeMin;
 }
 
-flightDataStruct flightLoggerBase::getFlightData() {
+flightDataStruct flightLoggerBase::getData() {
   return _flightData;
 }
 
-flightDataTraceStruct* flightLoggerBase::getFlightDataTrace() {
+flightDataTraceStruct* flightLoggerBase::getDataTrace() {
   return _flightDataTrace;
 }
 
-long flightLoggerBase::getFlightDuration() {
-  return _flightMinAndMax.duration;
+long flightLoggerBase::getDuration() {
+  return _flightDataTraceMinMax.duration;
 }
 
-float flightLoggerBase::getFlightHumidityMax() {
-  return _flightMinAndMax.humidityMax;
+float flightLoggerBase::getHumidityMax() {
+  return _flightDataTraceMinMax.humidityMax;
 }
 
-float flightLoggerBase::getFlightHumidityMin() {
-  return _flightMinAndMax.humidityMin;
+float flightLoggerBase::getHumidityMin() {
+  return _flightDataTraceMinMax.humidityMin;
 }
 
 long flightLoggerBase::geFlightNbrLast() {
-  return _dataPos;
+  return 0;
 }
 
-float flightLoggerBase::getFlightPressureMax() {
-  return _flightMinAndMax.pressureMax;
+float flightLoggerBase::getPressureMax() {
+  return _flightDataTraceMinMax.pressureMax;
 }
 
 float flightLoggerBase::getFlightPressureMin() {
-  return _flightMinAndMax.pressureMin;
+  return _flightDataTraceMinMax.pressureMin;
 }
 
 long flightLoggerBase::getFlightSize() {
-  return _dataPos;
+  return _flightDataTraceIndex;
 }
 
-float flightLoggerBase::getFlightTemperatureMax() {
-  return _flightMinAndMax.temperatureMax;
+float flightLoggerBase::getTemperatureMax() {
+  return _flightDataTraceMinMax.temperatureMax;
 }
 
-float flightLoggerBase::getFlightTemperatureMin() {
-  return _flightMinAndMax.temperatureMin;
+float flightLoggerBase::getTemperatureMin() {
+  return _flightDataTraceMinMax.temperatureMin;
 }
 
-float flightLoggerBase::getFlightVelocityMax() {
-  return _flightMinAndMax.velocityMax;
+float flightLoggerBase::getVelocityMax() {
+  return _flightDataTraceMinMax.velocityMax;
 }
 
-float flightLoggerBase::getFlightVelocityMin() {
-  return _flightMinAndMax.velocityMin;
+float flightLoggerBase::getVelocityMin() {
+  return _flightDataTraceMinMax.velocityMin;
+}
+
+void flightLoggerBase::init(unsigned long timestamp) {
+  reset();
+  _flightData.epochS = getEpoch();
+  _flightData.timestampLaunch = timestamp;
 }
 
 bool flightLoggerBase::initFileSystem() {
   return false;
 }
 
-void flightLoggerBase::initFlight(unsigned long timestamp) {
-  resetFlight();
-  _flightData.epochS = getEpoch();
-  _flightData.timestampLaunch = timestamp;
-}
-
-void flightLoggerBase::printFlightData(int flightNbr) {
+void flightLoggerBase::outputSerial() {
   unsigned long currentTime = 0;
-
-  if (!readFlight(flightNbr))
-    return;
 
   char format[4] = "%i,";
   char formatF[6] = "%.2f,";
 
-  Serial.print(F("$"));
-  Serial.print(_flightData.epochS);
-  Serial.print(F("$"));
-  Serial.print(_flightData.altitudeApogee);
-  Serial.print(F("$"));
-  Serial.print(_flightData.altitudeInitial);
-  Serial.print(F("$"));
-  Serial.print(_flightData.altitudeLaunch);
-  Serial.print(F("$"));
-  Serial.print(_flightData.altitudeTouchdown);
-  Serial.print(F("$"));
-  Serial.print(_flightData.timestampLaunch);
-  Serial.print(F("$"));
-  Serial.print(_flightData.timestampApogee);
-  Serial.print(F("$"));
-  Serial.print(_flightData.timestampTouchdown);
-
-  for (int i = 0; i < _dataPos ; i++)
-  {
-    char flightDt[120] = "";
-    char temp[20] = "";
+  char flightDt[120] = "";
+  char temp[20] = "";
+  for (long i = 0; i < _flightDataTraceIndex; i++) {
+    // memset(flightDt, 0, sizeof flightDt);
+    // memset(temp, 0, sizeof temp);
     currentTime = currentTime + _flightDataTrace[i].diffTime;
-    strcat(flightDt, "data,");
+    strcpy(flightDt, "data,");
+    sprintf(temp, format, _flightDataTraceIndex - 1);
+    strcat(flightDt, temp);
     sprintf(temp, format, currentTime);
     strcat(flightDt, temp);
+    sprintf(temp, format, _flightDataTrace[i].altitude);
+    strcat(flightDt, temp);
+    sprintf(temp, format, _flightDataTrace[i].temperature);
+    strcat(flightDt, temp);
+    sprintf(temp, format, _flightDataTrace[i].pressure);
+    strcat(flightDt, temp);
+    //sprintf(temp, format, _flightDataTrace[i].humidity); //humidity
+    ///strcat(flightDt, temp);
+    sprintf(temp, format, _flightDataTrace[i].accelX * 1000);
+    strcat(flightDt, temp);
+    sprintf(temp, format, _flightDataTrace[i].accelY * 1000);
+    strcat(flightDt, temp);
+    sprintf(temp, format, _flightDataTrace[i].accelZ * 1000);
+    strcat(flightDt, temp);
+
+    unsigned int chk = msgChk(flightDt, sizeof(flightDt));
+    sprintf(temp, "%i", chk);
+    strcat(flightDt, temp);
+    strcat(flightDt, ";\n");
+
+    Serial.print("$");
+    Serial.print(flightDt);
+  }
+}
+
+void flightLoggerBase::outputSerial(int flightNbr) {
+  if (!readFile(flightNbr))
+    return;
+
+  outputSerial(flightNbr);
+}
+
+void flightLoggerBase::outputSerialExpanded() {
+  unsigned long currentTime = 0;
+
+  char format[4] = "%i,";
+  char formatF[6] = "%.2f,";
+
+  Serial.print(F("$data,"));
+  Serial.print(_flightData.epochS);
+  Serial.print(F(","));
+  Serial.print(_flightData.altitudeApogee);
+  Serial.print(F(","));
+  Serial.print(_flightData.altitudeInitial);
+  Serial.print(F(","));
+  Serial.print(_flightData.altitudeLaunch);
+  Serial.print(F(","));
+  Serial.print(_flightData.altitudeTouchdown);
+  Serial.print(F(","));
+  Serial.print(_flightData.timestampLaunch);
+  Serial.print(F(","));
+  Serial.print(_flightData.timestampApogee);
+  Serial.print(F(","));
+  Serial.print(_flightData.timestampTouchdown);
+  Serial.println(F(";"));
+
+  char flightDt[120] = "";
+  char temp[20] = "";
+  for (int i = 0; i < _flightDataTraceIndex; i++) {
+    // memset(flightDt, 0, sizeof flightDt);
+    // memset(temp, 0, sizeof temp);
+    currentTime = currentTime + _flightDataTrace[i].diffTime;
+    sprintf(temp, format, currentTime);
+    strcpy(flightDt, temp);
     sprintf(temp, formatF, _flightDataTrace[i].accelX * 1000);
     strcat(flightDt, temp);
     sprintf(temp, formatF, _flightDataTrace[i].accelY * 1000);
@@ -241,12 +288,19 @@ void flightLoggerBase::printFlightData(int flightNbr) {
     strcat(flightDt, temp);
     strcat(flightDt, ";\n");
 
-    Serial.print(F("$"));
+    Serial.print(F("$trace,"));
     Serial.print(flightDt);
   }
 }
 
-void flightLoggerBase::resetFlight() {
+void flightLoggerBase::outputSerialExpanded(int flightNbr) {
+  if (!readFile(flightNbr))
+    return;
+
+  outputSerialExpanded();
+}
+
+void flightLoggerBase::reset() {
   _flightData.altitudeApogee = 0;
   _flightData.altitudeApogeeFirstMeasure = 0;
   _flightData.altitudeCurrent = 0;
@@ -264,14 +318,14 @@ void flightLoggerBase::resetFlight() {
     free(_flightDataTrace);
 
   _flightDataTrace = nullptr;
-  _dataPos = 0;
+  _flightDataTraceIndex = 0;
 }
 
-bool flightLoggerBase::readFlight(int flightNbr) {
+bool flightLoggerBase::readFile(int flightNbr) {
   return false;
 }
 
-JsonObject flightLoggerBase::readFlightAsJson(int flightNbr) {
+JsonObject flightLoggerBase::readFileAsJson(int flightNbr) {
   DynamicJsonDocument doc(256);
   return doc.as<JsonObject>();
 }
@@ -282,106 +336,106 @@ void flightLoggerBase::readFlightsAsJson(JsonArray flightLogs) {
   #endif
 }
 
-void flightLoggerBase::setFlightAccelX(float x) {
-  _currentRecord.accelX = x;
+void flightLoggerBase::setTraceCurrentAccelX(float x) {
+  _flightDataTraceCurrent.accelX = x;
 }
 
-void flightLoggerBase::setFlightAccelY(float y) {
-  _currentRecord.accelY = y;
+void flightLoggerBase::setTraceCurrentAccelY(float y) {
+  _flightDataTraceCurrent.accelY = y;
 }
 
-void flightLoggerBase::setFlightAccelZ(float z) {
-  _currentRecord.accelZ = z;
+void flightLoggerBase::setTraceCurrentAccelZ(float z) {
+  _flightDataTraceCurrent.accelZ = z;
 }
 
-void flightLoggerBase::setFlightAltitude(float altitude) {
-  _currentRecord.altitude = altitude;
+void flightLoggerBase::setTraceCurrentAltitude(float altitude) {
+  _flightDataTraceCurrent.altitude = altitude;
 }
 
-void flightLoggerBase::setFlightAltitudeApogee(float altitude) {
+void flightLoggerBase::setAltitudeApogee(float altitude) {
   _flightData.altitudeApogee = altitude;
 }
 
-void flightLoggerBase::setFlightAltitudeApogeeFirstMeasure(float altitude) {
+void flightLoggerBase::setAltitudeApogeeFirstMeasure(float altitude) {
   _flightData.altitudeApogeeFirstMeasure = altitude;
 }
 
-void flightLoggerBase::setFlightAltitudeCurrent(float altitude) {
+void flightLoggerBase::setAltitudeCurrent(float altitude) {
   _flightData.altitudeCurrent = altitude;
 }
 
-void flightLoggerBase::setFlightAltitudeLast(float altitude) {
+void flightLoggerBase::setAltitudeLast(float altitude) {
   _flightData.altitudeLast = altitude;
 }
 
-void flightLoggerBase::setFlightAltitudeLaunch(float altitude) {
+void flightLoggerBase::setAltitudeLaunch(float altitude) {
   _flightData.altitudeLaunch = altitude;
 }
 
-void flightLoggerBase::setFlightAltitudeTouchdown(float altitude) {
+void flightLoggerBase::setAltitudeTouchdown(float altitude) {
   _flightData.altitudeTouchdown = altitude;
 }
 
-void flightLoggerBase::setFlightGyroX(float x) {
-  _currentRecord.gyroX = x;
+void flightLoggerBase::setTraceCurrentGyroX(float x) {
+  _flightDataTraceCurrent.gyroX = x;
 }
 
-void flightLoggerBase::setFlightGyroY(float y) {
-  _currentRecord.gyroY = y;
+void flightLoggerBase::setTraceCurrentGyroY(float y) {
+  _flightDataTraceCurrent.gyroY = y;
 }
 
-void flightLoggerBase::setFlightGyroZ(float z) {
-  _currentRecord.gyroZ = z;
+void flightLoggerBase::setTraceCurrentGyroZ(float z) {
+  _flightDataTraceCurrent.gyroZ = z;
 }
 
-void flightLoggerBase::setFlightHumidity(float humidity) {
-  _currentRecord.humidity = humidity;
+void flightLoggerBase::setTraceCurrentHumidity(float humidity) {
+  _flightDataTraceCurrent.humidity = humidity;
 }
 
-void flightLoggerBase::setFlightPressure(float pressure) {
-  _currentRecord.pressure = pressure;
+void flightLoggerBase::setTraceCurrentPressure(float pressure) {
+  _flightDataTraceCurrent.pressure = pressure;
 }
 
-void flightLoggerBase::setFlightTemperature(float temperature) {
-  _currentRecord.temperature = temperature;
+void flightLoggerBase::setTraceCurrentTemperature(float temperature) {
+  _flightDataTraceCurrent.temperature = temperature;
 }
 
-void flightLoggerBase::setFlightTime(long diffTime) {
-  _currentRecord.diffTime = diffTime;
+void flightLoggerBase::setTraceCurrentTime(long diffTime) {
+  _flightDataTraceCurrent.diffTime = diffTime;
 }
 
-void flightLoggerBase::setFlightTimestampApogee(long diffTime) {
+void flightLoggerBase::setTimestampApogee(long diffTime) {
   _flightData.timestampApogee = diffTime;
 }
 
-void flightLoggerBase::setFlightTimestampApogeeFirstMeasure(long diffTime) {
+void flightLoggerBase::setTimestampApogeeFirstMeasure(long diffTime) {
   _flightData.timestampApogeeFirstMeasure = diffTime;
 }
 
-void flightLoggerBase::setFlightTimestampCurrent(long diffTime) {
+void flightLoggerBase::setTimestampCurrent(long diffTime) {
   _flightData.timestampCurrent = diffTime;
 }
 
-void flightLoggerBase::setFlightTimestampLaunch(long diffTime) {
+void flightLoggerBase::setTimestampLaunch(long diffTime) {
   _flightData.timestampLaunch = diffTime;
 }
 
-void flightLoggerBase::setFlightTimestampPrevious(long diffTime) {
+void flightLoggerBase::setTimestampPrevious(long diffTime) {
   _flightData.timestampPrevious = diffTime;
 }
 
-void flightLoggerBase::setFlightTimestampTouchdown(long diffTime) {
+void flightLoggerBase::setTimestampTouchdown(long diffTime) {
   _flightData.timestampTouchdown = diffTime;
 }
 
-void flightLoggerBase::setFlightVelocity(float velocity) {
-  _currentRecord.velocity = velocity;
+void flightLoggerBase::setTraceCurrentVelocity(float velocity) {
+  _flightDataTraceCurrent.velocity = velocity;
 }
 
-bool flightLoggerBase::writeFlight(int flightNbr) {
+bool flightLoggerBase::writeFile(int flightNbr) {
   return false;
 }
 
-bool flightLoggerBase::writeFlightFast() {
-  return writeFlight(geFlightNbrLast() + 1);
+bool flightLoggerBase::writeFlightCurrent() {
+  return writeFile(geFlightNbrLast() + 1);
 }

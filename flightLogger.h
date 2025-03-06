@@ -8,7 +8,7 @@
 class flightLogger {
   public:
     flightLogger();
-    void initFlight(unsigned long timestamp);
+    void init(unsigned long timestamp);
     void reset();
     
     bool airborne = false;

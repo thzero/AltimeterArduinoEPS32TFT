@@ -6,7 +6,7 @@ flightLogger::flightLogger() {
   reset();
 }
 
-void flightLogger::initFlight(unsigned long timestamp) {
+void flightLogger::init(unsigned long timestamp) {
   // Initialize the flight...
   aborted = false;
   recording = true;
@@ -14,7 +14,7 @@ void flightLogger::initFlight(unsigned long timestamp) {
   airborne = true;
   touchdown = false;
 
-  instance.initFlight(timestamp);
+  instance.init(timestamp);
 }
 
 void flightLogger::reset() {
@@ -25,7 +25,7 @@ void flightLogger::reset() {
   airborne = false;
   touchdown = false;
 
-  instance.resetFlight();
+  instance.reset();
 }
 
 flightLogger _flightLogger;

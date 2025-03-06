@@ -94,7 +94,7 @@ void handleButtonLongClick_FlightLogErase() {
   // Serial.println(F("Erasing flights!!!"));
 
   // // erasing flights
-  // _flightLogger.instance.clearFlightList();
+  // _flightLogger.instance.clearFlights();
 }
 
 void handleButtonLongClick(Button2 button) {

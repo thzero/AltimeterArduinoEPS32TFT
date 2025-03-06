@@ -11,14 +11,14 @@
 class flightLoggerLFS : public flightLoggerBase {
   public:
     flightLoggerLFS();
-    bool clearFlightList();
-    bool existsFlight(int flightNbr);
+    bool clearFlights();
+    bool exists(int flightNbr);
     long geFlightNbrLast();
     bool initFileSystem();
-    bool readFlight(int flightNbr);
-    flightDataReadResultsStruct readFlightAsJson(int flightNbr);
+    bool readFile(int flightNbr);
+    flightDataReadResultsStruct readFileAsJson(int flightNbr);
     void readFlightsAsJson(JsonArray flightLogs);
-    bool writeFlight(int flightNbr);
+    bool writeFile(int flightNbr);
 };
 
 #endif

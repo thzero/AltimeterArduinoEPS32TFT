@@ -109,11 +109,11 @@ void web::configure() {
       Serial.println(flightNbr);
     #endif
 
-    bool exists = _flightLogger.instance.existsFlight(flightNbr);
+    bool exists = _flightLogger.instance.exists(flightNbr);
     if (exists) {
       AsyncJsonResponse *response = new AsyncJsonResponse();
       JsonObject responseResult = response->getRoot().to<JsonObject>();
-      flightDataReadResultsStruct flightLogResult = _flightLogger.instance.readFlightAsJson(flightNbr);
+      flightDataReadResultsStruct flightLogResult = _flightLogger.instance.readFileAsJson(flightNbr);
       responseResult["success"] = true;
       #ifdef DEBUG
       Serial.print(F("\twebserver request...flightLogs download data #"));
