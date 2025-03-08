@@ -1,5 +1,17 @@
+#include <Arduino.h>
+#include <driver/timer.h>
+
 #include "utilities.h"
 #include "wifi.h"
+
+void feedWatchdog() {
+  // TIMERG0.wdt_wprotect = TIMG_WDT_WKEY_VALUE;
+  // TIMERG0.wdt_feed = 1;
+  // TIMERG0.wdt_wprotect = 0;
+  TIMERG0.wdtwprotect.wdt_wkey = 1356348065;
+  TIMERG0.wdtfeed.wdt_feed = 1;
+  TIMERG0.wdtwprotect.wdt_wkey = 0;
+}
 
 unsigned int msgChk(char * buffer, long length) {
   long index;

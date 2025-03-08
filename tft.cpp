@@ -304,7 +304,7 @@ void drawTftSplash() {
 }
 
 void setupTft() {
-  Serial.println("Setup TFT...");
+  Serial.println("\nSetup TFT...");
 
   // turn on backlite
   pinMode(TFT_BACKLITE, OUTPUT);

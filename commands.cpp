@@ -73,6 +73,7 @@ void interpretCommandBufferSimulation(char command1) {
 //    n  the number of recorded flights
 //    r  followed by a number which is the flight number
 //       retrieve all data for the specified flight
+//    r  reindex flights
 //    s  start simulation
 //    t  toggle flight telemetry
 //    s  stop simulation
@@ -109,10 +110,10 @@ void interpretCommandBufferI() {
   //   return;
   // }
   // erase all flight
-  // if (command == 'e') {
-  //   handeFlightErase(commandbuffer);
-  //   return;
-  // }
+  if (command == 'e') {
+    _flightLogger.instance.eraseFlights();
+    return;
+  }
   if (command == 'h') {
     interpretCommandBufferHelp();
     return;
@@ -130,16 +131,9 @@ void interpretCommandBufferI() {
       StaticJsonDocument<200> doc;
       char json[] = "{}";
       DeserializationError error = deserializeJson(doc, json);
-      Serial.println(F("\tlistAsJson....1"));
       serializeJson(doc, Serial);
-      Serial.println(F(""));
-      Serial.println(F("\tlistAsJson....2"));
-      JsonArray flightLogs = doc.createNestedArray("flightLogs");
-      Serial.println(F("\tlistAsJson....3"));
-      _flightLogger.instance.listAsJson(flightLogs);
+       _flightLogger.instance.listAsJson(doc.createNestedArray("flightLogs"));
       serializeJson(doc, Serial);
-      Serial.println(F(""));
-      Serial.println(F("\tlistAsJson...4"));
       return;
     }
 #endif
@@ -162,21 +156,12 @@ void interpretCommandBufferI() {
     return;
   }
 #endif
+  if (command == 'r') {
+    _flightLogger.instance.reindexFlights();
+    return;
+  }
   // telemetry on/off
   if (command == 't') {
-    StaticJsonDocument<200> doc;
-    char json[] = "{}";
-    DeserializationError error = deserializeJson(doc, json);
-    Serial.println(F("\tlistAsJson....1"));
-    serializeJson(doc, Serial);
-    Serial.println(F(""));
-    Serial.println(F("\tlistAsJson....2"));
-    JsonArray flightLogs = doc.createNestedArray("flightLogs");
-    Serial.println(F("\tlistAsJson....3"));
-    _flightLogger.instance.listAsJson(flightLogs);
-    serializeJson(doc, Serial);
-    Serial.println(F(""));
-    Serial.println(F("\tlistAsJson...4"));
     // not implemented
     return;
   }
@@ -226,11 +211,6 @@ void interpretCommandBuffer() {
   interpretCommandBufferI();
   resetCommandBuffer();
 }
-
-// void handeFlightErase(char *commandbuffer) {
-//     Serial.println(F("Erase\n"));
-//     _flightLogger.instance.clearFlightList();
-// }
 
 // void handleFlightList(char *commandbuffer) {
 //     Serial.print(F("$start;\n"));

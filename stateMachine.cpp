@@ -355,9 +355,15 @@ void stateMachine::loopStateLANDEDToGROUND() {
   _countdownAborted = 0;
   _countdownLanded = 0;
 
-  // _flightLogger.writeFlightCurrent();
+#ifdef DEBUG
+  Serial.println(F("\nWriting output..."));
+#endif
+  _flightLogger.instance.writeFlightCurrent();
+#ifdef DEBUG
+  Serial.println(F("...writing output.\n"));
+#endif
 
-  Serial.print(F("Serial Output"));
+  Serial.println(F("Serial Output"));
   _flightLogger.instance.outputSerial();
   Serial.print(F("\nExpanded Serial Output\n\n"));
   _flightLogger.instance.outputSerialExpanded();

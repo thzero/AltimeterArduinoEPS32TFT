@@ -1,9 +1,10 @@
 #include <LittleFS.h>
 
 #include "constants.h"
+#include "flightLogger.h"
 
 bool setupFileSystem() {
-  Serial.println(F("Setup file system..."));
+  Serial.println(F("\nSetup file system..."));
 
   if (!LittleFS.begin(false)) {
     Serial.println(F("\tLittleFS mount failed"));

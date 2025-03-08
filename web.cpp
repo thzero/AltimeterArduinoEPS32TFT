@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <AsyncTCP.h>
-#include <driver/timer.h>
+#include <ESPAsyncWebServer.h>
 #include <HTTPClient.h>
 #include <LittleFS.h>
 
@@ -11,6 +11,7 @@
 #include "monitor.h"
 #include "stateMachine.h"
 #include "time.h"
+#include "utilities.h"
 #include "web.h"
 #include "wifi.h"
 
@@ -148,8 +149,10 @@ void web::configure() {
       Serial.println(F("\twebserver request...flightLogs"));
     #endif
 
+    Serial.println(F("\twebserver request...constructing response..."));
     AsyncJsonResponse *response = new AsyncJsonResponse();
     JsonObject responseResult = response->getRoot().to<JsonObject>();
+    Serial.println(F("\twebserver request..getting data..."));
     JsonArray flightLogs = responseResult.createNestedArray("flightLogs");
     _flightLogger.instance.listAsJson(flightLogs);
     responseResult["success"] = true;
@@ -545,15 +548,6 @@ void web::serverHandleUploadOTAUpdate(AsyncWebServerRequest *request, String fil
   
 //   return "?";
 // }
-
-void web::feedWatchdog() {
-  // TIMERG0.wdt_wprotect = TIMG_WDT_WKEY_VALUE;
-  // TIMERG0.wdt_feed = 1;
-  // TIMERG0.wdt_wprotect = 0;
-  TIMERG0.wdtwprotect.wdt_wkey = 1356348065;
-  TIMERG0.wdtfeed.wdt_feed = 1;
-  TIMERG0.wdtwprotect.wdt_wkey = 0;
-}
 
 void web::jsonAtmosphere(JsonObject root) {
   root["altitudeASL"] = _flightLogger.pressureInitial;

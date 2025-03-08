@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 
+extern void feedWatchdog();
 extern unsigned int msgChk(char * buffer, long length);
 extern String stringPad(float value, int width, char * format);
 extern float round2dec(float var);

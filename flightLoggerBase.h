@@ -7,9 +7,9 @@
 
 class flightLoggerBase {
   public:
-    bool clearFlights();
     bool copyTraceCurrentToArray();
     void determineTraceMinAndMax(int flightNbr);
+    bool eraseFlights();
     bool exists(int flightNbr);
     float getAccelXMax();
     float getAccelXMin();
@@ -34,14 +34,15 @@ class flightLoggerBase {
     float getVelocityMin();
     void init(unsigned long timestamp);
     bool initFileSystem();
-    void listAsJson(JsonArray flightLogs);
+    bool listAsJson(JsonArray flightLogs);
     void outputSerial();
     void outputSerial(int flightNbr);
     void outputSerialExpanded();
     void outputSerialExpanded(int flightNbr);
-    void outputSerialList();
+    bool outputSerialList();
     bool readFile(int flightNbr);
     JsonObject readFileAsJson(int flightNbr);
+    void reindexFlights();
     void reset();
     void setTraceCurrentAccelX(float x);
     void setTraceCurrentAccelY(float y);

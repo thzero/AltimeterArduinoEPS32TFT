@@ -240,7 +240,7 @@ void simulation::start(simulationConfig startConfig, long initialAltitude) {
 
   _running = true;
   // Serial.println(F("Simulation\tCreating task..."));
-  BaseType_t  xReturned = xTaskCreatePinnedToCore(
+  BaseType_t xReturned = xTaskCreatePinnedToCore(
     &simulation::simulationTaskW, /* Function to implement the task */
     "simulationTask", /* Name of the task */
     4000,  /* Stack size in words */

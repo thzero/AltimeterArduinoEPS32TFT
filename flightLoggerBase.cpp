@@ -5,10 +5,6 @@
 #include "time.h"
 #include "utilities.h"
 
-bool flightLoggerBase::clearFlights() {
-  return false;
-}
-
 // Add to the _flightDataTraceCurrent to the _flightDataTrace array
 bool flightLoggerBase::copyTraceCurrentToArray() {
   flightDataTraceStruct* newFlightData = (flightDataTraceStruct*)realloc(_flightDataTrace, (_flightDataTraceIndex + 1) * sizeof(flightDataTraceStruct));
@@ -79,6 +75,10 @@ void flightLoggerBase::determineTraceMinAndMax(int flightNbr) {
         _flightDataTraceMinMax.velocityMax = _flightDataTrace[i].velocity;
     }
   }
+}
+
+bool flightLoggerBase::eraseFlights() {
+  return false;
 }
 
 bool flightLoggerBase::exists(int flightNbr) {
@@ -179,10 +179,11 @@ bool flightLoggerBase::initFileSystem() {
   return false;
 }
 
-void flightLoggerBase::listAsJson(JsonArray flightLogs) {
+bool flightLoggerBase::listAsJson(JsonArray flightLogs) {
   #ifdef DEBUG
     Serial.println(F("\tflightLoggerLFS.listAsJson..."));
   #endif
+  return false;
 }
 
 void flightLoggerBase::outputSerial() {
@@ -299,14 +300,15 @@ void flightLoggerBase::outputSerialExpanded() {
   }
 }
 
-void flightLoggerBase::outputSerialList() {
-}
-
 void flightLoggerBase::outputSerialExpanded(int flightNbr) {
   if (!readFile(flightNbr))
     return;
 
   outputSerialExpanded();
+}
+
+bool flightLoggerBase::outputSerialList() {
+  return false;
 }
 
 void flightLoggerBase::reset() {
@@ -335,8 +337,9 @@ bool flightLoggerBase::readFile(int flightNbr) {
 }
 
 JsonObject flightLoggerBase::readFileAsJson(int flightNbr) {
-  DynamicJsonDocument doc(256);
-  return doc.as<JsonObject>();
+}
+
+void flightLoggerBase::reindexFlights() {
 }
 
 void flightLoggerBase::setTraceCurrentAccelX(float x) {

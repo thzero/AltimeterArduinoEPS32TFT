@@ -51,7 +51,7 @@ void setupSensors() {
     return;
 
   stack_t tracer;
-  Serial.println(F("Setup sensors..."));
+  Serial.println(F("\nSetup sensors..."));
   _initialized = false;
 
   _atmosphereSensor.setupSensors();
@@ -62,7 +62,7 @@ void setupSensors() {
 }
 
 void setupSensorsCompleted() {
-  Serial.println(F("Setup sensors completed..."));
+  Serial.println(F("\nSetup sensors completed..."));
   _initialized = true;
   Serial.println(F("...sensors completed successful."));
 }

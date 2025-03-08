@@ -24,9 +24,9 @@
 #include "tft.h"
 #include "utilities.h"
 
-unsigned long _timestamp;
-
 static const char* TAG = "AltimeterArduinoESP32TFT";
+
+unsigned long _timestamp;
 
 /*
   This will turn off the altimeter
@@ -100,19 +100,8 @@ void loop() {
   _timestamp = current;
 }
 
-void setupFlightLogger() {
-  Serial.println(F("Setup flight logger..."));
-
-  if (!_flightLogger.instance.initFileSystem()) {
-    Serial.println(F("Failed to initialize file system"));
-    return;
-  }
-
-  Serial.println(F("...flight logger successful."));
-}
-
 void setupInitialAtmosphere() {
-  Serial.println(F("Setup initial atmosphere..."));
+  Serial.println(F("\nSetup initial atmosphere..."));
   
   atmosphereValues values = initializeSensorsAtmosphere();
   _flightLogger.altitudeInitial = values.altitude;
@@ -153,6 +142,7 @@ void setup() {
   setupFileSystem();
 
   setupFlightLogger();
+
 
   setupTft();
 

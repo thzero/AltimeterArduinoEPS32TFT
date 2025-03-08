@@ -119,7 +119,7 @@ void handleButtonLongClick(Button2 button) {
 }
 
 void setupButton() {
-  Serial.println(F("Setup button..."));
+  Serial.println(F("\nSetup button..."));
 
   btn.setClickHandler([](Button2 & b) {
     // Down

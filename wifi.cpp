@@ -83,7 +83,7 @@ String wifi::ssid() {
 }
 
 void wifi::setup() {
-  Serial.println(F("Setup network WiFi..."));
+  Serial.println(F("\nSetup network WiFi..."));
 
   _reset();
 
