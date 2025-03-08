@@ -143,7 +143,6 @@ void setup() {
 
   setupFlightLogger();
 
-
   setupTft();
 
   setupSensors();
