@@ -15,7 +15,6 @@ class flightLogger {
     bool airborne = false;
     bool aborted;
     float altitudeInitial;
-    // flightLoggerBase instance = flightLoggerLFS();
     flightLoggerLFS instance;
     // Number of measures to do so that we are sure that apogee has been reached
     unsigned long measures = 5;
