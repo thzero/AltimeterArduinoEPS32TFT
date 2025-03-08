@@ -54,7 +54,7 @@ void setupFlightLogger() {
   Serial.println(F("\nSetup flight logger..."));
 
   if (!_flightLogger.instance.initFileSystem()) {
-    Serial.println(F("Failed to initialize file system"));
+    Serial.println(F("Failed to initialize flight logger"));
     return;
   }
 
