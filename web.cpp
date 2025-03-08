@@ -395,7 +395,7 @@ void web::serverHandleUpload(AsyncWebServerRequest *request, String filename, si
   }
 
   // non .bin files are uploaded to the LITTLEFS partition
-  size_t freeBytes = LittleFS.totalBytes() - LittleFS.usedBytes();
+  size_t freeBytes = _fileSystem.instance.totalBytes() - _fileSystem.instance.usedBytes();
   if (len < freeBytes) {
     serverHandleUploadLittleFS(request, filename, index, data, len, final);
     return;
@@ -584,8 +584,8 @@ void web::jsonMonitor(JsonObject root) {
 
   root["monitorMemoryFree"] = _monitor.heap();
 
-  root["fileSystemTotalBytes"] = fileSystemTotalBytes();
-  root["fileSystemUsedBytes"] = fileSystemUsedBytes();
+  root["fileSystemTotalBytes"] = _fileSystem.instance.totalBytes();
+  root["fileSystemUsedBytes"] = _fileSystem.instance.usedBytes();
 }
 
 void web::jsonSamples(JsonObject root, bool settings) {

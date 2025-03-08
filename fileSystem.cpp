@@ -1,38 +1,33 @@
-#include <LittleFS.h>
+#include <Arduino.h>
 
 #include "constants.h"
-#include "flightLogger.h"
+#include "fileSystem.h"
+#include "fileSystemBase.h"
 
-bool setupFileSystem() {
+fileSystem::fileSystem() {
+}
+
+bool fileSystem::setup() {
+  instance.setup();
+}
+
+long fileSystem::totalBytes() {
+  return instance.setup();
+}
+
+long fileSystem::usedBytes() {
+  return instance.setup();
+}
+
+fileSystem _fileSystem;
+
+void setupFileSystem() {
   Serial.println(F("\nSetup file system..."));
 
-  if (!LittleFS.begin(false)) {
-    Serial.println(F("\tLittleFS mount failed"));
-    Serial.println(F("\tDid not find filesystem; starting format"));
-
-    // format if begin fails
-    if (!LittleFS.begin(true)) {
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
-      Serial.println(F("\tLittleFS mount failed"));
-      Serial.println(F("\tFormatting not possible"));
-#endif
-
-      Serial.println(F("...file system setup failed."));
-      return false;
-    }
-
-    Serial.println(F("Formatting"));
+  if (!_fileSystem.instance.setup()) {
+    Serial.println(F("Failed to initialize file system"));
+    return;
   }
-  
-  Serial.println(F("...file system setup successful."));
 
-  return true;
-}
-
-size_t fileSystemTotalBytes() {
-  return LittleFS.totalBytes();
-}
-
-size_t fileSystemUsedBytes() {
-  return LittleFS.usedBytes();
+  Serial.println(F("...file system successful."));
 }
