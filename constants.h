@@ -50,6 +50,8 @@
 // #define MONITOR_VOLTAGE;
 
 #define DEBUG
+// #define DEBUG_COMMANDS
+// #define DEBUG_FLIGHT_LOGGER
 #define DEBUG_INTERNAL
 // #define DEBUG_ALTIMETER
 // #define DEBUG_SENSOR

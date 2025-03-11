@@ -18,9 +18,7 @@ bool flightLoggerLFS::eraseFlights() {
   // Open the root directory
   File root = LittleFS.open("/");
   if (!root || !root.isDirectory()) {
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
     Serial.println(F("...failed to open the root directory"));
-#endif
     return false;
   }
 
@@ -28,10 +26,8 @@ bool flightLoggerLFS::eraseFlights() {
   File file = root.openNextFile();
   while (file) {
     String fileName = file.name();
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
-    Serial.print(F("\tDeleting file: "));
-    Serial.println(fileName);
-#endif
+    Serial.print(F("\tErasing flight '"));
+    Serial.print(fileName);
 
     // Check if the filename matches the pattern "flight<number>.json" or "flightIndex.json"
     if (!(fileName.startsWith("flight") && fileName.endsWith(".json"))) {
@@ -40,24 +36,14 @@ bool flightLoggerLFS::eraseFlights() {
       continue;
     }
 
-    //make sure that you close the file so that it can be deleted
+    //make sure that you close the file so that it can be erased
     file.close();
 
     //if (LittleFS.remove(file.name())) {
-    if (LittleFS.remove(fileName)) {
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
-      Serial.print(F("\tFlight '"));
-      Serial.print(fileName);
-      Serial.println(F("' deleted successfully"));
-#endif
-    } 
-    else {
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
-      Serial.print(F("\tFlight '"));
-      Serial.print(fileName);
-      Serial.println(F("' delete failed"));
-#endif
-    }
+    if (LittleFS.remove(fileName)) 
+      Serial.println(F("' successfully"));
+    else
+      Serial.println(F("' failed"));
 
     // Move to the next file
     file = root.openNextFile();
@@ -67,10 +53,43 @@ bool flightLoggerLFS::eraseFlights() {
   return true;
 }
 
+bool flightLoggerLFS::eraseLast() {
+  bool success = false;
+  // Delete the current file
+  char flightName [15];
+  // TODO: base on json flight log index...
+  int number = (int)geFlightNbrLast();
+  sprintf(flightName, "/flight%i", number);
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.print(F("eraseLast.fileName: "));
+  Serial.println(flightName);
+#endif
+  File file = LittleFS.open(flightName, "r");
+  if (!file) {
+    Serial.print(F("Flight log #"));
+    Serial.print(number);
+    Serial.println(F(" does not exist"));
+    return false;
+  }
+
+  if (LittleFS.remove(flightName)) {
+    Serial.println(F("Flight deleted successfully"));
+    Serial.print(F("Failed to delete flight #"));
+    Serial.println(number);
+    return true;
+  }
+
+#ifdef DEBUG
+  Serial.print(F("Failed to delete flight #"));
+  Serial.println(number);
+#endif
+  return false;
+}
+
 bool flightLoggerLFS::exists(int flightNbr) {
   char flightName [15];
   sprintf(flightName, "/flight%i.json", flightNbr);
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
   Serial.print(F("existsFlight..."));
   Serial.println(flightName);
 #endif
@@ -78,7 +97,6 @@ bool flightLoggerLFS::exists(int flightNbr) {
   File file = LittleFS.open(flightName, "r");
   if (!file) 
     return false;
-
   return true;
 }
 
@@ -88,9 +106,7 @@ long flightLoggerLFS::geFlightNbrLast() {
   // Open the root directory
   File root = LittleFS.open("/");
   if (!root || !root.isDirectory()) {
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
     Serial.println(F("Failed to open the root directory"));
-#endif
     return maxFlightNumber;
   }
 
@@ -98,8 +114,8 @@ long flightLoggerLFS::geFlightNbrLast() {
   File file = root.openNextFile();
   while (file) {
     String fileName = file.name();
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
-    Serial.print(F("\nFound file: "));
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+    Serial.print(F("\nFound flight: "));
     Serial.println(fileName);
 #endif
 
@@ -110,9 +126,8 @@ long flightLoggerLFS::geFlightNbrLast() {
       int flightNumber = numberPart.toInt(); // Convert to integer
 
       // Update the maxFlightNumber if this one is larger
-      if (flightNumber > maxFlightNumber) {
+      if (flightNumber > maxFlightNumber)
         maxFlightNumber = flightNumber;
-      }
     }
 
     // Move to the next file
@@ -120,13 +135,13 @@ long flightLoggerLFS::geFlightNbrLast() {
   }
 
   return maxFlightNumber;
+  return 0;
 }
 
 bool flightLoggerLFS::initFileSystem() {
   Serial.println(F("\tInitialize flightLogger file system..."));
 
   Serial.println(F("\t...flightLogger file system initialized."));
-
   return true;
 }
 
@@ -135,9 +150,7 @@ bool flightLoggerLFS::listAsJson(JsonArray flightLogs) {
   
   File file = LittleFS.open("/flightIndex.json");
   if (!file || file.isDirectory()) {
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
     Serial.println(F("\t...failed to open the flight index"));
-#endif
     return false;
   }
 
@@ -164,14 +177,14 @@ bool flightLoggerLFS::listAsJson(JsonArray flightLogs) {
 }
 
 bool flightLoggerLFS::outputSerialList() {
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
   Serial.println(F("Output flight log list to serial..."));
+#endif
   
   // Open the root directory
   File root = LittleFS.open("/");
   if (!root || !root.isDirectory()) {
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
-    Serial.println(F("...failed to open the root directory"));
-#endif
+    Serial.println(F("Failed to open the root directory"));
     return false;
   }
 
@@ -181,7 +194,7 @@ bool flightLoggerLFS::outputSerialList() {
   File file = root.openNextFile();
   while (file) {
     String fileName = file.name();
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
     Serial.print(F("Found file: "));
     Serial.println(fileName);
 #endif
@@ -198,7 +211,7 @@ bool flightLoggerLFS::outputSerialList() {
 
     String number = doc["number"];
     Serial.print(number);
-    Serial.print(F("\t\t"));
+    Serial.print(F("\t"));
     unsigned long epochS = doc["epochS"];
     // Serial.print(convertTime(epochS));
     Serial.print(epochS);
@@ -208,37 +221,97 @@ bool flightLoggerLFS::outputSerialList() {
     file = root.openNextFile();
   }
 
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
   Serial.println(F("...output of flight logs list...finished"));
+#endif
   return true;
 }
 
 bool flightLoggerLFS::readFile(int flightNbr) {
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.print(F("readFile...lfs...#"));
+  Serial.println(flightNbr);
+#endif
+
   char flightName [15];
   sprintf(flightName, "/flight%i.json", flightNbr);
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
   Serial.println(flightName);
 #endif
 
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.print(F("...readFile...lfs...#"));
+  Serial.print(flightNbr);
+  Serial.println(F("...opening file..."));
+#endif
   File file = LittleFS.open(flightName, "r");
-  if (!file) 
+  if (!file) {
+    Serial.print(F("Flight log #"));
+    Serial.print(flightNbr);
+    Serial.println(F(" not found"));
     return false;
+  }
 
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.print(F("...readFile...lfs...#"));
+  Serial.print(flightNbr);
+  Serial.println(F("...reading json..."));
+#endif
   DynamicJsonDocument doc(4096);
   deserializeJson(doc, file);
   file.close();
 
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.print(F("...readFile...lfs...#"));
+  Serial.print(flightNbr);
+  Serial.println(F("...processing json..."));
+#endif
   JsonObject flightLog = doc.as<JsonObject>();
-  if (flightLog.isNull())
+  if (flightLog.isNull()) {
+    Serial.print(F("Flight log #"));
+    Serial.print(flightNbr);
+    Serial.println(F(" is null"));
     return false;
+  }
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  serializeJson(flightLog, Serial);
+  Serial.println(F(""));
+#endif
 
-  _flightDataTraceIndex = flightLog.size();
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.print(F("...readFile...lfs...#"));
+  Serial.print(flightNbr);
+  Serial.println(F("...free memory..."));
+#endif
   if (_flightDataTrace != nullptr)
     free(_flightDataTrace);
 
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.print(F("...readFile...lfs...#"));
+  Serial.print(flightNbr);
+  Serial.println(F("...get traces..."));
+#endif
+  JsonArray traces = (flightLog["traces"]).as<JsonArray>();
+  _flightDataTraceIndex = traces.size();
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.print(F("...readFile...lfs...#"));
+  Serial.print(flightNbr);
+  Serial.print(F("..._flightDataTraceIndex: "));
+  Serial.println(_flightDataTraceIndex);
+#endif
   _flightDataTrace = (flightDataTraceStruct*)malloc(sizeof(flightDataTraceStruct) * _flightDataTraceIndex);
-  if (!_flightDataTrace)
+  if (!_flightDataTrace) {
+    Serial.print(F("Flight log #"));
+    Serial.print(flightNbr);
+    Serial.println(F(" failed to reserve memory"));
     return false;
+  }
     
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.print(F("...readFile...lfs...#"));
+  Serial.print(flightNbr);
+  Serial.println(F("...set data..."));
+#endif
   _flightData.epochS = flightLog["epochS"];
   _flightData.altitudeApogee = flightLog["altitudeApogee"];
   _flightData.altitudeInitial = flightLog["altitudeInitial"];
@@ -248,9 +321,29 @@ bool flightLoggerLFS::readFile(int flightNbr) {
   _flightData.timestampApogee = flightLog["timestampApogee"];
   _flightData.timestampTouchdown = flightLog["timestampTouchdown"];
 
-  JsonArray traces = (flightLog["traces"]).as<JsonArray>();
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.print(F("...readFile...lfs...#"));
+  Serial.print(flightNbr);
+  Serial.println(F("...set traces..."));
+#endif
   long index = 0;
   for (JsonVariant record : traces) {
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+    debug("-------", "-------");
+    debug("index", index);
+    debug("diffTime", (unsigned long)record["diffTime"]);
+    debug("accelX", (float)record["accelX"]);
+    debug("accelY", (float)record["accelY"]);
+    debug("accelZ", (float)record["accelZ"]);
+    debug("altitude", (float)record["altitude"]);
+    debug("gyroX", (float)record["gyroX"]);
+    debug("gyroY", (float)record["gyroY"]);
+    debug("gyroZ", (float)record["gyroZ"]);
+    debug("humidity", (float)record["humidity"]);
+    debug("pressure", (float)record["pressure"]);
+    debug("temperature", (float)record["temperature"]);
+    debug("velocity",(float)record["velocity"]);
+#endif
     _flightDataTrace[index].diffTime = record["diffTime"];
     _flightDataTrace[index].accelX = record["accelX"];
     _flightDataTrace[index].accelY = record["accelY"];
@@ -266,17 +359,21 @@ bool flightLoggerLFS::readFile(int flightNbr) {
     index++;
   }
 
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.print(F("...readFile...lfs...#"));
+  Serial.print(flightNbr);
+  Serial.println(F("...finished"));
+#endif
   return true;
 }
 
 flightDataReadResultsStruct flightLoggerLFS::readFileAsJson(int flightNbr) {
+  flightDataReadResultsStruct results;
   char flightName [15];
   sprintf(flightName, "/flight%i.json", flightNbr);
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
   Serial.println(flightName);
 #endif
-
-  flightDataReadResultsStruct results;
 
   File file = LittleFS.open(flightName, "r");
   if (!file) {
@@ -299,9 +396,7 @@ bool flightLoggerLFS::reindexFlights() {
   // Open the root directory
   File root = LittleFS.open("/");
   if (!root || !root.isDirectory()) {
-#if defined(DEBUG) || defined(DEBUG_LOGGER)
-    Serial.println(F("\t\t\t\t...failed to open the root directory"));
-#endif
+    Serial.println(F("Failed to open the root directory"));
     return false;
   }
   
@@ -326,9 +421,11 @@ bool flightLoggerLFS::reindexFlights() {
       continue;
     }
 
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
     Serial.print(F("\t\t\t\tFlight file: "));
     Serial.print(fileName);
     Serial.println(F(""));
+#endif
 
     deserializeJson(doc2, file);
 
@@ -340,7 +437,7 @@ bool flightLoggerLFS::reindexFlights() {
     file = root.openNextFile();
   }
 
-#ifdef DEBUG
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
   Serial.println(F("\t\t\t\t"));
   serializeJson(doc, Serial);
   Serial.println(F(""));
@@ -350,13 +447,15 @@ bool flightLoggerLFS::reindexFlights() {
   serializeJson(doc, fileW);
   file.close();
 
-  Serial.println(F("\t\t\t\t...reindexed flight logs...finished"));
+  Serial.println(F("...reindexing flight logs...finished"));
   return true;
 }
 
 bool flightLoggerLFS::writeFile(int flightNbr) {
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
   Serial.print(F("Write flight log...flightNbr: "));
   Serial.println(flightNbr);
+#endif
 
   char flightName [15];
   sprintf(flightName, "/flight%i.json", flightNbr);
@@ -374,7 +473,7 @@ bool flightLoggerLFS::writeFile(int flightNbr) {
   flightLog["timestampLaunch"] = _flightData.timestampLaunch;
   flightLog["timestampApogee"] = _flightData.timestampApogee;
   flightLog["timestampTouchdown"] = _flightData.timestampTouchdown;
-#ifdef DEBUG
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
   Serial.println(F("writeFile...data"));
   serializeJson(flightLog, Serial);
 #endif
@@ -396,7 +495,7 @@ bool flightLoggerLFS::writeFile(int flightNbr) {
     trace["temperature"] = _flightDataTrace[i].temperature;
     trace["velocity"] = _flightDataTrace[i].velocity;
   }
-#ifdef DEBUG
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
   Serial.println(F("\nwriteFile...traces"));
   serializeJson(flightLog, Serial);
   Serial.println(F(""));
@@ -407,10 +506,12 @@ bool flightLoggerLFS::writeFile(int flightNbr) {
   serializeJson(doc, file);
   file.close();
 
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
   Serial.println(F("...flight log write...finished"));
+#endif
   return true;
 }
 
 bool flightLoggerLFS::writeFlightCurrent() {
-  return writeFile(geFlightNbrLast() + 1);
+  return writeFile(geFlightNbrLast());
 }

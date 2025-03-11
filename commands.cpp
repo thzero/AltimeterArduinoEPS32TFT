@@ -12,6 +12,122 @@
 int _readIndex;
 char commandbuffer[100];
 
+void handleFlightsListing(char *commandbuffer) {
+  char command = commandbuffer[0];
+  char command1 = commandbuffer[1];
+#ifdef DEV
+    if (command1 == 'j') {
+      StaticJsonDocument<200> doc;
+      char json[] = "{}";
+      DeserializationError error = deserializeJson(doc, json);
+      serializeJson(doc, Serial);
+       _flightLogger.instance.listAsJson(doc.createNestedArray("flightLogs"));
+      serializeJson(doc, Serial);
+      return;
+    }
+#endif
+    _flightLogger.instance.outputSerialList();
+}
+
+void handleFlightsNumberNax(char *commandbuffer) {
+    Serial.print(F("$start;\n"));
+
+    char flightData[30] = "";
+    char temp[9] = "";
+    strcat(flightData, "nbrOfFlight,");
+    // TODO: base on json flight log index...
+    sprintf(temp, "%i,", (int)_flightLogger.instance.geFlightNbrLast());
+    strcat(flightData, temp);
+    unsigned int chk = msgChk(flightData, sizeof(flightData));
+    sprintf(temp, "%i", chk);
+    strcat(flightData, temp);
+    strcat(flightData, ";\n");
+
+    Serial.print(F("$"));
+    Serial.print(flightData);
+    Serial.print(F("$end;\n"));
+}
+
+void handleFlightOutputSerial(char *commandbuffer) {
+    char temp[3];
+    bool expanded = false;
+    if (commandbuffer[1] == 'e') {
+      expanded = true;
+      temp[0] = commandbuffer[2];
+      if (commandbuffer[3] != '\0') {
+        temp[1] = commandbuffer[3];
+        temp[2] = '\0';
+      }
+      else
+        temp[1] = '\0';
+    }
+    else {
+      temp[0] = commandbuffer[1];
+      if (commandbuffer[2] != '\0') {
+        temp[1] = commandbuffer[2];
+        temp[2] = '\0';
+      }
+      else
+        temp[1] = '\0';
+    }
+    // Serial.print(F("Flight temp: "));
+    // Serial.println(temp);
+    // Serial.print(F("Flight expanded: "));
+    // Serial.println(expanded);
+
+    long number = atol(temp);
+    if (atol(temp) <= 0) {
+      Serial.print(F("Value '"));
+      Serial.print(temp);
+      Serial.println(F("' is an invalid flight number."));
+      return;
+    }
+
+    // TODO: base on json flight log index...
+    // debug("flight#", number);
+    // TODO: base on json flight log index...
+    int last = _flightLogger.instance.geFlightNbrLast();
+    // Serial.println(F("Last flight #"));
+    // Serial.println(number);
+    if (number > last) {
+      Serial.print(F("Flight #"));
+      Serial.print(number);
+      Serial.println(F(" is not a valid flight."));
+      return;
+    }
+
+    Serial.print(F("$start;\n"));
+
+    if (!expanded)
+      _flightLogger.instance.outputSerial(number);
+    else
+      _flightLogger.instance.outputSerialExpanded(number);
+
+    Serial.print(F("$end;\n"));
+}
+
+void handleFightsOutputSerial(char *commandbuffer) {
+    bool expanded = false;
+    if (commandbuffer[1] == 'e')
+      expanded = true;
+    // debug("expanded", expanded);
+
+    Serial.print(F("$start;\n"));
+    
+    // TODO: base on json flight log index...
+    int last = _flightLogger.instance.geFlightNbrLast() + 1;
+    for (int number = 1; number < last; number++) {
+      if (!expanded)
+        _flightLogger.instance.outputSerial(number);
+      else
+        _flightLogger.instance.outputSerialExpanded(number);
+    }
+    Serial.print(F("$end;\n"));
+}
+
+//    t     toggle flight telemetry
+//    x     delete last recorded flight
+//    z     reindex recorded flight index
 void interpretCommandBufferHelp() {
     Serial.println(F(""));
     Serial.print(BOARD_NAME);
@@ -28,17 +144,26 @@ void interpretCommandBufferHelp() {
 
     Serial.println(F("command\tdescription"));
     Serial.println(F("h;\thelp menu"));
+    Serial.println(F("a;\toutput to serial all flight logs"));
+    Serial.println(F("ae;\texpanded output to serial all flight logs"));
+    Serial.println(F("e;\terase all recorded flights"));
 #ifdef DEV
     Serial.println(F("i;\tI2C scanner"));
 #endif
-    Serial.println(F("l;\tlist all flights"));
+    Serial.println(F("l;\toutput to seriali a list of all flight logs"));
 #ifdef DEV
-    Serial.println(F("lj;\tlist all flights; json"));
+    Serial.println(F("lj;\toutput to seriali a list of all flight logs - json"));
 #endif
+    Serial.println(F("n;\toutput to serial the number of recorded flight logs"));
+    Serial.println(F("r<#>;\toutput to serial data for flight log <#>"));
+    Serial.println(F("re<#>;\texpanded output to serial data for flight log <#>"));
 #ifdef DEV_SIM
     Serial.println(F("s;\tsimulation"));
     Serial.println(F("st;\tsimulation stop"));
 #endif
+    // Serial.println(F("z;\ttoggle flight telemetry"));
+    Serial.println(F("x;\tdelete last recorded flight log"));
+    Serial.println(F("z;\treindex recorded flight log index"));
     Serial.println(F("")); 
 
 #ifdef DEBUG
@@ -66,35 +191,37 @@ void interpretCommandBufferSimulation(char command1) {
 //    Available commands.
 //    The commands can be used via the serial command line or via the Android console
 
-//    a  get all flight data
-//    e  erase all saved flights
-//    h  help
-//    l  list all flights
-//    n  the number of recorded flights
-//    r  followed by a number which is the flight number
-//       retrieve all data for the specified flight
-//    r  reindex flights
-//    s  start simulation
-//    t  toggle flight telemetry
-//    s  stop simulation
-//    x  delete last recorded flight
+//    a     output to serial all flight logs
+//    e     erase all recorded flight logs
+//    h     help
+//    i     i2c scanner - DEV only
+//    l     output to seriali a list of all flight logs
+//    lj    output to seriali a list of all flight logs - json - DEV only
+//    n     output to serial the number of recorded flight logs
+//    r<n>    followed by a number which is the flight number
+//          output to serial data for the specified flight log
+//    s     start simulation - DEV only
+//    st     stop simulation - DEV only
+//    t     toggle flight log telemetry
+//    x     delete last recorded flight log
+//    z     reindex recorded flight log index
 //  
 void interpretCommandBufferI() {
   char command = commandbuffer[0];
   char command1 = commandbuffer[1];
 
-// #ifdef DEBUG
-//   debug(F("interpretCommandBufferI.command"), command);
-//   Serial.print(F("interpretCommandBufferI.commandBuffer="));
-//   for (int i = 0; i < _readIndex; i++) {
-//     Serial.print(commandbuffer[i]);
-//     // Serial.printf("%c", commandbuffer[i]);
-//     // Serial.printf("%d", commandbuffer[i]);
-//   }
-//   Serial.println(F(""));
-// #endif  
+#if defined(DWBUG) && defined(DEBUG_COMMAND)
+  debug(F("interpretCommandBufferI.command"), command);
+  Serial.print(F("interpretCommandBufferI.commandBuffer="));
+  for (int i = 0; i < _readIndex; i++) {
+    Serial.print(commandbuffer[i]);
+    // Serial.printf("%c", commandbuffer[i]);
+    // Serial.printf("%d", commandbuffer[i]);
+  }
+  Serial.println(F(""));
+#endif  
 
-#ifdef DEBUG
+#if defined(DWBUG) && defined(DEBUG_COMMAND)
     Serial.println(F(""));
     Serial.println(F(""));
     Serial.println(commandbuffer[0]);
@@ -104,63 +231,52 @@ void interpretCommandBufferI() {
     Serial.println(F(""));
 #endif
 
-  // get all flight data
-  // if (command == 'a') {
-  //   handleFightPrintData(commandbuffer);
-  //   return;
-  // }
-  // erase all flight
+  // output to serial all flight logs
+  if (command == 'a') {
+    handleFightsOutputSerial(commandbuffer);
+    return;
+  }
+  // erase all recorded flight logs
   if (command == 'e') {
     _flightLogger.instance.eraseFlights();
     return;
   }
+  // help
   if (command == 'h') {
     interpretCommandBufferHelp();
     return;
   }
 #ifdef DEV
+  // i2c scanner - debug only
   if (command == 'i') {
     interpretCommandBufferI2CScanner();
     return;
   }
 #endif
-  // list all flights
+  // output to seriali a list of all flight logs
   if (command == 'l') {
-#ifdef DEV
-    if (command1 == 'j') {
-      StaticJsonDocument<200> doc;
-      char json[] = "{}";
-      DeserializationError error = deserializeJson(doc, json);
-      serializeJson(doc, Serial);
-       _flightLogger.instance.listAsJson(doc.createNestedArray("flightLogs"));
-      serializeJson(doc, Serial);
-      return;
-    }
-#endif
-    _flightLogger.instance.outputSerialList();;
+    handleFlightsListing(commandbuffer);
     return;
   }
-  // number of flight
-  // if (command == 'n') {
-  //   handleFlightList(commandbuffer);
-  //   return;
-  // }
-  // read one flight
-  // if (command == 'r') {
-  //   handleFlightRead(commandbuffer);
-  //   return;
-  // }
+  // output to serial the number of recorded flight logs
+  if (command == 'n') {
+    handleFlightsNumberNax(commandbuffer);
+    return;
+  }
+  // output to serial data for the specified flight log
+  if (command == 'r') {
+    handleFlightOutputSerial(commandbuffer);
+    return;
+  }
 #ifdef DEV_SIM
+  // start simulation - DEV only
+  // stop simulation - DEV only
   else if (command == 's') {
     interpretCommandBufferSimulation(command1);
     return;
   }
 #endif
-  if (command == 'r') {
-    _flightLogger.instance.reindexFlights();
-    return;
-  }
-  // telemetry on/off
+  // toggle flight log telemetry
   if (command == 't') {
     // not implemented
     return;
@@ -170,21 +286,14 @@ void interpretCommandBufferI() {
     // readSensorAltitude();
     return;
   }
-  // delete last flight
+  // delete last recorded flight log
   if (command == 'x') {
-    /*logger.eraseLastFlight();
-      logger.readFlightList();
-      long lastFlightNbr = _flightLogger.instance.geFlightNbrLast();
-      if (lastFlightNbr < 0)
-      {
-      currentFileNbr = 0;
-      currentMemaddress = 201;
-      }
-      else
-      {
-      currentMemaddress = logger.getFlightStop(lastFlightNbr) + 1;
-      currentFileNbr = lastFlightNbr + 1;
-      }*/
+    _flightLogger.instance.eraseLast();
+    return;
+  }
+  // reindex recorded flight log index
+  if (command == 'z') {
+    _flightLogger.instance.reindexFlights();
     return;
   }
 
@@ -198,7 +307,7 @@ void resetCommandBuffer() {
 }
 
 void interpretCommandBuffer() {
-// #ifdef DEBUG
+// #if defined(DWBUG) && defined(DEBUG_COMMAND)
 //   Serial.print(F("interpretCommandBuffer.commandBuffer="));
 //   for (int i = 0; i < _readIndex; i++) {
 //     Serial.print(commandbuffer[i]);
@@ -212,78 +321,32 @@ void interpretCommandBuffer() {
   resetCommandBuffer();
 }
 
-// void handleFlightList(char *commandbuffer) {
-//     Serial.print(F("$start;\n"));
-
-//     char flightData[30] = "";
-//     char temp[9] = "";
-//     strcat(flightData, "nbrOfFlight,");
-//     sprintf(temp, "%i,", (int)_flightLogger.instance.geFlightNbrLast() + 1 );
-//     strcat(flightData, temp);
-//     unsigned int chk = msgChk(flightData, sizeof(flightData));
-//     sprintf(temp, "%i", chk);
-//     strcat(flightData, temp);
-//     strcat(flightData, ";\n");
-
-//     Serial.print(F("$"));
-//     Serial.print(flightData);
-//     Serial.print(F("$end;\n"));
-// }
-
-// void handleFightPrintData(char *commandbuffer) {
-//     Serial.print(F("$start;\n"));
-//     int i;
-//     // todo
-//     for (i = 0; i < _flightLogger.instance.geFlightNbrLast() + 1; i++)
-//       _flightLogger.instance.printFlightData(i);
-//     Serial.print(F("$end;\n"));
-// }
-
-// void handleFlightRead(char *commandbuffer) {
-//     char temp[3];
-//     temp[0] = commandbuffer[1];
-//     if (commandbuffer[2] != '\0')
-//     {
-//       temp[1] = commandbuffer[2];
-//       temp[2] = '\0';
-//     }
-//     else
-//       temp[1] = '\0';
-
-//     if (atol(temp) > -1)
-//     {
-//       Serial.print(F("$start;\n"));
-
-//       _flightLogger.instance.printFlightData(atoi(temp));
-
-//       Serial.print(F("$end;\n"));
-//     }
-//     else
-//       Serial.println(F("not a valid flight"));
-// }
-
 bool readSerial(unsigned long timestamp, unsigned long delta) {
   char readVal = ' ';
 
   // lookup to get data from serial port...
   while (Serial.available()) {
     readVal = Serial.read();
+// #if defined(DWBUG) && defined(DEBUG_COMMAND)
     // debug(F("readSerial.readVal"), readVal);
+// #endif
 
     if (readVal == ';') {
       commandbuffer[_readIndex++] = '\0';
 
-// #ifdef DEBUG
+// #if defined(DWBUG) && defined(DEBUG_COMMAND)
       // Serial.print(F()"readSerial.commandBuffer.final="));
       // for (int i = 0; i < _readIndex; i++)
       //   Serial.print(commandbuffer[i]);
-      Serial.println(F(""));
+      // Serial.println(F(""));
 // #endif
       return true;
     }
 
     if (readVal != '\n') {
+// #if defined(DWBUG) && defined(DEBUG_COMMAND)
       // debug(F("readSerial._readIndex="), _readIndex);
+// #endif
       if (_readIndex >= sizeof(commandbuffer)) {
         Serial.println(F("Command buffer overflow, resetting..."));
         resetCommandBuffer();
@@ -292,7 +355,7 @@ bool readSerial(unsigned long timestamp, unsigned long delta) {
 
       commandbuffer[_readIndex++] = readVal;
 
-// #ifdef DEBUG
+// #if defined(DWBUG) && defined(DEBUG_COMMAND)
       // Serial.print(F()"readSerial.commandBuffer="));
       // for (int i = 0; i < _readIndex; i++) {
       //   Serial.print(commandbuffer[i]);

@@ -9,8 +9,9 @@ class flightLoggerBase {
   public:
     bool copyTraceCurrentToArray();
     void determineTraceMinAndMax(int flightNbr);
-    bool eraseFlights();
-    bool exists(int flightNbr);
+    virtual bool eraseFlights();
+    virtual bool eraseLast();
+    virtual bool exists(int flightNbr);
     float getAccelXMax();
     float getAccelXMin();
     float getAccelYMax();
@@ -22,9 +23,9 @@ class flightLoggerBase {
     flightDataStruct getData();
     flightDataTraceStruct* getDataTrace();
     long getDuration();
+    virtual long geFlightNbrLast();
     float getHumidityMax();
     float getHumidityMin();
-    long geFlightNbrLast();
     float getPressureMax();
     float getFlightPressureMin();
     long getFlightSize();
@@ -33,16 +34,16 @@ class flightLoggerBase {
     float getVelocityMax();
     float getVelocityMin();
     void init(unsigned long timestamp);
-    bool initFileSystem();
-    bool listAsJson(JsonArray flightLogs);
+    virtual bool initFileSystem();
+    virtual bool listAsJson(JsonArray flightLogs);
     void outputSerial();
     void outputSerial(int flightNbr);
     void outputSerialExpanded();
     void outputSerialExpanded(int flightNbr);
-    bool outputSerialList();
-    bool readFile(int flightNbr);
+    virtual bool outputSerialList();
+    virtual bool readFile(int flightNbr);
     JsonObject readFileAsJson(int flightNbr);
-    void reindexFlights();
+    virtual bool reindexFlights();
     void reset();
     void setTraceCurrentAccelX(float x);
     void setTraceCurrentAccelY(float y);
@@ -68,8 +69,8 @@ class flightLoggerBase {
     void setTimestampLaunch(long diffTime);
     void setTimestampPrevious(long diffTime);
     void setTimestampTouchdown(long diffTime);
-    bool writeFile(int flightNbr);
-    bool writeFlightCurrent();
+    virtual bool writeFile(int flightNbr);
+    virtual bool writeFlightCurrent();
 
   protected:
     flightDataStruct _flightData;

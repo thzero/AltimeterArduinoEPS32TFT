@@ -77,6 +77,9 @@ void flightLoggerBase::determineTraceMinAndMax(int flightNbr) {
   }
 }
 
+bool flightLoggerBase::eraseLast() {
+}
+
 bool flightLoggerBase::eraseFlights() {
   return false;
 }
@@ -180,14 +183,18 @@ bool flightLoggerBase::initFileSystem() {
 }
 
 bool flightLoggerBase::listAsJson(JsonArray flightLogs) {
-  #ifdef DEBUG
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
     Serial.println(F("\tflightLoggerLFS.listAsJson..."));
-  #endif
+#endif
   return false;
 }
 
 void flightLoggerBase::outputSerial() {
   unsigned long currentTime = 0;
+
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.println(F("outputSerial...base..."));
+#endif
 
   char format[4] = "%i,";
   char formatF[6] = "%.2f,";
@@ -226,13 +233,40 @@ void flightLoggerBase::outputSerial() {
     Serial.print("$");
     Serial.print(flightDt);
   }
+
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.println(F("...outputSerial...base...finished"));
+#endif
 }
 
 void flightLoggerBase::outputSerial(int flightNbr) {
-  if (!readFile(flightNbr))
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.print(F("outputSerial...base...#"));
+  Serial.println(flightNbr);
+#endif
+  
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.print(F("outputSerial...base...#...read file"));
+  Serial.println(flightNbr);
+#endif
+  if (!readFile(flightNbr)) {
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+      Serial.print(F("...outputSerial...base...#"));
+      Serial.print(flightNbr);
+      Serial.println(F("...failed to read file"));
+#else
+      Serial.print(F("Failed to read flight #"));
+      Serial.println(flightNbr);
+#endif
     return;
+  }
 
-  outputSerial(flightNbr);
+  outputSerial();
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.print(F("...outputSerial...base...#"));
+  Serial.print(flightNbr);
+  Serial.println(F("...finished"));
+#endif
 }
 
 void flightLoggerBase::outputSerialExpanded() {
@@ -333,13 +367,12 @@ void flightLoggerBase::reset() {
 }
 
 bool flightLoggerBase::readFile(int flightNbr) {
-  return false;
 }
 
 JsonObject flightLoggerBase::readFileAsJson(int flightNbr) {
 }
 
-void flightLoggerBase::reindexFlights() {
+bool flightLoggerBase::reindexFlights() {
 }
 
 void flightLoggerBase::setTraceCurrentAccelX(float x) {
