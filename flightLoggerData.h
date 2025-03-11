@@ -60,4 +60,9 @@ struct flightMinAndMaxStruct {
   long velocityMin;
 };
 
+struct flightDataNumberStruct {
+    int * numbers;
+    int size;
+};
+
 #endif

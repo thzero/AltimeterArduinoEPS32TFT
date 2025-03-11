@@ -22,15 +22,16 @@ class flightLoggerBase {
     float getltitudeMin();
     flightDataStruct getData();
     flightDataTraceStruct* getDataTrace();
+    long getDataTraceSize();
     long getDuration();
-    virtual long geFlightNbrLast();
+    virtual flightDataNumberStruct geFlightNbrs();
+    virtual long geFlightNbrsLast();
     float getHumidityMax();
     float getHumidityMin();
     float getPressureMax();
     float getFlightPressureMin();
     float getTemperatureMax();
     float getTemperatureMin();
-    long getTraceSize();
     float getVelocityMax();
     float getVelocityMin();
     void init(unsigned long timestamp);
@@ -43,7 +44,7 @@ class flightLoggerBase {
     virtual bool outputSerialList();
     virtual bool readFile(int flightNbr);
     JsonObject readFileAsJson(int flightNbr);
-    virtual bool reindexFlights();
+    virtual int reindexFlights();
     void reset();
     void setTraceCurrentAccelX(float x);
     void setTraceCurrentAccelY(float y);
@@ -73,6 +74,9 @@ class flightLoggerBase {
     virtual bool writeFlightCurrent();
 
   protected:
+    int* _flightNumbers;
+    int _flightNumbersLast;
+    int _flightNumbersSize;
     flightDataStruct _flightData;
     flightDataTraceStruct* _flightDataTrace;
     flightDataTraceStruct _flightDataTraceCurrent;

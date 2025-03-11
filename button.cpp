@@ -19,7 +19,7 @@ void handleButtonClick() {
 //     if (!_displayGraph)
 //       return;
 
-//     long lastFlightNbr = _flightLogger.instance.geFlightNbrLast();
+//     long lastFlightNbr = _flightLogger.instance.geFlightNbrsLast();
 //     _drawGraphCurveType++;
 //     // Make sure we have not reach the last flight
 //     if ((lastFlightNbr > _drawGraphFlightNbr) & (_drawGraphCurveType > 4) ) {
@@ -49,7 +49,7 @@ void handleButtonClick() {
 void handleButtonLongClick_Display() {
 //   Serial.println(F("handleButtonLongClick_Display!!!!"));
 //    if (!_displayGraph) {
-//     long lastFlightNbr = _flightLogger.instance.geFlightNbrLast();
+//     long lastFlightNbr = _flightLogger.instance.geFlightNbrsLast();
 // #ifdef DEBUG
 //     Serial.print(F("lastFlightNbr:"));
 //     Serial.println(lastFlightNbr);

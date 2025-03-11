@@ -176,7 +176,7 @@ void drawTftGraphForlightNbr(int flightNbr, int curveType) {
   }
 
   unsigned long currentTime = 0;
-  for (long i = 0; i < _flightLogger.instance.getTraceSize(); i++) {
+  for (long i = 0; i < _flightLogger.instance.getDataTraceSize(); i++) {
     currentTime = currentTime + currentFlight[i].diffTime;  //logger.getFlightTimeData();
 
     //altitude

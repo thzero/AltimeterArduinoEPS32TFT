@@ -14,13 +14,14 @@ class flightLoggerLFS : public flightLoggerBase {
     bool eraseFlights() override;
     bool eraseLast();
     bool exists(int flightNbr);
-    long geFlightNbrLast();
+    // flightDataNumberStruct geFlightNbrs();
+    // long geFlightNbrsLast();
     bool initFileSystem();
     bool listAsJson(JsonArray flightLogs);
-    bool outputSerialList();
+    // bool outputSerialList();
     bool readFile(int flightNbr) override;
     flightDataReadResultsStruct readFileAsJson(int flightNbr);
-    bool reindexFlights();
+    int reindexFlights();
     bool writeFile(int flightNbr);
     bool writeFlightCurrent();
 };

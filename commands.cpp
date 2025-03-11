@@ -4,6 +4,7 @@
 #include "constants.h"
 #include "debug.h"
 #include "flightLogger.h"
+#include "flightLoggerData.h"
 #include "i2cscanner.h"
 #include "sensor.h"
 #include "simulation.h"
@@ -35,8 +36,7 @@ void handleFlightsNumberNax(char *commandbuffer) {
     char flightData[30] = "";
     char temp[9] = "";
     strcat(flightData, "nbrOfFlight,");
-    // TODO: base on json flight log index...
-    sprintf(temp, "%i,", (int)_flightLogger.instance.geFlightNbrLast());
+    sprintf(temp, "%i,", (int)_flightLogger.instance.geFlightNbrsLast());
     strcat(flightData, temp);
     unsigned int chk = msgChk(flightData, sizeof(flightData));
     sprintf(temp, "%i", chk);
@@ -83,10 +83,7 @@ void handleFlightOutputSerial(char *commandbuffer) {
       return;
     }
 
-    // TODO: base on json flight log index...
-    // debug("flight#", number);
-    // TODO: base on json flight log index...
-    int last = _flightLogger.instance.geFlightNbrLast();
+    int last = _flightLogger.instance.geFlightNbrsLast();
     // Serial.println(F("Last flight #"));
     // Serial.println(number);
     if (number > last) {
@@ -114,9 +111,9 @@ void handleFightsOutputSerial(char *commandbuffer) {
 
     Serial.print(F("$start;\n"));
     
-    // TODO: base on json flight log index...
-    int last = _flightLogger.instance.geFlightNbrLast() + 1;
-    for (int number = 1; number < last; number++) {
+    flightDataNumberStruct results = _flightLogger.instance.geFlightNbrs();
+    for (int index = 1; index < results.size; index++) {
+      int number = results.numbers[index];
       if (!expanded)
         _flightLogger.instance.outputSerial(number);
       else
@@ -296,7 +293,6 @@ void interpretCommandBufferI() {
     _flightLogger.instance.reindexFlights();
     return;
   }
-
   Serial.print(F("$UNKNOWN command: "));
   Serial.println(commandbuffer);
 }

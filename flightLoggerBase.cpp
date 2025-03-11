@@ -128,6 +128,10 @@ flightDataTraceStruct* flightLoggerBase::getDataTrace() {
   return _flightDataTrace;
 }
 
+long flightLoggerBase::getDataTraceSize() {
+  return _flightDataTraceIndex;
+}
+
 long flightLoggerBase::getDuration() {
   return _flightDataTraceMinMax.duration;
 }
@@ -140,8 +144,15 @@ float flightLoggerBase::getHumidityMin() {
   return _flightDataTraceMinMax.humidityMin;
 }
 
-long flightLoggerBase::geFlightNbrLast() {
-  return 0;
+flightDataNumberStruct flightLoggerBase::geFlightNbrs() {
+  flightDataNumberStruct results;
+  results.numbers = _flightNumbers;
+  results.size = _flightNumbersSize;
+  return results;
+}
+
+long flightLoggerBase::geFlightNbrsLast() {
+  return _flightNumbersLast;
 }
 
 float flightLoggerBase::getPressureMax() {
@@ -158,10 +169,6 @@ float flightLoggerBase::getTemperatureMax() {
 
 float flightLoggerBase::getTemperatureMin() {
   return _flightDataTraceMinMax.temperatureMin;
-}
-
-long flightLoggerBase::getTraceSize() {
-  return _flightDataTraceIndex;
 }
 
 float flightLoggerBase::getVelocityMax() {
@@ -342,7 +349,36 @@ void flightLoggerBase::outputSerialExpanded(int flightNbr) {
 }
 
 bool flightLoggerBase::outputSerialList() {
-  return false;
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.println(F("Output flight log list to serial..."));
+#endif
+  DynamicJsonDocument doc(4096);
+  deserializeJson(doc, "[]");
+  JsonArray flightLogs = doc.as<JsonArray>();
+  listAsJson(flightLogs);
+
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  serializeJson(flightLogs, Serial);
+  Serial.println(F(""));
+#endif
+  
+  Serial.println(F("$start;"));
+  for (JsonObject obj : flightLogs) {
+    String number = obj["number"];
+    Serial.print(F("$data,"));
+    Serial.print(number);
+    Serial.print(F(","));
+    unsigned long epochS = obj["epochS"];
+    // Serial.print(convertTime(epochS));
+    Serial.print(epochS);
+    Serial.println(F(";"));
+  }
+  Serial.println(F("$end;"));
+
+#if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
+  Serial.println(F("...output of flight logs list...finished"));
+#endif
+  return true;
 }
 
 void flightLoggerBase::reset() {
@@ -372,7 +408,7 @@ bool flightLoggerBase::readFile(int flightNbr) {
 JsonObject flightLoggerBase::readFileAsJson(int flightNbr) {
 }
 
-bool flightLoggerBase::reindexFlights() {
+int flightLoggerBase::reindexFlights() {
 }
 
 void flightLoggerBase::setTraceCurrentAccelX(float x) {
@@ -476,5 +512,5 @@ bool flightLoggerBase::writeFile(int flightNbr) {
 }
 
 bool flightLoggerBase::writeFlightCurrent() {
-  return writeFile(geFlightNbrLast() + 1);
+  return writeFile(geFlightNbrsLast() + 1);
 }
