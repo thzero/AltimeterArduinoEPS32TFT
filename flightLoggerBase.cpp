@@ -152,16 +152,16 @@ float flightLoggerBase::getFlightPressureMin() {
   return _flightDataTraceMinMax.pressureMin;
 }
 
-long flightLoggerBase::getFlightSize() {
-  return _flightDataTraceIndex;
-}
-
 float flightLoggerBase::getTemperatureMax() {
   return _flightDataTraceMinMax.temperatureMax;
 }
 
 float flightLoggerBase::getTemperatureMin() {
   return _flightDataTraceMinMax.temperatureMin;
+}
+
+long flightLoggerBase::getTraceSize() {
+  return _flightDataTraceIndex;
 }
 
 float flightLoggerBase::getVelocityMax() {

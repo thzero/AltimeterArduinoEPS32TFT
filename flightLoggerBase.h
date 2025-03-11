@@ -28,9 +28,9 @@ class flightLoggerBase {
     float getHumidityMin();
     float getPressureMax();
     float getFlightPressureMin();
-    long getFlightSize();
     float getTemperatureMax();
     float getTemperatureMin();
+    long getTraceSize();
     float getVelocityMax();
     float getVelocityMin();
     void init(unsigned long timestamp);
