@@ -4,7 +4,7 @@
 loopThrottle::loopThrottle() {
 }
 
-int loopThrottle::determine(unsigned long deltaElapsed, byte sampleRate) {
+int loopThrottle::determine(unsigned long deltaElapsed, int sampleRate) {
   unsigned long delta = deltaElapsed + _delta;
   int samples = 1000 / sampleRate;
   

@@ -9,10 +9,6 @@ class ble {
     bool enabled();
     void loop();
     void start();
-    
-  private:
-    String _ipAddress;
-    String _ssId;
 };
 
 extern ble _ble;

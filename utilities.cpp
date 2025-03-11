@@ -1,4 +1,17 @@
+#include <Arduino.h>
+#include <driver/timer.h>
+
 #include "utilities.h"
+#include "wifi.h"
+
+void feedWatchdog() {
+  // TIMERG0.wdt_wprotect = TIMG_WDT_WKEY_VALUE;
+  // TIMERG0.wdt_feed = 1;
+  // TIMERG0.wdt_wprotect = 0;
+  TIMERG0.wdtwprotect.wdt_wkey = 1356348065;
+  TIMERG0.wdtfeed.wdt_feed = 1;
+  TIMERG0.wdtwprotect.wdt_wkey = 0;
+}
 
 unsigned int msgChk(char * buffer, long length) {
   long index;
@@ -6,6 +19,34 @@ unsigned int msgChk(char * buffer, long length) {
 
   for (index = 0L, checksum = 0; index < length; checksum += (unsigned int) buffer[index++]);
   return (unsigned int) (checksum % 256);
+}
+
+String stringPad(float value, int width, char * format) {
+  char buffer[40];
+  // Serial.print("width: ");
+  // Serial.print(width);
+  // Convert float to string
+  sprintf(buffer, format, value); 
+  // Serial.print("\tvalue: ");
+  // Serial.print(value);
+  int valueLength = strlen(buffer);
+  // Serial.print("\tlength: ");
+  // Serial.print(valueLength);
+  valueLength = width - valueLength;
+  // Serial.print("\tlength2: ");
+  // Serial.print(valueLength);
+  if (valueLength < 0)
+    valueLength = 0;
+  if (valueLength > width)
+    valueLength = width;
+  // Serial.print("\tlength3: ");
+  // Serial.println(valueLength);
+  
+  char blank[valueLength + 1];
+  snprintf(blank, sizeof(blank), "%*s", valueLength, ""); 
+  // Serial.print("blank: ");
+  // Serial.println(blank);
+  return blank;
 }
 
 float round2dec(float var) {

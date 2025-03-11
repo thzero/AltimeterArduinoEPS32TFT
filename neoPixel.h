@@ -7,10 +7,13 @@
 class neoPixelBlinker {
   public:
     neoPixelBlinker();
+    void blink(int hexIn);
+    void blink(int timestamp, int delayMs);
     void init(Adafruit_NeoPixel pixels);
     void init(Adafruit_NeoPixel pixels, int brightness);
-    void blink(int timestamp, int delayMs);
     void off();
+    void setup();
+    void setupDeinit();
 
   protected:
     int cycle(int hexIn);
@@ -22,15 +25,19 @@ class neoPixelBlinker {
     unsigned int _timestamp;
     int _count;
 };
-
 extern neoPixelBlinker _neoPixelBlinker;
-extern void setupNeoPixelBlinker();
-extern void setupNeoPixelBlinkerDeninit();
-extern void sleepNeoPixel();
-extern void sleepNeoPixelHold();
-extern void setupNeoPixel(Adafruit_NeoPixel pixels);
-extern void setupNeoPixel(Adafruit_NeoPixel pixels, int brightness);
-extern void turnOfNeoPixel(Adafruit_NeoPixel pixels);
-extern void turnOnNeoPixel(Adafruit_NeoPixel pixels, int hex);
+
+class neoPixel {
+  public:
+    neoPixel();
+    void off(Adafruit_NeoPixel pixels);
+    void on(Adafruit_NeoPixel pixels, int hex);
+    void setup(Adafruit_NeoPixel pixels);
+    void setup(Adafruit_NeoPixel pixels, int brightness);
+    void sleep();
+    void sleepHold();
+};
+
+extern neoPixel _neoPixel;
 
 #endif

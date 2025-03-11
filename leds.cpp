@@ -1,15 +1,22 @@
+#include <Arduino.h>
+
 #include "leds.h"
 
-void setupLedBuiltin() {
+ledsBuiltin::ledsBuiltin() {
+}
+
+void ledsBuiltin::setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 }
 
-void turnOffLedBuiltin() {
+void ledsBuiltin::off() {
   digitalWrite(LED_BUILTIN, LOW);
   Serial.println(F("LED is off"));
 }
 
-void turnOnLedBuiltin() {
+void ledsBuiltin::on() {
   digitalWrite(LED_BUILTIN, HIGH);
   Serial.println(F("LED is on"));
 }
+
+ledsBuiltin _ledsBuiltin;

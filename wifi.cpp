@@ -1,6 +1,8 @@
 #include <Arduino.h>
+#include <Preferences.h>
 #include <WiFi.h>
 
+#include "constants.h"
 #include "debug.h"
 #include "wifi.h"
 
@@ -9,7 +11,7 @@ IPAddress local_IP(192, 168, 1, 4);
 // Set your Gateway IP address
 IPAddress gateway(192, 168, 1, 1);
 
-IPAddress subnet(255, 255, 0, 0);
+IPAddress subnet(255, 255, 255, 0);
 // IPAddress primaryDNS(8, 8, 8, 8);   // optional
 // IPAddress secondaryDNS(8, 8, 4, 4); // optional
 
@@ -23,7 +25,7 @@ bool wifi::connected() {
 void wifi::disable() {
   Serial.println(F("Disable network WiFi..."));
 
-  WiFi.disconnect(true);
+  WiFi.softAPdisconnect(true);
   WiFi.mode(WIFI_OFF);
 
   Serial.println(F("...network WiFi disabled successful."));
@@ -38,18 +40,80 @@ String wifi::ipAddress() {
 }
 
 void wifi::loop() {
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.print(F("WiFi connected..."));
-  }
+  // if (WiFi.status() == WL_CONNECTED) {
+  //   Serial.print(F("WiFi connected..."));
+  // }
+}
+
+String wifi::password() {
+  return _password;
+}
+
+void wifi::reset() {
+  Serial.println(F("Reset network WiFi..."));
+
+  _reset();
+
+  Serial.println(F("...network WiFi reset successful."));
+}
+
+void wifi::save(const char * password, const char * ssId) {
+  Serial.println(F("Saving network WiFi preferences..."));
+
+  // TODO
+  // disable();
+  
+  // TODO
+  // Preferences preferences;
+  // preferences.begin(PREFERENCE_KEY, false);
+  // _password = password;
+  // preferences.putString(PREFERENCE_KEY_WIFI_PASSWORD, _password);
+  // _ssId = ssId;
+  // preferences.putString(PREFERENCE_KEY_WIFI_SSID, _ssId);
+  // preferences.end();
+
+  // TODO
+  // start();
+
+  Serial.println(F("...network WiFi preferences saved successful."));
 }
 
 String wifi::ssid() {
   return _ssId;
 }
 
+void wifi::setup() {
+  Serial.println(F("\nSetup network WiFi..."));
+
+  _reset();
+
+  Serial.println(F("...network WiFi setup successful."));
+}
+
 void wifi::start() {
   Serial.println(F("Start network WiFi..."));
 
+  debug("password", _password);
+  WiFi.softAP(_ssId, _password);
+
+  // if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+  if (!WiFi.softAPConfig(local_IP, gateway, subnet)) {
+    Serial.println(F("WiFi: STA Failed to configure"));
+
+    Serial.println(F("...network WiFi failed."));
+    return;
+  }
+
+  _ipAddress = WiFi.softAPIP().toString();
+  Serial.println(F(""));
+  Serial.print(F("WiFi IP address: "));
+  Serial.println(_ipAddress);
+  Serial.println(F(""));
+
+  Serial.println(F("...network WiFi started successful."));
+}
+
+void wifi::_determineSsid() {
   char macAddress[14];
   snprintf(macAddress, 14, "%llX", ESP.getEfuseMac());
   // debug(F("macAddress"), macAddress); // 
@@ -79,22 +143,23 @@ void wifi::start() {
   // }
   // debug(F("serialnumber"), serialnumber);
 
+  Serial.println(F(""));
   Serial.print(F("WiFi SSID: "));
   Serial.println(_ssId);
+  Serial.println(F(""));
+}
 
-  WiFi.mode(WIFI_AP);
-  WiFi.softAP(_ssId, "password123"); // TODO: Dumb...
+void wifi::_reset() {
+  _determineSsid();
 
-  // if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
-  if (!WiFi.config(local_IP, gateway, subnet)) {
-    Serial.println(F("WiFi: STA Failed to configure"));
-  }
-
-  _ipAddress = WiFi.localIP().toString();
-  Serial.print(F("WiFi IP address: "));
-  Serial.println(_ipAddress);
-
-  Serial.println(F("...network WiFi started successful."));
+  Preferences preferences;
+  preferences.begin(PREFERENCE_KEY, false);
+  _ssId = preferences.getString(PREFERENCE_KEY_WIFI_SSID, _ssId);
+  preferences.putString(PREFERENCE_KEY_WIFI_SSID, _ssId);
+  _password = preferences.getString(PREFERENCE_KEY_WIFI_PASSWORD, "password123");
+  // _password = "password123";
+  preferences.putString(PREFERENCE_KEY_WIFI_PASSWORD, _password);
+  preferences.end();
 }
 
 wifi _wifi;

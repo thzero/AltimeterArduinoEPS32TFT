@@ -3,6 +3,7 @@
 
 #include "SensorQMI8658.hpp"
 
+#include "kalman.h"
 #include "sensorData.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -17,7 +18,6 @@
 #endif
 
 struct qmiData {
-  SensorQMI8658 instance;
   IMUdata acc;
   IMUdata gyr;
 };
@@ -33,6 +33,12 @@ class sensorIMU {
   private:
     struct qmiData _qmiData;
     SensorQMI8658 _qmi;
+    kalman _kalmanAccelX;
+    kalman _kalmanAccelY;
+    kalman _kalmanAccelZ;
+    kalman _kalmanGyroX;
+    kalman _kalmanGyroY;
+    kalman _kalmanGyroZ;
 };
 
 #endif

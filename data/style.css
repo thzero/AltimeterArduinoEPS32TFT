@@ -1,0 +1,286 @@
+body {
+  background-color: #c1c5bf;
+	color: black;
+	font-family: arial;
+	font-size: 100%;
+	margin: 0 auto;
+	max-width: 90%;
+  padding-top: 12px;
+	text-align: center;
+}
+	
+button {
+	border-radius: 0.5em;
+	background: #558ED5;
+	padding: 0.3em 0.3em;
+	color: white;
+	font-size: 100%;
+}
+
+button a:link{
+	color: white;
+	font-size: 100%;
+	text-decoration: none;
+}
+
+button a:hover{
+	color: white;
+	font-size: 100%;
+	text-decoration: none;
+}
+	
+footer {
+	background-color: #009999; 
+	text-align: center;
+	padding: 0.3em 0.3em;
+	border-radius: 0.375em;
+	font-size: 60%;
+}
+
+h1 {
+	color: white;
+	border-radius: 0.5em;
+	font-size: 1em;
+	padding: 0.2em 0.2em;
+	background: #558ED5;
+}
+
+h2 {
+	color: black;
+	font-size: 1.0em;
+}
+
+h3 {
+	font-size: 0.8em;
+}
+
+last-child {
+	border-right: none;
+	font-size: 85%
+}
+
+p {
+	font-size: 100%;
+}
+
+section {
+	font-size: 1.0em;
+}
+
+td {
+  vertical-align: top;
+}
+
+td.heading {
+	font-weight: bold;
+}
+
+td.left {
+  text-align: left;
+}
+
+td.right {
+  text-align: right;
+}
+
+table {
+	font-family: arial,sans-serif;
+	font-size: 1.0em;
+	border-collapse: collapse;
+}
+
+ul {
+	list-style-type: none;
+	margin: 0.1em;
+	padding: 0;
+	border-radius: 0.375em;
+	overflow: hidden;
+	background-color: #99CCFF;
+	font-size: 1em;
+}
+	
+.column{
+	float: left;
+	width: 50%;
+	height: 45%;
+}
+
+.directory_buttons {
+	margin-bottom: 1rem;
+	border-radius: 0.5em;
+	background: #558ED5;
+	padding: 0.3em 0.3em;
+	width: 90%;
+	color: white;
+	font-size: 100%;
+}	
+
+.home_buttons {
+	margin-bottom: 1rem;
+	border-radius: 0.5em;
+	background: #558ED5;
+	padding: 0.3em 0.3em;
+	width: 30%;
+	color: white;
+	font-size: 100%;
+}	
+
+.rcorners_n {
+	border-radius: 0.5em;
+	background: #558ED5;
+	padding: 0.3em 0.3em;
+	width: 20%;
+	color: white;
+	font-size: 75%;
+}
+	
+.rcorners_m {
+	border-radius: 0.5em;
+	background: #558ED5;
+	padding: 0.3em 0.3em;
+	width: 50%;
+	color: white;
+	font-size: 75%;
+}
+	
+.rcorners_w {
+	border-radius: 0.5em;
+	background: #558ED5;
+	padding: 0.3em 0.3em;
+	width: 70%;
+	color: white;
+	font-size: 75%;
+}
+	
+.row: after{
+	content: '';
+	display: table;
+	clear: both;
+}
+	
+* {
+	box-sizing: border-box;
+}
+
+#charging {
+  left: 253px;
+  width: 253px;
+  height: 157px;
+  background: url('/battery.png') 0 157px;
+  transform: scale(.25);
+}
+
+#empty {
+  left: 253px;
+  width: 253px;
+  height: 157px;
+  background: url('battery.png') 253px 0;
+  transform: scale(.25);
+}
+
+#full {
+  left: 253px;
+  width: 253px;
+  height: 157px;
+  background: url('battery.png') 0 0;
+  transform: scale(.25);
+}
+
+#full-charging {
+  left: 253px;
+  width: 253px;
+  height: 157px;
+  background: url('battery.png') 0px 314px;
+  transform: scale(.25);
+}
+
+#mostly {
+  left: 253px;
+  width: 253px;
+  height: 157px;
+  background: url('battery.png') 253px 157px;
+  transform: scale(.25);
+}
+
+#partial {
+  left: 253px;
+  width: 253px;
+  height: 157px;
+  background: url('battery.png') 253px 314px;
+  transform: scale(.25);
+}
+
+.battery {
+    --x:1; /* scaling factor */
+    --y:1; /* scaling factor */
+    /* coordinates of the image */
+    --i:3; 
+    --j:0; 
+
+    display:inline-block;
+    background-image: url("battery.png");
+    height:calc(155px / var(--x));
+    width:calc(253px / var(--y));
+    background-position:calc(var(--i)/var(--y) * 253px) calc(var(--j)/var(--x) * 155px);
+    background-size:calc(506px / var(--y)) calc(468px / var(--x));
+}
+
+.battery-charging {
+    --x:1; /* scaling factor */
+    --i:2;
+    --j:1;
+}
+
+.battery-empty {
+    --x:1; /* scaling factor */
+    --i:1;
+    --j:3;
+}
+
+.battery-full {
+    --x:1; /* scaling factor */
+    --i:2;
+    --j:3;
+}
+
+.battery-full-charging {
+    --x:1; /* scaling factor */
+    --i:2;
+    --j:2;
+}
+
+.battery-mostly {
+    --x:1; /* scaling factor */
+    --i:1;
+    --j:1;
+}
+
+.battery-partial {
+    --x:1; /* scaling factor */
+    --i:1;
+    --j:2;
+}
+
+.battery-sm {
+    --x:4; /* scaling factor */
+    --y:3; /* scaling factor */
+}
+
+.middle {
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+#flightLogs td {
+	text-align: left;
+	vertical-align: middle;
+}
+
+#flightLogs th {
+	text-align: left;
+}
+
+#flightLogs td.download {
+	width: 85px;
+}

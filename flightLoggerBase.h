@@ -1,55 +1,87 @@
 #ifndef _FLIGHT_LOGGER_BASE_H
 #define _FLIGHT_LOGGER_BASE_H
 
+#include <ArduinoJson.h>
+
 #include "flightLoggerData.h"
 
 class flightLoggerBase {
   public:
-    virtual bool addToCurrentFlight();
-    virtual bool clearFlightList();
-    virtual long getFlightDuration();
-    virtual void determineFlightMinAndMax(int flightNbr);
-    virtual float getFlightAccelXMax();
-    virtual float getFlightAccelXMin();
-    virtual float getFlightAccelYMax();
-    virtual float getFlightAccelYMin();
-    virtual float getFlightAccelZMax();
-    virtual float getFlightAccelZMin();
-    virtual float getFlightAltitudeMax();
-    virtual float getFlightAltitudeMin();
-    virtual flightDataStruct* getFlightData();
-    virtual float getFlightHumidityMax();
-    virtual float getFlightHumidityMin();
-    virtual float getFlightPressureMax();
-    virtual float getFlightPressureMin();
-    virtual float getFlightTemperatureMax();
-    virtual float getFlightTemperatureMin();
-    virtual float getFlightVelocityMax();
-    virtual float getFlightVelocityMin();
-    virtual long geFlightNbrLast();
-    virtual long getFlightSize();
+    bool copyTraceCurrentToArray();
+    void determineTraceMinAndMax(int flightNbr);
+    virtual bool eraseFlights();
+    virtual bool eraseLast();
+    virtual bool exists(int flightNbr);
+    float getAccelXMax();
+    float getAccelXMin();
+    float getAccelYMax();
+    float getAccelYMin();
+    float getAccelZMax();
+    float getAccelZMin();
+    float getAltitudeMax();
+    float getltitudeMin();
+    flightDataStruct getData();
+    flightDataTraceStruct* getDataTrace();
+    long getDataTraceSize();
+    long getDuration();
+    virtual flightDataNumberStruct geFlightNbrs();
+    virtual long geFlightNbrsLast();
+    float getHumidityMax();
+    float getHumidityMin();
+    float getPressureMax();
+    float getFlightPressureMin();
+    float getTemperatureMax();
+    float getTemperatureMin();
+    float getVelocityMax();
+    float getVelocityMin();
+    void init(unsigned long timestamp);
     virtual bool initFileSystem();
-    virtual bool initFlight();
-    virtual void printFlightData(int flightNbr);
-    virtual bool readFlight(int flightNbr);
-    virtual void setFlightAccelX(float accelX);
-    virtual void setFlightAccelY(float accelY);
-    virtual void setFlightAccelZ(float accelZ);
-    virtual void setFlightAltitude(float altitude);
-    virtual void setFlightPressure(float pressure);
-    virtual void setFlightHumidity(float humidity);
-    virtual void setFlightTemperature(float temperature);
-    virtual void setFlightVelocity(float velocity);
-    virtual void setFlightTime(long diffTime);
-    virtual bool writeFlight(int flightNbr);
-    virtual bool writeFlightFast();
+    virtual bool listAsJson(JsonArray flightLogs);
+    void outputSerial();
+    void outputSerial(int flightNbr);
+    void outputSerialExpanded();
+    void outputSerialExpanded(int flightNbr);
+    virtual bool outputSerialList();
+    virtual bool readFile(int flightNbr);
+    JsonObject readFileAsJson(int flightNbr);
+    virtual int reindexFlights();
+    void reset();
+    void setTraceCurrentAccelX(float x);
+    void setTraceCurrentAccelY(float y);
+    void setTraceCurrentAccelZ(float z);
+    void setTraceCurrentAltitude(float altitude);
+    void setAltitudeApogee(float altitude);
+    void setAltitudeApogeeFirstMeasure(float altitude);
+    void setAltitudeCurrent(float altitude);
+    void setAltitudeLast(float altitude);
+    void setAltitudeLaunch(float altitude);
+    void setAltitudeTouchdown(float altitude);
+    void setTraceCurrentGyroX(float x);
+    void setTraceCurrentGyroY(float y);
+    void setTraceCurrentGyroZ(float z);
+    void setTraceCurrentHumidity(float humidity);
+    void setTraceCurrentPressure(float pressure);
+    void setTraceCurrentTemperature(float temperature);
+    void setTraceCurrentVelocity(float velocity);
+    void setTraceCurrentTime(long diffTime);
+    void setTimestampApogee(long diffTime);
+    void setTimestampApogeeFirstMeasure(long diffTime);
+    void setTimestampCurrent(long diffTime);
+    void setTimestampLaunch(long diffTime);
+    void setTimestampPrevious(long diffTime);
+    void setTimestampTouchdown(long diffTime);
+    virtual bool writeFile(int flightNbr);
+    virtual bool writeFlightCurrent();
 
   protected:
-    flightDataStruct _currentRecord;
-    int _dataPos;
-    flightDataStruct* _flightData;
-    flightMinAndMaxStruct _flightMinAndMax;
-    unsigned int msgChk(char * buffer, long length);
+    int* _flightNumbers;
+    int _flightNumbersLast;
+    int _flightNumbersSize;
+    flightDataStruct _flightData;
+    flightDataTraceStruct* _flightDataTrace;
+    flightDataTraceStruct _flightDataTraceCurrent;
+    int _flightDataTraceIndex;
+    flightMinAndMaxStruct _flightDataTraceMinMax;
 };
 
 #endif

@@ -5,6 +5,8 @@
 #include "constants.h"
 #include "debug.h"
 #include "flightLogger.h"
+#include "sensor.h"
+#include "simulation.h"
 #include "tft.h"
 #include "utilities.h"
 #include "wifi.h"
@@ -21,51 +23,37 @@ TraceWidget _graphTraceAccelY = TraceWidget(&_graphWidget);
 TraceWidget _graphTraceAccelZ = TraceWidget(&_graphWidget);
 TraceWidget _graphTraceHumidity = TraceWidget(&_graphWidget);
 
-void drawTftFlight(unsigned long timestamp, unsigned long delta) {
-  if (_tft.getRotation() == 1) {
-    _tft.setRotation(0);
-    _tft.fillScreen(TFT_BLACK);
-  }
-
+void drawTftFlightAirborne(unsigned long timestamp, unsigned long delta) {
   _tft.setCursor(0, STATUS_HEIGHT_BAR);
-  _tft.println(F("                                     "));
-
-  char altitude[40];
-  sprintf(altitude, "Int. Alt. = %.2f m    ", _flightLogger.data.altitudeInitial);
-  _tft.println(altitude);
 
   if (_flightLogger.aborted) {
     _tft.println(F("ABORTED!!!"));
     return;
   }
 
-  sprintf(altitude, "Cur. Alt. = %.2f m    ", _flightLogger.data.altitudeCurrent);
+  _tft.println(F("Recording in progress ....."));
+  _tft.println(F(""));
+
+  char altitude[40];
+  _tft.println("Altitude");
+  sprintf(altitude, "Initial: %.2fm", _flightLogger.altitudeInitial);
+  _tft.println(altitude);
+
+  sprintf(altitude, "Current: %.2fm", _flightLogger.instance.getData().altitudeCurrent + _flightLogger.altitudeInitial);
   _tft.println(altitude);
 
   drawTftSensorImu();
 }
 
-void drawTftFlightAirborne(unsigned long timestamp, unsigned long delta) {
-  if (_tft.getRotation() == 1) {
-    _tft.setRotation(0);
-    _tft.fillScreen(TFT_BLACK);
-  }
-
-  _tft.setCursor(0, STATUS_HEIGHT_BAR);
-  _tft.println(F("Recording in progress ....."));
-
-  char altitude[40];
-  sprintf(altitude, "Int. Alt. = %i m    ", _flightLogger.data.altitudeInitial);
-  _tft.println(altitude);
-
-  if (_flightLogger.aborted) {
-    _tft.println(F("ABORTED!!!"));
-    return;
-  }
-  sprintf(altitude, "Cur. Alt. = %i m    ", _flightLogger.data.altitudeCurrent);
-  _tft.println(altitude);
-
-  drawTftSensorImu();
+void drawTftFlightAirborneStart() {
+#ifdef DEV_SIM
+  _tft.fillScreen(TFT_RED);
+  _tft.setTextColor(TFT_WHITE, TFT_RED);
+#else
+  _tft.fillScreen(TFT_BLACK);
+  _tft.setTextColor(TFT_WHITE, TFT_BLACK);
+#endif
+  _tft.setRotation(1);
 }
 
 void drawTftGraphAxesXY(float minX, float maxX, float minY, float maxY, int flightNbr, char *curveName) {
@@ -133,21 +121,21 @@ void drawTftGraphForlightNbr(int flightNbr, int curveType) {
 
   Serial.println(F("...display graph on tft successful."));
 
-  if (!_flightLogger.instance.readFlight(flightNbr))
+  if (!_flightLogger.instance.readFile(flightNbr))
     return;
 
-  flightDataStruct *currentFlight;
-  currentFlight = _flightLogger.instance.getFlightData();
-  _flightLogger.instance.determineFlightMinAndMax(flightNbr);
+  flightDataTraceStruct *currentFlight;
+  currentFlight = _flightLogger.instance.getDataTrace();
+  _flightLogger.instance.determineTraceMinAndMax(flightNbr);
 
   //altitude
   if (curveType == 0) {
     // Start altitude trace
     _graphTraceAltitude.startTrace(TFT_GREEN);
-    if ((float)_flightLogger.instance.getFlightAltitudeMax() < 1000)
-      drawTftGraphAxesXY(0.0, _flightLogger.instance.getFlightDuration(), 0, (float)_flightLogger.instance.getFlightAltitudeMax(), flightNbr, "Altitude (meters)");
+    if ((float)_flightLogger.instance.getAltitudeMax() < 1000)
+      drawTftGraphAxesXY(0.0, _flightLogger.instance.getDuration(), 0, (float)_flightLogger.instance.getAltitudeMax(), flightNbr, "Altitude (meters)");
     else
-      drawTftGraphAxesXY(0.0, _flightLogger.instance.getFlightDuration(), 0, (float)_flightLogger.instance.getFlightAltitudeMax(), flightNbr, "Altitude (km)");
+      drawTftGraphAxesXY(0.0, _flightLogger.instance.getDuration(), 0, (float)_flightLogger.instance.getAltitudeMax(), flightNbr, "Altitude (km)");
   }
 
   //accel
@@ -157,38 +145,38 @@ void drawTftGraphForlightNbr(int flightNbr, int curveType) {
     _graphTraceAccelY.startTrace(TFT_YELLOW);
 
     float maxAccel = 0.0f;
-    if (_flightLogger.instance.getFlightAccelXMax() > maxAccel)
-      maxAccel = (float)_flightLogger.instance.getFlightAccelXMax();
-    if (_flightLogger.instance.getFlightAccelYMax() > maxAccel)
-      maxAccel = (float)_flightLogger.instance.getFlightAccelYMax();
-    if (_flightLogger.instance.getFlightAccelZMax() > maxAccel)
-      maxAccel = (float)_flightLogger.instance.getFlightAccelZMax();
+    if (_flightLogger.instance.getAccelXMax() > maxAccel)
+      maxAccel = (float)_flightLogger.instance.getAccelXMax();
+    if (_flightLogger.instance.getAccelYMax() > maxAccel)
+      maxAccel = (float)_flightLogger.instance.getAccelYMax();
+    if (_flightLogger.instance.getAccelZMax() > maxAccel)
+      maxAccel = (float)_flightLogger.instance.getAccelZMax();
 
     // Serial.println(maxAccel);
-    drawTftGraphAxesXY(0.0, _flightLogger.instance.getFlightDuration(), 0, (float)roundUp(maxAccel), flightNbr, "Accel X,Y,Z (m/s)");
+    drawTftGraphAxesXY(0.0, _flightLogger.instance.getDuration(), 0, (float)roundUp(maxAccel), flightNbr, "Accel X,Y,Z (m/s)");
   }
 
   // pressure
   if (curveType == 2) {
     _graphTracePressure.startTrace(TFT_GREY);
-    //Serial.println(_flightLogger.instance.getFlightPressureMax());
-    drawTftGraphAxesXY(0.0, _flightLogger.instance.getFlightDuration(), 0, (float)roundUp(_flightLogger.instance.getFlightPressureMax()), flightNbr, "Pressure (mBar)");
+    //Serial.println(_flightLogger.instance.getPressureMax());
+    drawTftGraphAxesXY(0.0, _flightLogger.instance.getDuration(), 0, (float)roundUp(_flightLogger.instance.getPressureMax()), flightNbr, "Pressure (mBar)");
   }
   // temperature
   if (curveType == 3) {
     _graphTraceTemperature.startTrace(TFT_BROWN);
-    //Serial.println(_flightLogger.instance.getFlightTemperatureMax());
-    drawTftGraphAxesXY(0.0, _flightLogger.instance.getFlightDuration(), 0, (float)roundUp(_flightLogger.instance.getFlightTemperatureMax()), flightNbr, "Temp (°C)");
+    //Serial.println(_flightLogger.instance.getTemperatureMax());
+    drawTftGraphAxesXY(0.0, _flightLogger.instance.getDuration(), 0, (float)roundUp(_flightLogger.instance.getTemperatureMax()), flightNbr, "Temp (°C)");
   }
   // humidity
   if (curveType == 4) {
     _graphTraceHumidity.startTrace(TFT_YELLOW);
-    Serial.println(_flightLogger.instance.getFlightHumidityMax());
-    drawTftGraphAxesXY(0.0, _flightLogger.instance.getFlightDuration(), 0, (float)roundUp(_flightLogger.instance.getFlightHumidityMax() + 1), flightNbr, "Hum %");
+    Serial.println(_flightLogger.instance.getHumidityMax());
+    drawTftGraphAxesXY(0.0, _flightLogger.instance.getDuration(), 0, (float)roundUp(_flightLogger.instance.getHumidityMax() + 1), flightNbr, "Hum %");
   }
 
   unsigned long currentTime = 0;
-  for (long i = 0; i < _flightLogger.instance.getFlightSize(); i++) {
+  for (long i = 0; i < _flightLogger.instance.getDataTraceSize(); i++) {
     currentTime = currentTime + currentFlight[i].diffTime;  //logger.getFlightTimeData();
 
     //altitude
@@ -215,19 +203,17 @@ void drawTftReset() {
 }
 
 void drawTftSensorImu() {
-  // if (!_qmi.instance.getDataReady())
-  //   return;
-
-  // if (_qmi.instance.getAccelerometer(_qmi.acc.x, _qmi.acc.y, _qmi.acc.z)) {
-  //   char temp[15];
-  //   sprintf(temp, "x=%3.2f m/s", (float)_qmi.acc.x);
-  //   _tft.println("");
-  //   _tft.println(temp);
-  //   sprintf(temp, "y=%3.2f m/s", (float)_qmi.acc.y);
-  //   _tft.println(temp);
-  //   sprintf(temp, "z=%3.2f m/s", (float)_qmi.acc.z);
-  //   _tft.println(temp);
-  // }
+  accelerometerValues accelerometerValuesO = readSensorAccelerometer();
+  char temp[15];
+  sprintf(temp, "x=%3.2f m/s", accelerometerValuesO.x);
+  _tft.println("");
+  _tft.println(temp);
+  sprintf(temp, "y=%3.2f m/s", accelerometerValuesO.y);
+  _tft.println(temp);
+  sprintf(temp, "z=%3.2f m/s", accelerometerValuesO.z);
+  _tft.println(temp);
+  
+  // gyroscopeValues readSensorGyroscope();
 }
 
 void drawTftSleep() {
@@ -290,6 +276,9 @@ void drawTftSplash() {
     row += 10;
     String ipAddress = "IP: ";
     ipAddress.concat(_wifi.ipAddress());
+    ipAddress.concat("    ");
+    Serial.print(F("WiFi IP address: "));
+    Serial.println(_wifi.ipAddress());
     _tft.drawString(ipAddress, 6, row);
   }
   else {
@@ -302,7 +291,7 @@ void drawTftSplash() {
   _tft.drawString(F("Alt.   Temp. Pres."), 6, row);
   row += 10;
   char temp[40];
-  sprintf(temp, "%.0fm%s%.0fC%s%.0fhPa", _flightLogger.data.altitudeInitial, drawTftSplashPad(_flightLogger.data.altitudeInitial, 6, "%.0f"), _flightLogger.data.temperatureInitial, drawTftSplashPad(_flightLogger.data.temperatureInitial, 5, "%.0f"), _flightLogger.data.pressureInitial);
+  sprintf(temp, "%.0fm%s%.0fC%s%.0fhPa", _flightLogger.altitudeInitial, drawTftSplashPad(_flightLogger.altitudeInitial, 6, "%.0f"), _flightLogger.temperatureInitial, drawTftSplashPad(_flightLogger.temperatureInitial, 5, "%.0f"), _flightLogger.pressureInitial);
   _tft.drawString(temp, 6, row);
   row += 15;
   
@@ -314,19 +303,8 @@ void drawTftSplash() {
   Serial.println(F("...display splash on tft successful."));
 }
 
-void drawTftSplashSim() {
-  _tft.fillScreen(TFT_RED);
-  _tft.setTextColor(TFT_WHITE, TFT_RED);
-  drawTftSplash();
-}
-
-void drawTftSplashSimStop() {
-  drawTftReset();
-  drawTftSplash();
-}
-
 void setupTft() {
-  Serial.println("Setup TFT...");
+  Serial.println("\nSetup TFT...");
 
   // turn on backlite
   pinMode(TFT_BACKLITE, OUTPUT);

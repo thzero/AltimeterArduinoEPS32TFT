@@ -4,7 +4,7 @@
 class loopThrottle {
   public:
     loopThrottle();
-    int determine(unsigned long timestamp, byte sampleRate);
+    int determine(unsigned long timestamp, int sampleRate);
     void reset();
     bool signal();
     

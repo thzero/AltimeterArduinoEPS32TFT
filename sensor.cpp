@@ -1,26 +1,28 @@
 #include "debug.h"
 #include "constants.h"
 #include "sensor.h"
-#include "sensorBME.h"
+// #include "sensorBME.h"
+#include "sensorBMP.h"
 #include "sensorIMU.h"
 
-sensorBME _bmeSensor;
+// sensorBME _atmosphereSensor;
+sensorBMP _atmosphereSensor;
 sensorIMU _imuSensor;
 
 atmosphereValues initializeSensorsAtmosphere() {
-  return _bmeSensor.initializeSensors();
+  return _atmosphereSensor.initializeSensors();
 }
 
 atmosphereValues readSensorAtmosphere() {
-  return _bmeSensor.readSensor();
+  return _atmosphereSensor.readSensor();
 }
 
 float readSensorAltitude() {
-  return _bmeSensor.readSensorAltitude();
+  return _atmosphereSensor.readSensorAltitude();
 }
 
 float readSensorAltitude(atmosphereValues values) {
-  return _bmeSensor.readSensorAltitude(values);
+  return _atmosphereSensor.readSensorAltitude(values);
 }
 
 accelerometerValues readSensorAccelerometer() {
@@ -37,7 +39,7 @@ void sleepSensors() {
 
   Serial.println(F("Sleep sensors..."));
 
-  _bmeSensor.sleepSensors();
+  _atmosphereSensor.sleepSensors();
   
   _imuSensor.sleepSensors();
 
@@ -49,10 +51,10 @@ void setupSensors() {
     return;
 
   stack_t tracer;
-  Serial.println(F("Setup sensors..."));
+  Serial.println(F("\nSetup sensors..."));
   _initialized = false;
 
-  _bmeSensor.setupSensors();
+  _atmosphereSensor.setupSensors();
   
   _imuSensor.setupSensors();
 
@@ -60,7 +62,7 @@ void setupSensors() {
 }
 
 void setupSensorsCompleted() {
-  Serial.println(F("Setup sensors completed..."));
+  Serial.println(F("\nSetup sensors completed..."));
   _initialized = true;
   Serial.println(F("...sensors completed successful."));
 }

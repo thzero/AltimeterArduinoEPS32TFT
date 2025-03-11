@@ -23,33 +23,33 @@
 //   char blank[4] = "-1,";
 
 //   int val = 0;
-//   int airborne = _flightLogger.data.airborne ? 1 : 0;
-//   // if (_flightLogger.data.airborne)
+//   int airborne = _flightLogger.airborne ? 1 : 0;
+//   // if (_flightLogger.airborne)
 //   //   airborne = 1;
 
-//   int touchdown = _flightLogger.data.touchdown ? 1 : 0;
-//   // if (_flightLogger.data.touchdown)
+//   int touchdown = _flightLogger.touchdown ? 1 : 0;
+//   // if (_flightLogger.touchdown)
 //   //   touchdown = 1;
 
 //   strcat(altiTelem, "telemetry,");
 
-//   sprintf(temp, formatFloatComma, _flightLogger.data.altitudeCurrent);
+//   sprintf(temp, formatFloatComma, _flightLogger.instance.getData().altitudeCurrent);
 //   strcat(altiTelem, temp);
 //   sprintf(temp, formatComma, airborne);
 //   strcat(altiTelem, temp);
-//   sprintf(temp, formatComma, _flightLogger.data.altitudeLaunch);
+//   sprintf(temp, formatComma, _flightLogger.instance.getData().altitudeLaunch);
 //   strcat(altiTelem, temp);
-//   sprintf(temp, formatComma, _flightLogger.data.timestampLaunch);
+//   sprintf(temp, formatComma, _flightLogger.instance.getData().timestampLaunch);
 //   strcat(altiTelem, temp);
-//   sprintf(temp, formatFloatComma, _flightLogger.data.altitudeApogee);
+//   sprintf(temp, formatFloatComma, _flightLogger.instance.getData().altitudeApogee);
 //   strcat(altiTelem, temp);
-//   sprintf(temp, formatFloatComma, _flightLogger.data.timestampApogee);
+//   sprintf(temp, formatFloatComma, _flightLogger.instance.getData().timestampApogee);
 //   strcat(altiTelem, temp);
 //   sprintf(temp, formatComma, -1);
 //   strcat(altiTelem, temp);
 //   sprintf(temp, formatComma, touchdown);
 //   strcat(altiTelem, temp);
-//   sprintf(temp, formatComma, _flightLogger.data.timestampTouchdown);
+//   sprintf(temp, formatComma, _flightLogger.instance.getData().timestampTouchdown);
 //   strcat(altiTelem, temp);
 //   sprintf(temp, formatComma, timestamp);
 //   strcat(altiTelem, temp);
