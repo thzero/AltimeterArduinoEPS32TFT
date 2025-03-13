@@ -43,7 +43,7 @@ class flightLoggerBase {
     void outputSerialExpanded(int flightNbr);
     virtual bool outputSerialList();
     virtual bool readFile(int flightNbr);
-    JsonObject readFileAsJson(int flightNbr);
+    virtual bool readFileAsJson(int flightNbr, JsonObject object);
     virtual int reindexFlights();
     void reset();
     void setTraceCurrentAccelX(float x);

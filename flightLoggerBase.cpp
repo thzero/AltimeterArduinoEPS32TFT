@@ -352,9 +352,9 @@ bool flightLoggerBase::outputSerialList() {
 #if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
   Serial.println(F("Output flight log list to serial..."));
 #endif
-  DynamicJsonDocument doc(4096);
+  JsonDocument doc;
   deserializeJson(doc, "[]");
-  JsonArray flightLogs = doc.as<JsonArray>();
+  JsonArray flightLogs = doc.to<JsonArray>();
   listAsJson(flightLogs);
 
 #if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
@@ -405,7 +405,7 @@ void flightLoggerBase::reset() {
 bool flightLoggerBase::readFile(int flightNbr) {
 }
 
-JsonObject flightLoggerBase::readFileAsJson(int flightNbr) {
+bool flightLoggerBase::readFileAsJson(int flightNbr, JsonObject object) {
 }
 
 int flightLoggerBase::reindexFlights() {
@@ -508,9 +508,7 @@ void flightLoggerBase::setTraceCurrentVelocity(float velocity) {
 }
 
 bool flightLoggerBase::writeFile(int flightNbr) {
-  return false;
 }
 
 bool flightLoggerBase::writeFlightCurrent() {
-  return writeFile(geFlightNbrsLast() + 1);
 }
