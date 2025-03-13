@@ -20,8 +20,9 @@ struct simulationConfig {
 class simulation {
   public:
     simulation();
-    void start(struct simulationConfig startConfig, long initialAltitude);
     bool isRunning();
+    void outputSerialList();
+    void start(long initialAltitude);
     void stop();
     accelerometerValues valueAcceleration();
     double valueAltitude();

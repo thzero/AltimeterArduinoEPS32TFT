@@ -1,6 +1,8 @@
 #include <Arduino.h>
+#include <ArduinoJson.h>
 
 #include "debug.h"
+#include "fileSystem.h"
 #include "simulation.h"
 #include "utilities.h"
 
@@ -85,6 +87,56 @@ void simulation::outputPrintHeader() {
   // Serial.println(F("sim -\tTime\tDelta\tThrust\tMass\tAcceleration\tVelocity\tPosition\tStarting Altitude\tAltitude\tAirborne"));
   Serial.println(F("sim -	Time  Delta   Thrust  Mass      Acceleration   Velocity    Position      Starting Alt.  Altitude    Airborne"));
 // #endif
+}
+
+void simulation::outputSerialList() {
+  Serial.println(F("\nOutput serial list of sim configs."));
+
+  JsonDocument doc;
+  deserializeJson(doc, "[]");
+  JsonArray configs = doc.to<JsonArray>();
+  _fileSystem.instance.loadConfigSim(configs);
+// #ifdef DEBUG_SIM
+  // serializeJson(configs, Serial);
+// #endif
+  if (!configs || configs.size() <= 0) {
+    Serial.println(F("\tFailed to load configuration."));
+    return;
+  }
+// #ifdef DEBUG_SIM
+  // Serial.println(F("\nOutput serial list of sim configs loaded."));
+  // serializeJson(configs, Serial);
+  // Serial.println(F(""));
+// #endif
+
+  Serial.println(F("Number\tName\tRocketMass\tMotorFuelMass\tMotorExhaustVelocity\tCrossSection\tDragCoefficient"));
+  for (JsonObject obj : configs) {
+    int temp = obj["number"];
+    Serial.print(temp);
+    Serial.print(F("\t"));
+    String name = obj["name"];
+    Serial.print(name.c_str());
+    Serial.print(F("\t"));
+    float value = obj["RocketMass"];
+    Serial.print(value);
+    Serial.print(F("\t\t"));
+    value = obj["MotorFuelMass"];
+    Serial.print(value);
+    Serial.print(F("\t"));
+    value = obj["MotorFuelBurnRate"];
+    Serial.print(value);
+    Serial.print(F("\t"));
+    value = obj["MotorExhaustVelocity"];
+    Serial.print(value);
+    Serial.print(F("\t\t\t"));
+    value = obj["CrossSection"];
+    Serial.print(value);
+    Serial.print(F("\t\t"));
+    value = obj["DragCoefficient"];
+    Serial.println(value);
+  }
+
+  Serial.println(F("...completed"));
 }
 
 void simulation::loopStep(double deltaT, bool output) {
@@ -215,10 +267,52 @@ void simulation::simulationTask() {
   vTaskDelete(NULL);
 }
 
-void simulation::start(simulationConfig startConfig, long initialAltitude) {
-  _config = startConfig;
+void simulation::start(long initialAltitude) {
   Serial.println(F(""));
   Serial.println(F("Simulation Started"));
+
+  if (_running) {
+    Serial.println(F("\tAlready running."));
+    return;
+  }
+  
+  JsonDocument doc;
+  JsonArray configs = doc.to<JsonArray>();
+  _fileSystem.instance.loadConfigSim(configs);
+  serializeJson(configs, Serial);
+  if (!configs || configs.size() <= 0) {
+    Serial.println(F("\tFailed to load configuration."));
+    return;
+  }
+  Serial.println(F("\tSucceefully loaded configurations."));
+  serializeJson(configs, Serial);
+  Serial.println(F(""));
+
+  int requestedNumber = 1;
+  JsonObject config;
+  for (JsonObject obj : configs) {
+    int temp = obj["number"];
+    if (temp == requestedNumber) {
+      config = obj;
+      break;
+    }
+  }
+  if (!config) {
+    Serial.print(F("\tFailed to find config for simulation '"));
+    Serial.print(requestedNumber);
+    Serial.println(F("'."));
+    return;
+  }
+
+  struct simulationConfig startConfig;
+  startConfig.RocketMass = config["RocketMass"];
+  startConfig.MotorFuelMass = config["MotorFuelMass"];
+  startConfig.MotorFuelBurnRate = config["MotorFuelBurnRate"];
+  startConfig.MotorExhaustVelocity = config["MotorExhaustVelocity"];
+  startConfig.CrossSection = config["CrossSection"];
+  startConfig.DragCoefficient = config["DragCoefficient"];
+
+  _config = startConfig;
   if (_running) {
     Serial.println(F("\tAlready running."));
     return;

@@ -6,6 +6,7 @@
 class fileSystemLFS: public fileSystemBase {
   public:
     fileSystemLFS();
+    void loadConfigSim(JsonArray configs) override;
     bool setup();
     long totalBytes();
     long usedBytes();

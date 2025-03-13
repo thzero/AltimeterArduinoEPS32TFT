@@ -114,8 +114,8 @@ void web::configure() {
     if (exists) {
       AsyncJsonResponse *response = new AsyncJsonResponse();
       JsonObject responseResult = response->getRoot().to<JsonObject>();
-      flightDataReadResultsStruct flightLogResult = _flightLogger.instance.readFileAsJson(flightNbr);
-      responseResult["success"] = true;
+      bool success = _flightLogger.instance.readFileAsJson(flightNbr, responseResult);
+      responseResult["success"] = success;
       #ifdef DEBUG
       Serial.print(F("\twebserver request...flightLogs download data #"));
       Serial.println(flightNbr);

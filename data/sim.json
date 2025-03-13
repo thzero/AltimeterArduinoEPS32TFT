@@ -1,0 +1,12 @@
+[
+    {
+      "name": "Basic",
+      "number": 1,
+      "RocketMass": 1.76,
+      "MotorFuelMass": 0.316,
+      "MotorFuelBurnRate": 0.176,
+      "MotorExhaustVelocity": 2485.796,
+      "CrossSection": 4.56e-3,
+      "DragCoefficient": 0.87
+    }
+]

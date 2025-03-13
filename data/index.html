@@ -197,7 +197,15 @@ function upload_abort_handler(event) {
 }
 
 function flightLogs() {
-  let flightLogsEl = document.getElementById('flightLogs');
+  const flightLogsEl = document.getElementById('flightLogs');
+
+  // remove rows except the first two...
+  const rowEls = flightLogsEl.getElementsByTagName('tr');
+  const rowCount = rowEls.length;
+  for (let i = 2; i < rowCount; i++)
+    flightLogsEl.deleteRow(i);
+
+  // update data...
   const now = new Date();
   requestGet('/flightLogs', (json) => {
     let flightLogs = json['flightLogs'];
@@ -205,6 +213,7 @@ function flightLogs() {
     console.log(json);
     for (let log of flightLogs) {
       let rowEl = flightLogsEl.insertRow();
+      rowEl.className = 'download-row';
       let cellEl = rowEl.insertCell();
       cellEl.innerHTML = log['number'];
       cellEl = rowEl.insertCell();
