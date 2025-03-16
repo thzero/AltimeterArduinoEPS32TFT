@@ -15,14 +15,14 @@ bool simulation::isRunning() {
   return _running;
 }
 
-void simulation::evaluateTimestep(double K, double deltaT, double Mr, double Me, double G, double Ft, double *x) {
+void simulation::evaluateTimestep(float deltaT, double drag, double Mr, double Me, double G, double Ft, double *x) {
   // Leap-frog Euler method -- interleave calculation of DeltaX, DeltaV
   // Move the position
   _trace[0] += deltaT * _trace[1];
   // Compute the total force
   double F = -G * Me * Mr / (_trace[0] * _trace[0]);
   double dragSign = (_trace[1] < 0) ? 1.0 : -1.0;
-  F += 0.5 * K * (_trace[1] * _trace[1]) * dragSign;
+  F += 0.5 * drag * (_trace[1] * _trace[1]) * dragSign;
   F += Ft;
   // Apply acceleration
   // _trace[1] += deltaT * F / Mr;
@@ -30,62 +30,129 @@ void simulation::evaluateTimestep(double K, double deltaT, double Mr, double Me,
   _trace[1] += deltaT * _trace[2];
 }
 
-void simulation::outputPrint(double delta, double thrust, double mass, double altitude) {
-// #ifdef DEBUG_SIM
+void simulation::loopStep(float deltaT, bool output) {
+  deltaT = deltaT / 1000.0; // to seconds?
+
+  if (_airborne && _trace[0] <= _altitudeStarting) {
+#ifdef DEBUG_SIM
+    outputPrint(deltaT, 0, 0, 0, 0, 0);
+    Serial.println(F("sim -\tLANDED"));
+    Serial.print(F("sim -\tMax. Height="));
+    Serial.println(_maxAltitude);
+    Serial.print(F("sim -\tMax. Velocity="));
+    Serial.println(_maxVelocity);
+    Serial.println();
+    Serial.println(_maxVelocity);
+    Serial.print(F("final countdown..."));
+    Serial.println(_finalCountdown);
+#endif
+
+    if (_finalCountdown >= finalCountdown) {
+      _finalCountdown++;
+      _running = false;
+      return;
+    }
+
+    _finalCountdown++;
+    return;
+  }
+
+  double altitude = _trace[0] - _altitudeStarting;
+  double airDensity = AirDensity * pow(0.5, altitude / AirDensityScale);
+  double drag = airDensity * _config.CrossSection * _config.DragCoefficient;
+
+  double mass = _config.RocketMass;
+  double thrust = 0;
+  bool burnOut = (_elapsedTime < _burnoutTime);
+  if (burnOut) {
+    mass = _config.RocketMass + _config.MotorFuelMass - _config.MotorFuelBurnRate * _elapsedTime;
+    thrust = _motorThrust; // N
+  }
+
+  evaluateTimestep(deltaT, drag, mass, EarthMass, GravConstant, thrust, _trace);
+  // TODO: Introduce some  point - recommendation seems to be to use Simplex noise from FastLED
+
+  if (output)
+    outputPrint(deltaT, mass, thrust, altitude, airDensity, drag, burnOut);
+
+  if (_trace[0] > _altitudeStarting)
+    _airborne = true;
+
+  if (altitude > _maxAltitude)
+    _maxAltitude = altitude;
+  if (_trace[1] > _maxVelocity)
+    _maxVelocity = _trace[1];
+
+  _elapsedTime += deltaT;
+}
+
+void simulation::outputPrint(float delta, double mass, double thrust, double altitude, double airDensity, double drag, bool burnOut) {
   char temp[20];
-  char formatFloat[5] = "%.2f";
-  Serial.print(F("sim -\t"));
-  Serial.print(_elapsedTime);
-  Serial.print(stringPad(_elapsedTime, 6, formatFloat));
-  // Serial.print(F("\t"));
-  // Serial.print(delta);
+  char formatFloat[5] = "%.4f";
+  Serial.print(F("sim -  "));
+
+  sprintf(temp, formatFloat, _elapsedTime);
+  Serial.print(temp);
+  Serial.print(stringPad(temp, 12));
+
   sprintf(temp, formatFloat, delta);
   Serial.print(temp);
-  Serial.print(stringPad(delta, 8, formatFloat));
-  // Serial.print(F("\t"));
-  // Serial.print(thrust);
-  sprintf(temp, formatFloat, thrust);
+  Serial.print(stringPad(temp, 12));
+
+  sprintf(temp, formatFloat, _config.RocketMass);
   Serial.print(temp);
-  Serial.print(stringPad(thrust, 8, formatFloat));
-  // Serial.print(F("\t"));
-  // Serial.print(mass);
+  Serial.print(stringPad(temp, 14));
+
+  sprintf(temp, formatFloat, _config.RocketMass + _config.MotorFuelMass);
+  Serial.print(temp);
+  Serial.print(stringPad(temp, 14));
+
   sprintf(temp, formatFloat, mass);
   Serial.print(temp);
-  Serial.print(stringPad(mass, 10, formatFloat));
-  // Serial.print(F("\t"));
-  // Serial.print(_trace[2]); // Acceleration
+  Serial.print(stringPad(temp, 15));
+
+  sprintf(temp, formatFloat, thrust);
+  Serial.print(temp);
+  Serial.print(stringPad(temp, 13));
+
   sprintf(temp, formatFloat, _trace[2]); // Acceleration
   Serial.print(temp);
-  Serial.print(stringPad(_trace[2], 15, formatFloat));
-  // Serial.print(F("\t\t\t"));
-  // Serial.print(_trace[1]); // Velocity
+  Serial.print(stringPad(temp, 15));
+
   sprintf(temp, formatFloat, _trace[1]); // Velocity
   Serial.print(temp);
-  Serial.print(stringPad(_trace[1], 12, formatFloat));
-  // Serial.print(F("\t\t"));
-  // Serial.print(_trace[0]); // Position
-  sprintf(temp, formatFloat, _trace[0]); // Position
-  Serial.print(temp);
-  Serial.print(stringPad(_trace[0], 14, formatFloat));
-  // Serial.print(F("\t"));
-  // Serial.print(_startingAltitude);
-  sprintf(temp, formatFloat, _startingAltitude - EarthRadius);
-  Serial.print(temp);
-  Serial.print(stringPad(_startingAltitude - EarthRadius, 15, formatFloat));
-  // Serial.print(F("\t\t"));
-  // Serial.print(altitude);
+  Serial.print(stringPad(temp, 14));
+
   sprintf(temp, formatFloat, altitude);
   Serial.print(temp);
-  Serial.print(stringPad(altitude, 12, formatFloat));
-  // Serial.print(F("\t\t"));
+  Serial.print(stringPad(temp, 14));
+
+  sprintf(temp, formatFloat, _trace[0]); // Position
+  Serial.print(temp);
+  Serial.print(stringPad(temp, 18));
+
+  sprintf(temp, formatFloat, airDensity);
+  Serial.print(temp);
+  Serial.print(stringPad(temp, 13));
+
+  sprintf(temp, formatFloat, drag);
+  Serial.print(temp);
+  Serial.print(stringPad(temp, 12));
+
+  Serial.print(burnOut ? "true" : "false");
+  Serial.print(stringPad("true", 9));
+
+  sprintf(temp, formatFloat, _burnoutTime);
+  Serial.print(temp);
+  Serial.print(stringPad(temp, 15));
+
   Serial.println(_airborne ? "true" : "false");
-// #endif
 }
 
 void simulation::outputPrintHeader() {
 // #ifdef DEBUG_SIM
   // Serial.println(F("sim -\tTime\tDelta\tThrust\tMass\tAcceleration\tVelocity\tPosition\tStarting Altitude\tAltitude\tAirborne"));
-  Serial.println(F("sim -	Time  Delta   Thrust  Mass      Acceleration   Velocity    Position      Starting Alt.  Altitude    Airborne"));
+  Serial.println(F("sim -  Time       Delta      Rocket Mass  Total Mass   Current Mass  Thrust      Acceleration  Velocity     Altitude     Position         AirDensity  Drag       Burnout  Burnout Time  Airborne"));
 // #endif
 }
 
@@ -103,95 +170,60 @@ void simulation::outputSerialList() {
     Serial.println(F("\tFailed to load configuration."));
     return;
   }
-// #ifdef DEBUG_SIM
-  // Serial.println(F("\nOutput serial list of sim configs loaded."));
-  // serializeJson(configs, Serial);
-  // Serial.println(F(""));
-// #endif
+#ifdef DEBUG_SIM
+  Serial.println(F("\nOutput serial list of sim configs loaded."));
+  serializeJson(configs, Serial);
+  Serial.println();
+#endif
 
-  Serial.println(F("Number\tName\tRocketMass\tMotorFuelMass\tMotorExhaustVelocity\tCrossSection\tDragCoefficient"));
+  char temp[20];
+  char formatFloat[5] = "%.4f";
+  Serial.println(F("Number Name                  RocketMassOz  MotorFuelBurnTimeS  MotorFuelMassEmptyOz  MotorFuelMassLaunchOz  MotorThrustN  DiameterMM  DragCoefficient"));
   for (JsonObject obj : configs) {
-    int temp = obj["number"];
-    Serial.print(temp);
-    Serial.print(F("\t"));
+    int tempN = obj["number"];
+    Serial.print(tempN);
+    Serial.print(stringPad(tempN, 9));
+
     String name = obj["name"];
     Serial.print(name.c_str());
-    Serial.print(F("\t"));
-    float value = obj["RocketMass"];
-    Serial.print(value);
-    Serial.print(F("\t\t"));
-    value = obj["MotorFuelMass"];
-    Serial.print(value);
-    Serial.print(F("\t"));
-    value = obj["MotorFuelBurnRate"];
-    Serial.print(value);
-    Serial.print(F("\t"));
-    value = obj["MotorExhaustVelocity"];
-    Serial.print(value);
-    Serial.print(F("\t\t\t"));
-    value = obj["CrossSection"];
-    Serial.print(value);
-    Serial.print(F("\t\t"));
+    Serial.print(stringPad(name.c_str(), 23));
+
+    float value = obj["RocketMassOz"];
+    sprintf(temp, formatFloat, value);
+    Serial.print(temp);
+    Serial.print(stringPad(temp, 15));
+
+    value = obj["MotorFuelBurnTimeS"];
+    sprintf(temp, formatFloat, value);
+    Serial.print(temp);
+    Serial.print(stringPad(temp, 21));
+
+    value = obj["MotorFuelMassEmptyOz"];
+    sprintf(temp, formatFloat, value);
+    Serial.print(temp);
+    Serial.print(stringPad(temp, 23));
+
+    value = obj["MotorFuelMassLaunchOz"];
+    sprintf(temp, formatFloat, value);
+    Serial.print(temp);
+    Serial.print(stringPad(temp, 24));
+
+    value = obj["MotorThrustN"];
+    sprintf(temp, formatFloat, value);
+    Serial.print(temp);
+    Serial.print(stringPad(temp, 15));
+
+    value = obj["DiameterMM"];
+    sprintf(temp, formatFloat, value);
+    Serial.print(temp);
+    Serial.print(stringPad(temp, 13));
+
     value = obj["DragCoefficient"];
-    Serial.println(value);
+    sprintf(temp, formatFloat, value);
+    Serial.println(temp);
   }
 
   Serial.println(F("...completed"));
-}
-
-void simulation::loopStep(double deltaT, bool output) {
-  deltaT = deltaT / 1000;
-
-  if (_airborne && _trace[0] <= _startingAltitude) {
-#ifdef DEBUG_SIM
-    outputPrint(deltaT, 0, 0, 0);
-    Serial.println(F("sim -\tLANDED"));
-    Serial.print(F("sim -\tMax. Height="));
-    Serial.println(_maxHeight);
-    Serial.print(F("sim -\tMax. Velocity="));
-    Serial.println(_maxVelocity);
-    Serial.println(F(""));
-    Serial.println(_maxVelocity);
-    Serial.print(F("final countdown..."));
-    Serial.println(_finalCountdown);
-#endif
-
-    if (_finalCountdown >= finalCountdown) {
-      _finalCountdown++;
-      _running = false;
-      return;
-    }
-
-    _finalCountdown++;
-    return;
-  }
-
-  double height = _trace[0] - _startingAltitude;
-  double airDensity = AirDensity * pow(0.5, height / AirDensityScale);
-  double drag = airDensity * _config.CrossSection * _config.DragCoefficient;
-
-  double mass = _config.RocketMass;
-  double thrust = 0;
-  if (_elapsedTime < _burnoutTime) {
-    mass = _config.RocketMass + _config.MotorFuelMass - _config.MotorFuelBurnRate * _elapsedTime;
-    thrust = _motorThrust; // N
-  }
-
-  if (output)
-    outputPrint(deltaT, thrust, mass, height);
-
-  evaluateTimestep(drag, deltaT, mass, EarthMass, GravConstant, thrust, _trace);
-  // TODO: Introduce some  point - recommendation seems to be to use Simplex noise from FastLED
-
-  if (_trace[0] > _startingAltitude)
-    _airborne = true;
-
-  if (height > _maxHeight)
-    _maxHeight = height;
-  if (_trace[1] > _maxVelocity)
-    _maxVelocity = _trace[1];
-
-  _elapsedTime += deltaT;
 }
 
 void simulation::simulationTaskW(void * parameter) {
@@ -201,36 +233,36 @@ void simulation::simulationTaskW(void * parameter) {
 
 void simulation::simulationTask() {
   Serial.println(F("Simulation task..."));
-  Serial.print(F("sim -\tSample Rate="));
+  Serial.print(F("sim -  Sample Rate="));
   Serial.println(_config.sampleRate);
 
-  unsigned long start = millis();
+  unsigned long start = _simulationTimestamp = millis();
   int count = 0;
   int countHeader = 0;
   int settle = 0;
   while(_running) {
-    // debug(F("Simulation _simulationTimestamp...", _simulationTimestamp);
-    unsigned long current = millis();
-    // debug(F("Simulation current..."), current);
-
-    // unsigned long deltaT = current - _simulationTimestamp;
-    // debug(F("Simulation deltaT..."), deltaT);
-
     bool output = false;
     bool outputHeader = false;
 
-    int deltaElapsed = current - _simulationTimestamp;
+    delayMicroseconds(100); 
+    unsigned long currentTimestamp = millis();
+    // debug(F("Simulation currentTimestamp..."), currentTimestamp);
+    // debug(F("Simulation _simulationTimestamp...", _simulationTimestamp);
+    int deltaElapsed = currentTimestamp - _simulationTimestamp;
+    // debug(F("Simulation deltaElapsed..."), deltaElapsed);
+
     int delta = _simulationThrottle.determine(deltaElapsed, _config.sampleRate);
     // debug(F("Simulation delta..."), delta);
     if (delta != 0) {
-      // debug(F("Simulation settle..."), settle);
       // let the loop settle before starting to simulate...
-      if (settle < 5) {
+      if (settle < 15) {
+        debug(F("Simulation settle..."), settle);
         settle++;
         continue;
       }
 
-      if (count % 25 == 0) {
+      //if (count % 25 == 0) {
+      if (count % 5 == 0) {
         count = 0;
         output = true;
         if (countHeader % 10 == 0) {
@@ -249,7 +281,7 @@ void simulation::simulationTask() {
       loopStep(delta, output);
     }
 
-    _simulationTimestamp = current;
+    _simulationTimestamp = currentTimestamp;
   }
   
   unsigned long stop = millis();
@@ -267,8 +299,8 @@ void simulation::simulationTask() {
   vTaskDelete(NULL);
 }
 
-void simulation::start(long initialAltitude) {
-  Serial.println(F(""));
+void simulation::start(long altitudeInitial) {
+  Serial.println();
   Serial.println(F("Simulation Started"));
 
   if (_running) {
@@ -279,14 +311,15 @@ void simulation::start(long initialAltitude) {
   JsonDocument doc;
   JsonArray configs = doc.to<JsonArray>();
   _fileSystem.instance.loadConfigSim(configs);
+#ifdef DEBUG_SIM
   serializeJson(configs, Serial);
+  Serial.println();
+#endif
   if (!configs || configs.size() <= 0) {
-    Serial.println(F("\tFailed to load configuration."));
+    Serial.println(F("\n\tFailed to load configuration."));
     return;
   }
-  Serial.println(F("\tSucceefully loaded configurations."));
-  serializeJson(configs, Serial);
-  Serial.println(F(""));
+  Serial.println(F("\tSuccessfully loaded configurations."));
 
   int requestedNumber = 1;
   JsonObject config;
@@ -298,35 +331,66 @@ void simulation::start(long initialAltitude) {
     }
   }
   if (!config) {
-    Serial.print(F("\tFailed to find config for simulation '"));
+    Serial.print(F("\tFailed to find config for requested simulation '"));
     Serial.print(requestedNumber);
     Serial.println(F("'."));
     return;
   }
+#ifdef DEBUG_SIM
+  serializeJson(config, Serial);
+  Serial.println();
+#endif
 
   struct simulationConfig startConfig;
-  startConfig.RocketMass = config["RocketMass"];
-  startConfig.MotorFuelMass = config["MotorFuelMass"];
-  startConfig.MotorFuelBurnRate = config["MotorFuelBurnRate"];
-  startConfig.MotorExhaustVelocity = config["MotorExhaustVelocity"];
-  startConfig.CrossSection = config["CrossSection"];
+  startConfig.RocketMass = ((float)config["RocketMassOz"]) / 35.274; // kg
+  startConfig.MotorFuelBurnTime = config["MotorFuelBurnTimeS"]; // s
+  float motorFuelMassEmptyOz = config["MotorFuelMassEmptyOz"];
+  float motorFuelMassEmptyKg = motorFuelMassEmptyOz / 35.274; // kg
+  float motorFuelMassLaunchOz = config["MotorFuelMassLaunchOz"];
+  float motorFuelMassLaunchKg = motorFuelMassLaunchOz / 35.274; // kg
+  startConfig.MotorFuelMass = motorFuelMassLaunchKg - motorFuelMassEmptyKg; // kg
+  startConfig.MotorFuelBurnRate = startConfig.MotorFuelMass / startConfig.MotorFuelBurnTime;
+  startConfig.MotorThrust = config["MotorThrustN"]; // N
+  startConfig.CrossSection = pow((((float)config["DiameterMM"]) / 1000), 20.0762); // m^20.0762;
   startConfig.DragCoefficient = config["DragCoefficient"];
 
   _config = startConfig;
-  if (_running) {
-    Serial.println(F("\tAlready running."));
-    return;
-  }
+  
+  Serial.println();
+  Serial.print("RocketMass: ");
+  Serial.println(startConfig.RocketMass, 5);
+  Serial.print("MotorFuelBurnTime: ");
+  Serial.println(startConfig.MotorFuelBurnTime, 5);
+  Serial.print("MotorFuelMassEmptyOz: ");
+  Serial.println(motorFuelMassEmptyOz, 5);
+  Serial.print("MotorFuelMassEmptyKg: ");
+  Serial.println(motorFuelMassEmptyKg, 5);
+  Serial.print("MotorFuelMassLaunchOz: ");
+  Serial.println(motorFuelMassLaunchOz, 5);
+  Serial.print("MotorFuelMassLaunchKg: ");
+  Serial.println(motorFuelMassLaunchKg, 5);
+  Serial.print("MotorFuelMass: ");
+  Serial.println(startConfig.MotorFuelMass, 5);
+  Serial.print("MotorFuelBurnRate: ");
+  Serial.println(startConfig.MotorFuelBurnRate, 5);
+  Serial.print("MotorThrust: ");
+  Serial.println(startConfig.MotorThrust, 5);
+  Serial.print("CrossSection: ");
+  Serial.println(startConfig.CrossSection, 5);
+  Serial.print("DragCoefficient: ");
+  Serial.println(startConfig.DragCoefficient, 5);
+  Serial.println();
 
   _airborne = false;
-  _burnoutTime = _config.MotorFuelMass / _config.MotorFuelBurnRate; // s
+  _burnoutTime = _config.MotorFuelBurnTime;
   _elapsedTime = 0.0;
   _finalCountdown = 0;
-  _maxHeight = 0;
+  _maxAltitude = 0;
   _maxVelocity = 0;
-  _motorThrust = _config.MotorExhaustVelocity * _config.MotorFuelBurnRate; // N
-  _startingAltitude = EarthRadius + initialAltitude;
-  _trace[0] = _startingAltitude; // Initial position
+  _motorThrust = _config.MotorThrust; // N
+  _altitudeInitial = altitudeInitial;
+  _altitudeStarting = EarthRadius + altitudeInitial;
+  _trace[0] = _altitudeStarting; // Initial position
   _trace[1] = 0.0; // Initial velocity
   _trace[2] = 0.0; // Initial acceleration
 
@@ -352,22 +416,22 @@ void simulation::start(long initialAltitude) {
 void simulation::stop() {
   if (_running) {
     Serial.println(F("Simulation\tStopped."));
-    Serial.println(F(""));
+    Serial.println();
     _running = false;
     return;
   }
   Serial.println(F("Simulation\tNo simulation was running."));
-  Serial.println(F(""));
+  Serial.println();
 }
 
 double simulation::valueAltitude() {
   if (!_running)
     return 0;
 
-  double altitude = _trace[0] - _startingAltitude;
-#ifdef DEBUG_SIM
-  debug("simulation.altitude", altitude);
-#endif
+  double altitude = _trace[0] - _altitudeStarting + _altitudeInitial;
+// #ifdef DEBUG_SIM
+//   debug("simulation.altitude", altitude);
+// #endif
   return altitude;
 }
 

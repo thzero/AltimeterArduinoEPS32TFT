@@ -1,12 +1,57 @@
 [
     {
-      "name": "Basic",
+      "name": "E30 Mid Power Rocket",
       "number": 1,
-      "RocketMass": 1.76,
-      "MotorFuelMass": 0.316,
-      "MotorFuelBurnRate": 0.176,
-      "MotorExhaustVelocity": 2485.796,
-      "CrossSection": 4.56e-3,
-      "DragCoefficient": 0.87
+      "RocketMassOz": 10.1,
+      "MotorFuelBurnTimeS": 1.16,
+      "MotorFuelMassEmptyOz": 0.829,
+      "MotorFuelMassLaunchOz": 1.53,
+      "MotorThrustN": 48.3,
+      "DiameterMM": 56.896,
+      "DragCoefficient": 0.692
+    },
+    {
+      "name": "G64 Mid Power Rocket",
+      "number": 2,
+      "RocketMassOz": 34.7,
+      "MotorFuelBurnTimeS": 1.92,
+      "MotorFuelMassEmptyOz": 3.13,
+      "MotorFuelMassLaunchOz": 5.33,
+      "MotorThrustN": 108,
+      "DiameterMM": 101.6,
+      "DragCoefficient": 0.515
+    },
+    {
+      "name": "I211 HPR 3\" Rocket",
+      "number": 3,
+      "RocketMassOz": 101,
+      "MotorFuelBurnTimeS": 2.11,
+      "MotorFuelMassEmptyOz": 7.73,
+      "MotorFuelMassLaunchOz": 16.5,
+      "MotorThrustN": 298,
+      "DiameterMM": 79.756,
+      "DragCoefficient": 0.557
+    },
+    {
+      "name": "K850 HPR Rocket",
+      "number": 4,
+      "RocketMassOz": 154,
+      "MotorFuelBurnTimeS": 2.17,
+      "MotorFuelMassEmptyOz": 23.7,
+      "MotorFuelMassLaunchOz": 54.4,
+      "MotorThrustN": 951,
+      "DiameterMM": 79.756,
+      "DragCoefficient": 0.527
+    },
+    {
+      "name": "M1297 HPR Rocket",
+      "number": 5,
+      "RocketMassOz": 607,
+      "MotorFuelBurnTimeS": 4.06,
+      "MotorFuelMassEmptyOz": 67.6,
+      "MotorFuelMassLaunchOz": 164,
+      "MotorThrustN": 2048,
+      "DiameterMM": 130.81,
+      "DragCoefficient": 0.511
     }
 ]
