@@ -42,7 +42,7 @@ class stateMachine {
   private:
     void loopStateABORTED(unsigned long timestamp, unsigned long deltaElapsed);
     void loopStateABORTEDToGROUND(unsigned long timestamp);
-    void loopStateAIRBORNEToAbort(char message1[], char message2[]);
+    void loopStateAIRBORNEToABORTED(char message1[], char message2[]);
     float loopStateAIRBORNE(unsigned long currentTimestamp, long diffTime);
     void loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned long deltaElapsed);
     void loopStateAIRBORNE_ASCENTToAIRBORNE_DESCENT();
