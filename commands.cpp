@@ -57,23 +57,23 @@ void handleFlightOutputSerial(char *commandbuffer) {
   char temp[3];
   bool expanded = false;
   if (commandbuffer[1] == 'e') {
-  expanded = true;
-  temp[0] = commandbuffer[2];
-  if (commandbuffer[3] != '\0') {
-    temp[1] = commandbuffer[3];
-    temp[2] = '\0';
-  }
-  else
-    temp[1] = '\0';
+    expanded = true;
+    temp[0] = commandbuffer[2];
+    if (commandbuffer[3] != '\0') {
+      temp[1] = commandbuffer[3];
+      temp[2] = '\0';
+    }
+    else
+      temp[1] = '\0';
   }
   else {
-  temp[0] = commandbuffer[1];
-  if (commandbuffer[2] != '\0') {
-    temp[1] = commandbuffer[2];
-    temp[2] = '\0';
-  }
-  else
-    temp[1] = '\0';
+    temp[0] = commandbuffer[1];
+    if (commandbuffer[2] != '\0') {
+      temp[1] = commandbuffer[2];
+      temp[2] = '\0';
+    }
+    else
+      temp[1] = '\0';
   }
   // Serial.print(F("Flight temp: "));
   // Serial.println(temp);
@@ -82,28 +82,28 @@ void handleFlightOutputSerial(char *commandbuffer) {
 
   long number = atol(temp);
   if (atol(temp) <= 0) {
-  Serial.print(F("Value '"));
-  Serial.print(temp);
-  Serial.println(F("' is an invalid flight number."));
-  return;
+    Serial.print(F("Value '"));
+    Serial.print(temp);
+    Serial.println(F("' is an invalid flight number."));
+    return;
   }
 
   int last = _flightLogger.instance.geFlightNbrsLast();
   // Serial.println(F("Last flight #"));
   // Serial.println(number);
   if (number > last) {
-  Serial.print(F("Flight #"));
-  Serial.print(number);
-  Serial.println(F(" is not a valid flight."));
-  return;
+    Serial.print(F("Flight #"));
+    Serial.print(number);
+    Serial.println(F(" is not a valid flight."));
+    return;
   }
 
   Serial.print(F("$start;\n"));
 
   if (!expanded)
-  _flightLogger.instance.outputSerial(number);
+    _flightLogger.instance.outputSerial(number);
   else
-  _flightLogger.instance.outputSerialExpanded(number);
+    _flightLogger.instance.outputSerialExpanded(number);
 
   Serial.print(F("$end;\n"));
 }
