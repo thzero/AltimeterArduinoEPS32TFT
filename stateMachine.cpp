@@ -107,6 +107,11 @@ void stateMachine::loopStateAIRBORNEToABORTED(char message1[], char message2[]) 
   _flightLogger.recording = false;
   _flightLogger.touchdown = false;
 
+#ifdef DEV
+  if (_simulation.isRunning()) 
+    _simulation.stop();
+#endif
+
   debug(F(""));
   debug(F(""));
   debug(F(""));
@@ -630,4 +635,4 @@ void stateMachine::_displaySettings() {
   Serial.println(SAMPLE_RATE_GROUND);
 }
 
-stateMachine _stateMachine;
+stateMachine _stateMachine;  
