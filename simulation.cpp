@@ -223,7 +223,7 @@ void simulation::outputPrint(float delta, double mass, double thrust, double alt
 }
 
 void simulation::outputPrintHeader() {
-  Serial.println(F("sim -                                             Mass                                                              Altitude                                                                               Burnout                 Apogee"));
+  Serial.println(F("sim -                                             Mass                                                              Altitude                                                                                Burnout               Apogee"));
   Serial.println(F("sim -                                  ----------------------------                                         ------------------------                                                                    ----------------  -----------------------------"));
   Serial.println(F("sim -  Time       Delta      Status    Rocket    Total    Current    Thrust      Acceleration  Velocity     Flight       Initial      Position         Air Density  Cross Section  Drag Coeff  Drag     Burnout  Time     Measures  Delta        Apogee"));
 }
