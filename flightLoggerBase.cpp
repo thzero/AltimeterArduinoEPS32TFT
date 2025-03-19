@@ -258,12 +258,13 @@ void flightLoggerBase::outputSerial(int flightNbr) {
 #endif
   if (!readFile(flightNbr)) {
 #if defined(DEBUG) && defined(DEBUG_FLIGHT_LOGGER)
-      Serial.print(F("...outputSerial...base...#"));
-      Serial.print(flightNbr);
-      Serial.println(F("...failed to read file"));
+    Serial.print(F("...outputSerial...base...#"));
+    Serial.print(flightNbr);
+    Serial.println(F("...failed to read file"));
 #else
-      Serial.print(F("Failed to read flight #"));
-      Serial.println(flightNbr);
+    Serial.print(F("\tFailed to read flight log for requested #"));
+    Serial.print(flightNbr);
+    Serial.println(F("."));
 #endif
     return;
   }

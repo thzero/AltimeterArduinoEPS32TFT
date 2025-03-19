@@ -206,7 +206,6 @@ void stateMachine::loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned lo
 #endif
   if (altitudeDelta < 0) {
     if (_flightLogger.measures == SAMPLE_MEASURES_APOGEE) {
-      // Detected apogee.
       _flightLogger.instance.setAltitudeApogeeFirstMeasure(_flightLogger.instance.getData().altitudeLast);
       _flightLogger.instance.setTimestampApogeeFirstMeasure(currentTimestamp);
     }
@@ -225,7 +224,7 @@ void stateMachine::loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned lo
 #ifdef DEBUG_ALTIMETER
       debug(F("loopStateAIRBORNE_ASCENT...measures"), F("reset"));
 #endif
-      // If the curent is greater than the last, then reset as it was potentially
+      // If the current is greater than the last, then reset as it was potentially
       // a false positive.
       _flightLogger.instance.setAltitudeApogeeFirstMeasure(0);
       _flightLogger.instance.setTimestampApogeeFirstMeasure(0);
@@ -296,11 +295,10 @@ void stateMachine::loopStateAIRBORNE_DESCENT(unsigned long timestamp, unsigned l
 
   float altitudeDelta = loopStateAIRBORNE(currentTimestamp, diffTime);
 
-  bool altitudeCheck = _flightLogger.instance.getData().altitudeCurrent < _altitudeGround;
   bool timeoutRecordingCheck = ((timestamp - _flightLogger.instance.getData().timestampLaunch) > timeoutRecording);
 #ifdef DEBUG_ALTIMETER
-  debug(F("loopStateAIRBORNE_DESCENT...altitudeGround"), _altitudeGround);
-  debug(F("loopStateAIRBORNE_DESCENT...altitudeCheck"), altitudeCheck);
+  debug(F("loopStateAIRBORNE_DESCENT...timestamp"), timestamp);
+  debug(F("loopStateAIRBORNE_DESCENT...timestampLaunch"), _flightLogger.instance.getData().timestampLaunch);
   debug(F("loopStateAIRBORNE_DESCENT...timeoutRecordingCheck"), timeoutRecordingCheck);
 #endif
 
@@ -310,6 +308,15 @@ void stateMachine::loopStateAIRBORNE_DESCENT(unsigned long timestamp, unsigned l
     return;
   }
 
+  float altitudeCurrent = _flightLogger.instance.getData().altitudeCurrent;
+  float altitudeLandingTarget = _flightLogger.altitudeInitial + _altitudeGround;
+  bool altitudeCheck = altitudeCurrent < altitudeLandingTarget;
+#ifdef DEBUG_ALTIMETER
+  debug(F("loopStateAIRBORNE_DESCENT...altitudeCurrent"), altitudeCurrent);
+  debug(F("loopStateAIRBORNE_DESCENT...altitudeGround"), _altitudeGround);
+  debug(F("loopStateAIRBORNE_DESCENT...altitudeLandingTarget"), altitudeLandingTarget);
+  debug(F("loopStateAIRBORNE_DESCENT...altitudeCheck"), altitudeCheck);
+#endif
   if (altitudeCheck) {
   _flightLogger.instance.setAltitudeTouchdown(_flightLogger.instance.getData().altitudeLast);
   _flightLogger.instance.setTimestampTouchdown(_flightLogger.instance.getData().timestampPrevious);
@@ -353,8 +360,12 @@ void stateMachine::loopStateLANDED(unsigned long timestamp, unsigned long deltaE
 
   // debug(F("loopStateLANDED...timestamp"), timestamp);
 
+#ifdef DEBUG_ALTIMETER
+    debug(F("countdownLanded"), _countdownLanded);
+    debug(F("SAMPLE_MEASURES_LANDED"), SAMPLE_MEASURES_LANDED);
+#endif
   // Transition to the AIRBORNE_ASCENT ascent stage.
-  if (_countdownLanded > SAMPLE_MEASURES_LANDED) {
+  if (_countdownLanded >= SAMPLE_MEASURES_LANDED) {
     loopStateLANDEDToGROUND();
     return;
   }
@@ -363,6 +374,11 @@ void stateMachine::loopStateLANDED(unsigned long timestamp, unsigned long deltaE
 }
 
 void stateMachine::loopStateLANDEDToGROUND() {
+#ifdef DEV
+  if (_simulation.isRunning()) 
+    _simulation.stop();
+#endif
+
   debug(F(""));
   debug(F(""));
   debug(F(""));
@@ -433,25 +449,20 @@ void stateMachine::loopStateGROUND(unsigned long timestamp, unsigned long deltaE
 
   // Get the current altitude and determine the delta from initial.
   float altitude = readSensorAltitude();
-  float altitudeDelta = altitude - _flightLogger.altitudeInitial;
-  _flightLogger.instance.setTimestampTouchdown(_flightLogger.instance.getData().altitudeCurrent);
+  float altitudeLaunchApogeeTarget = _flightLogger.altitudeInitial + _altitudeLiftoff;
 
 #ifdef DEBUG_ALTIMETER
-  debug(F("stateGROUND...processing, delta"), delta);
-  debug(F("stateGROUND...processing, deltaElapsed"), deltaElapsed);
+  // debug(F("stateGROUND...processing, delta"), delta);
+  // debug(F("stateGROUND...processing, deltaElapsed"), deltaElapsed);
   debug(F("stateGROUND...altitude"), altitude);
   debug(F("stateGROUND...altitudeInitial"), _flightLogger.altitudeInitial);
-  debug(F("stateGROUND...altitudeDelta"), altitudeDelta);
-  debug(F("stateGROUND...altitudeCurrent"), _flightLogger.instance.getData().altitudeCurrent);
+  debug(F("stateGROUND...altitudeLiftoffCutoff"), _altitudeLiftoff);
+  debug(F("stateGROUND...altitudeLaunchApogeeTarget"), altitudeLaunchApogeeTarget);
+  debug(F("stateGROUND...altitudeLiftoff?"), (altitude > altitudeApogeeTarget));
 #endif
 
   // Check for whether we've left the ground
-  // If the delta altitude is less than the specified liftoff altitude, then its on the ground.
-  // Lift altitude is a measurement of the difference between the initial altitude and current altitude.
-#ifdef DEBUG_ALTIMETER
-  debug(F("stateGROUND...altitudeLiftoff"), _altitudeLiftoff);
-#endif
-  if (altitudeDelta > _altitudeLiftoff) {
+  if (altitude > altitudeLaunchApogeeTarget) {
     // Transition to the AIRBORNE_ASCENT ascent stage.
     loopStateGROUNDToAIRBORNE_ASCENT(timestamp);
     return;
