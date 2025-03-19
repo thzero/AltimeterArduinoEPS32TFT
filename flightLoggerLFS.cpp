@@ -26,30 +26,45 @@ bool flightLoggerLFS::eraseFlights() {
   File file = root.openNextFile();
   while (file) {
     String fileName = file.name();
-    Serial.print(F("\tErasing flight '"));
+    Serial.print(F("\tFound file '"));
     Serial.print(fileName);
+    Serial.print(F("'...."));
 
     // Check if the filename matches the pattern "flight<number>.json" or "flightIndex.json"
     if (!(fileName.startsWith("flight") && fileName.endsWith(".json"))) {
+// #if DEBUG
+    Serial.println(F("...not valid flight log file."));
+// #endif
       // Move to the next file
       file = root.openNextFile();
       continue;
     }
+// #if DEBUG
+    Serial.print(F("...valid flight log file"));
+// #endif
 
-    //make sure that you close the file so that it can be erased
+    // Close the file so that it can be erased
     file.close();
 
-    //if (LittleFS.remove(file.name())) {
-    if (LittleFS.remove(fileName)) 
-      Serial.println(F("' successfully"));
+    // char fileName2[100] = "/";
+    // strcat(fileName2, fileName);
+    // Serial.print(F(" '"));
+    // Serial.print(fileName2);
+    // Serial.print(F("' "));
+    // if (LittleFS.remove(file.name())) {
+    if (LittleFS.remove("/" + fileName)) 
+      Serial.println(F(" and erased successfully."));
     else
-      Serial.println(F("' failed"));
+      Serial.println(F("and erased failed ro erase."));
 
     // Move to the next file
     file = root.openNextFile();
   }
 
   Serial.println(F("...all files cleared."));
+
+  reindexFlights();
+  
   return true;
 }
 
