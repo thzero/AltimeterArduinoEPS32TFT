@@ -2,6 +2,7 @@
 #include <driver/rtc_io.h>
 
 #include "button.h"
+#include "network.h"
 
 long _drawGraphCurveType = 0;
 long _drawGraphFlightNbr = 0;
@@ -48,7 +49,7 @@ void handleButtonClick() {
 
 void handleButtonLongClick_Display() {
 //   Serial.println(F("handleButtonLongClick_Display!!!!"));
-//    if (!_displayGraph) {
+//   if (!_displayGraph) {
 //     long lastFlightNbr = _flightLogger.instance.geFlightNbrsLast();
 // #ifdef DEBUG
 //     Serial.print(F("lastFlightNbr:"));
@@ -78,6 +79,11 @@ void handleButtonLongClick_Exit() {
   // sleepDevice();
 }
 
+void handleButtonLongClick_Network() {
+  Serial.println(F("handleButtonLongClick_Network!!!!"));
+  networkStart();
+}
+
 void handleButtonLongClick_FlightLogErase() {
   Serial.println(F("handleButtonLongClick_10!!!!"));
 
@@ -101,14 +107,19 @@ void handleButtonLongClick(Button2 button) {
   Serial.println(F("handleButtonLongClick!!!!"));
      unsigned int time = button.wasPressedFor();
 
+    // if (time >= 10000) {
+    //   // handleButtonLongClick_FlightLogErase();
+    //   return;
+    // }
+
     if (time >= 10000) {
-      handleButtonLongClick_FlightLogErase();
+      handleButtonLongClick_Exit();
       return;
     }
 
     // Exit
     if (time >= 5000 & time < 10000) {
-      handleButtonLongClick_Exit();
+      handleButtonLongClick_Network();
       return;
     }
 

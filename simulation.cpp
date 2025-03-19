@@ -59,17 +59,17 @@ void simulation::loopStep(float deltaT, bool output, bool outputHeader) {
   if (_airborne && _airborneApogee && (altitudeFlight <= 0)) {
     // then we've landeded...
      outputPrint(deltaT, mass, thrust, altitudeFlight, airDensity, drag, burnout, 0);
-// #ifdef DEBUG_SIM
-//     Serial.println(F("sim - LANDED"));
-//     Serial.print(F("sim -  Max. Height: "));
-//     Serial.println(_maxAltitude);
-//     Serial.print(F("sim -  Max. Velocity: "));
-//     Serial.println(_maxVelocity);
-//     Serial.print(F("sim -  Settle Final: "));
-//     Serial.print(_settleFinal);
-//     Serial.print(F(" < "));
-//     Serial.println(SettleFinal);
-// #endif
+#ifdef DEBUG_SIM
+    Serial.println(F("sim - LANDED"));
+    Serial.print(F("sim -  Max. Height: "));
+    Serial.println(_maxAltitude);
+    Serial.print(F("sim -  Max. Velocity: "));
+    Serial.println(_maxVelocity);
+    Serial.print(F("sim -  Settle Final: "));
+    Serial.print(_settleFinal);
+    Serial.print(F(" < "));
+    Serial.println(SettleFinal);
+#endif
 
     if (_settleFinal < SettleFinal) {
       _settleFinal++;
@@ -90,14 +90,14 @@ void simulation::loopStep(float deltaT, bool output, bool outputHeader) {
     altitudeFlightDelta = altitudeFlight - _altitudeFlightLast;
     // Detect apogee by taking X number of measures as long as the current is less
     // than the last recorded altitude.
-// #ifdef DEBUG_SIM
-//     Serial.print(F("loopStep...altitudeFlight: "));
-//     Serial.print(altitudeFlight);
-//     Serial.print(F(", altitudeLast: "));
-//     Serial.print(_altitudeFlightLast);
-//     Serial.print(F(", altitudeFlightDelta: "));
-//     Serial.println(altitudeFlightDelta);
-// #endif
+#ifdef DEBUG_SIM
+    Serial.print(F("loopStep...altitudeFlight: "));
+    Serial.print(altitudeFlight);
+    Serial.print(F(", altitudeLast: "));
+    Serial.print(_altitudeFlightLast);
+    Serial.print(F(", altitudeFlightDelta: "));
+    Serial.println(altitudeFlightDelta);
+#endif
     if (altitudeFlightDelta < 0) {
       _altitudeApogeeMeasures = _altitudeApogeeMeasures - 1;
       if (_altitudeApogeeMeasures == 0) {
@@ -223,11 +223,9 @@ void simulation::outputPrint(float delta, double mass, double thrust, double alt
 }
 
 void simulation::outputPrintHeader() {
-// #ifdef DEBUG_SIM
   Serial.println(F("sim -                                             Mass                                                              Altitude                                                                               Burnout                 Apogee"));
   Serial.println(F("sim -                                  ----------------------------                                         ------------------------                                                                    ----------------  -----------------------------"));
   Serial.println(F("sim -  Time       Delta      Status    Rocket    Total    Current    Thrust      Acceleration  Velocity     Flight       Initial      Position         Air Density  Cross Section  Drag Coeff  Drag     Burnout  Time     Measures  Delta        Apogee"));
-// #endif
 }
 
 void simulation::outputSerialList() {
@@ -237,9 +235,9 @@ void simulation::outputSerialList() {
   deserializeJson(doc, "[]");
   JsonArray configs = doc.to<JsonArray>();
   _fileSystem.instance.loadConfigSim(configs);
-// #ifdef DEBUG_SIM
-  // serializeJson(configs, Serial);
-// #endif
+#ifdef DEBUG_SIM
+  serializeJson(configs, Serial);
+#endif
   if (!configs || configs.size() <= 0) {
     Serial.println(F("\tFailed to load configuration."));
     return;
@@ -511,9 +509,9 @@ double simulation::valueAltitude() {
   // Trace has the Earth Radius and Starting Altitude built into it.
   // Sensors only account for AGL so removing the EarthRadius.
   double altitude = _trace[0] - EarthRadius;
-// #ifdef DEBUG_SIM
-//   debug("simulation.altitude", altitude);
-// #endif
+#ifdef DEBUG_SIM
+  debug("simulation.altitude", altitude);
+#endif
   return altitude;
 }
 

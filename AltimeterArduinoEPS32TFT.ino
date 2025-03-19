@@ -155,7 +155,9 @@ void setup() {
 
   // Setup Network so it's available...
   setupNetwork();
+#if defined(DEV) && defined(DEV_NETWORK_START_ON_BOOTUP)
   networkStart(); // TODO: temp
+#endif
 
   drawTftSplash();
 
