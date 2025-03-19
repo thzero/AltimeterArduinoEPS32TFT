@@ -147,7 +147,7 @@ float sensorBMP::readSensorAltitude(atmosphereValues values) {
   if (_simulation.isRunning() && _initialized) { 
     // values.altitude = simulationValueAltitude();
     values.altitude = _simulation.valueAltitude();
-#ifdef DEBUG_SIM
+#if defined(DEBUG_SENSOR) && defined(DEBUG_SIM)
     debug("sim.altitude", values.altitude);
 #endif
   }

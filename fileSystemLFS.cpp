@@ -11,9 +11,9 @@ fileSystemLFS::fileSystemLFS() {
 }
 
 void fileSystemLFS::loadConfigSim(JsonArray configs) {
-// #ifdef DEBUG_SIM
-//  Serial.println(F("\nLoad config - simulation..."));
-// #endif
+#ifdef DEBUG_SIM
+ Serial.println(F("\nLoad config - simulation..."));
+#endif
 
   // Open the root directory
   File file = LittleFS.open("/sim.json");
@@ -26,32 +26,30 @@ void fileSystemLFS::loadConfigSim(JsonArray configs) {
 
   DynamicJsonDocument doc(4096);
   deserializeJson(doc, file);
-// #ifdef DEBUG_SIM
+#ifdef DEBUG_SIM
   // serializeJson(doc, Serial);
   // Serial.println();
-// #endif
+#endif
   JsonArray array = doc.as<JsonArray>();
   for (JsonObject obj : array) {
-// #ifdef DEBUG_SIM
-    // Serial.println("obj...");
-    // serializeJson(obj, Serial);
-    // Serial.println();
-// #endif
+#ifdef DEBUG_SIM
+    Serial.println("obj...");
+    serializeJson(obj, Serial);
+    Serial.println();
+#endif
     configs.add(obj);
-// #ifdef DEBUG_SIM
-    // Serial.println("configs...obj...");
-    // serializeJson(configs, Serial);
-// #endif
+#ifdef DEBUG_SIM
+    Serial.println("configs...obj...");
+    serializeJson(configs, Serial);
+#endif
   }
   
-// #ifdef DEBUG_SIM
-  // Serial.println("configs...");
-  // serializeJson(configs, Serial);
-  // Serial.println();
-// #endif
-// #ifdef DEBUG_SIM
-  // Serial.println(F("...config - simulation - load successful."));
-// #endif
+#ifdef DEBUG_SIM
+  Serial.println("configs...");
+  serializeJson(configs, Serial);
+  Serial.println();
+  Serial.println(F("...config - simulation - load successful."));
+#endif
 }
 
 bool fileSystemLFS::setup() {

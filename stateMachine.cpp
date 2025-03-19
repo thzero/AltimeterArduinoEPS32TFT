@@ -10,6 +10,7 @@
 #include "neoPixel.h"
 #include "network.h"
 #include "sensor.h"
+#include "simulation.h"
 #include "stateMachine.h"
 #include "time.h"
 #include "tft.h"
@@ -32,26 +33,31 @@ void stateMachine::loop(unsigned long timestamp, unsigned long delta) {
     // Serial.println(F("state...ABORTED"));
     // Run the aborted state algorithms
     loopStateABORTED(timestamp, delta);
+    return;
   }
-  else if (_loopState.current == AIRBORNE_ASCENT) {
+  if (_loopState.current == AIRBORNE_ASCENT) {
     // Serial.println(F("state...AIRBORNE_ASCENT"));
     // Run the airborne ascent state algorithms
     loopStateAIRBORNE_ASCENT(timestamp, delta);
+    return;
   }
-  else if (_loopState.current == AIRBORNE_DESCENT) {
+  if (_loopState.current == AIRBORNE_DESCENT) {
     // Serial.println(F("state...AIRBORNE_DESCENT"));
     // Run the airborne descent state algorithms
     loopStateAIRBORNE_DESCENT(timestamp, delta);
+    return;
   }
-  else if (_loopState.current == GROUND) {
+  if (_loopState.current == GROUND) {
     // Serial.println(F("state...GROUND"));
     // Run the ground state algorithms
     loopStateGROUND(timestamp, delta);
+    return;
   }
-  else if (_loopState.current == LANDED) {
+  if (_loopState.current == LANDED) {
     // Serial.println(F("state...LANDED"));
     // Run the landed state algorithms
     loopStateLANDED(timestamp, delta);
+    return;
   }
 }
 
@@ -72,21 +78,39 @@ void stateMachine::loopStateABORTED(unsigned long timestamp, unsigned long delta
   }
 
   _countdownAborted++;
+  debug(F("countdownAborted"), _countdownAborted); // TODO
 }
 
 void stateMachine::loopStateABORTEDToGROUND(unsigned long timestamp) {
   _loopState.current = GROUND;
 
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F("...ABORTED to GROUND!!!!"));
+  debug(F("...ABORTED to GROUND!!!!"));
+  debug(F("...ABORTED to GROUND!!!!"));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+  debug(F(""));
+
   loopStateToGROUND();
 }
 
-void stateMachine::loopStateAIRBORNEToAbort(char message1[], char message2[]) {
+void stateMachine::loopStateAIRBORNEToABORTED(char message1[], char message2[]) {
   // Something went wrong and aborting...
 
   _flightLogger.aborted = true;
   _flightLogger.airborne = false;
   _flightLogger.recording = false;
-  _flightLogger.touchdown = true;
+  _flightLogger.touchdown = false;
+
+#ifdef DEV
+  if (_simulation.isRunning()) 
+    _simulation.stop();
+#endif
 
   debug(F(""));
   debug(F(""));
@@ -182,7 +206,6 @@ void stateMachine::loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned lo
 #endif
   if (altitudeDelta < 0) {
     if (_flightLogger.measures == SAMPLE_MEASURES_APOGEE) {
-      // Detected apogee.
       _flightLogger.instance.setAltitudeApogeeFirstMeasure(_flightLogger.instance.getData().altitudeLast);
       _flightLogger.instance.setTimestampApogeeFirstMeasure(currentTimestamp);
     }
@@ -201,7 +224,7 @@ void stateMachine::loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned lo
 #ifdef DEBUG_ALTIMETER
       debug(F("loopStateAIRBORNE_ASCENT...measures"), F("reset"));
 #endif
-      // If the curent is greater than the last, then reset as it was potentially
+      // If the current is greater than the last, then reset as it was potentially
       // a false positive.
       _flightLogger.instance.setAltitudeApogeeFirstMeasure(0);
       _flightLogger.instance.setTimestampApogeeFirstMeasure(0);
@@ -219,7 +242,7 @@ void stateMachine::loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned lo
 #endif
   if (timestampApogeeCheck) {
     // Something went wrong and apogee was never found, so abort!
-    loopStateAIRBORNEToAbort("Time to apogee threshold exceeded!", "AIRBORNE_ASCENT aborted, returning to GROUND!!!!");
+    loopStateAIRBORNEToABORTED("Time to apogee threshold exceeded!", "AIRBORNE_ASCENT aborted, returning to GROUND!!!!");
     return;
   }
 
@@ -232,7 +255,7 @@ void stateMachine::loopStateAIRBORNE_ASCENT(unsigned long timestamp, unsigned lo
 #endif
   if (timeoutRecordingCheck) {
     // Something went wrong., so abort!
-    loopStateAIRBORNEToAbort("Time to apogee threshold exceeded!", "AIRBORNE_ASCENT aborted, returning to GROUND!!!!");
+    loopStateAIRBORNEToABORTED("Time to apogee threshold exceeded!", "AIRBORNE_ASCENT aborted, returning to GROUND!!!!");
     return;
   }
 }
@@ -272,20 +295,28 @@ void stateMachine::loopStateAIRBORNE_DESCENT(unsigned long timestamp, unsigned l
 
   float altitudeDelta = loopStateAIRBORNE(currentTimestamp, diffTime);
 
-  bool altitudeCheck = _flightLogger.instance.getData().altitudeCurrent < _altitudeGround;
   bool timeoutRecordingCheck = ((timestamp - _flightLogger.instance.getData().timestampLaunch) > timeoutRecording);
 #ifdef DEBUG_ALTIMETER
-  debug(F("loopStateAIRBORNE_DESCENT...altitudeGround"), _altitudeGround);
-  debug(F("loopStateAIRBORNE_DESCENT...altitudeCheck"), altitudeCheck);
+  debug(F("loopStateAIRBORNE_DESCENT...timestamp"), timestamp);
+  debug(F("loopStateAIRBORNE_DESCENT...timestampLaunch"), _flightLogger.instance.getData().timestampLaunch);
   debug(F("loopStateAIRBORNE_DESCENT...timeoutRecordingCheck"), timeoutRecordingCheck);
 #endif
 
   if (timeoutRecordingCheck) {
     // Something went wrong and the recordingt timeout was hit, so abort!
-    loopStateAIRBORNEToAbort("Exceeded recording timeout!", "AIRBORNE_DESCENT aborted, returning to GROUND!!!!");
+    loopStateAIRBORNEToABORTED("Exceeded recording timeout!", "AIRBORNE_DESCENT aborted, returning to GROUND!!!!");
     return;
   }
 
+  float altitudeCurrent = _flightLogger.instance.getData().altitudeCurrent;
+  float altitudeLandingTarget = _flightLogger.altitudeInitial + _altitudeGround;
+  bool altitudeCheck = altitudeCurrent < altitudeLandingTarget;
+#ifdef DEBUG_ALTIMETER
+  debug(F("loopStateAIRBORNE_DESCENT...altitudeCurrent"), altitudeCurrent);
+  debug(F("loopStateAIRBORNE_DESCENT...altitudeGround"), _altitudeGround);
+  debug(F("loopStateAIRBORNE_DESCENT...altitudeLandingTarget"), altitudeLandingTarget);
+  debug(F("loopStateAIRBORNE_DESCENT...altitudeCheck"), altitudeCheck);
+#endif
   if (altitudeCheck) {
   _flightLogger.instance.setAltitudeTouchdown(_flightLogger.instance.getData().altitudeLast);
   _flightLogger.instance.setTimestampTouchdown(_flightLogger.instance.getData().timestampPrevious);
@@ -329,8 +360,12 @@ void stateMachine::loopStateLANDED(unsigned long timestamp, unsigned long deltaE
 
   // debug(F("loopStateLANDED...timestamp"), timestamp);
 
+#ifdef DEBUG_ALTIMETER
+    debug(F("countdownLanded"), _countdownLanded);
+    debug(F("SAMPLE_MEASURES_LANDED"), SAMPLE_MEASURES_LANDED);
+#endif
   // Transition to the AIRBORNE_ASCENT ascent stage.
-  if (_countdownLanded > SAMPLE_MEASURES_LANDED) {
+  if (_countdownLanded >= SAMPLE_MEASURES_LANDED) {
     loopStateLANDEDToGROUND();
     return;
   }
@@ -339,6 +374,11 @@ void stateMachine::loopStateLANDED(unsigned long timestamp, unsigned long deltaE
 }
 
 void stateMachine::loopStateLANDEDToGROUND() {
+#ifdef DEV
+  if (_simulation.isRunning()) 
+    _simulation.stop();
+#endif
+
   debug(F(""));
   debug(F(""));
   debug(F(""));
@@ -409,25 +449,20 @@ void stateMachine::loopStateGROUND(unsigned long timestamp, unsigned long deltaE
 
   // Get the current altitude and determine the delta from initial.
   float altitude = readSensorAltitude();
-  float altitudeDelta = altitude - _flightLogger.altitudeInitial;
-  _flightLogger.instance.setTimestampTouchdown(_flightLogger.instance.getData().altitudeCurrent);
+  float altitudeLaunchApogeeTarget = _flightLogger.altitudeInitial + _altitudeLiftoff;
 
 #ifdef DEBUG_ALTIMETER
   // debug(F("stateGROUND...processing, delta"), delta);
   // debug(F("stateGROUND...processing, deltaElapsed"), deltaElapsed);
   debug(F("stateGROUND...altitude"), altitude);
   debug(F("stateGROUND...altitudeInitial"), _flightLogger.altitudeInitial);
-  debug(F("stateGROUND...altitudeDelta"), altitudeDelta);
-  debug(F("stateGROUND...altitudeCurrent"), _flightLogger.instance.getData().altitudeCurrent);
+  debug(F("stateGROUND...altitudeLiftoffCutoff"), _altitudeLiftoff);
+  debug(F("stateGROUND...altitudeLaunchApogeeTarget"), altitudeLaunchApogeeTarget);
+  debug(F("stateGROUND...altitudeLiftoff?"), (altitude > altitudeApogeeTarget));
 #endif
 
   // Check for whether we've left the ground
-  // If the delta altitude is less than the specified liftoff altitude, then its on the ground.
-  // Lift altitude is a measurement of the difference between the initial altitude and current altitude.
-#ifdef DEBUG_ALTIMETER
-  debug(F("stateGROUND...altitudeLiftoff"), _altitudeLiftoff);
-#endif
-  if (altitudeDelta > _altitudeLiftoff) {
+  if (altitude > altitudeLaunchApogeeTarget) {
     // Transition to the AIRBORNE_ASCENT ascent stage.
     loopStateGROUNDToAIRBORNE_ASCENT(timestamp);
     return;
@@ -487,7 +522,7 @@ int stateMachine::sampleRateGround() {
 void stateMachine::save(int launchDetect, int sampleRateAirborneAscent, int sampleRateAirborneDecent, int sampleRateGround) {
   Serial.println(F("Save state machine..."));
   
-  #ifdef DEBUG
+#ifdef DEBUG
   Serial.println(F("\t...state machine... save requests"));
   Serial.print(F("\tlaunchDetect="));
   Serial.println(launchDetect);
@@ -500,14 +535,14 @@ void stateMachine::save(int launchDetect, int sampleRateAirborneAscent, int samp
 
   Serial.println(F("\t...state machine... save current"));
   _displaySettings();
-  #endif
+#endif
 
   _altitudeLiftoff = _checkValues(launchDetectValues, launchDetect, (int)ALTITUDE_LIFTOFF, sizeof(launchDetectValues) / sizeof(launchDetectValues[0]));
   _sampleRateAirborneAscent = _checkValues(sampleRateAirborneAscentValues, sampleRateAirborneAscent, (int)SAMPLE_RATE_AIRBORNE_ASCENT, sizeof(sampleRateAirborneAscentValues) / sizeof(sampleRateAirborneAscentValues[0]));
   _sampleRateAirborneDescent = _checkValues(sampleRateAirborneDecentValues, sampleRateAirborneDecent, (int)SAMPLE_RATE_AIRBORNE_DESCENT, sizeof(sampleRateAirborneDecentValues) / sizeof(sampleRateAirborneDecentValues[0]));
   _sampleRateGround = _checkValues(sampleRateGroundValues, sampleRateGround, (int)SAMPLE_RATE_GROUND, sizeof(sampleRateGroundValues) / sizeof(sampleRateGroundValues[0]));
   
-  #ifdef DEBUG
+#ifdef DEBUG
   Serial.println(F("\t...state machine... save checked"));
   Serial.print(F("\t_altitudeLiftoff="));
   Serial.println(_altitudeLiftoff);
@@ -517,7 +552,7 @@ void stateMachine::save(int launchDetect, int sampleRateAirborneAscent, int samp
   Serial.println(_sampleRateAirborneDescent);
   Serial.print(F("\t_sampleRateGround="));
   Serial.println(_sampleRateGround);
-  #endif
+#endif
 
   Preferences preferences;
   preferences.begin(PREFERENCE_KEY, false);
@@ -529,11 +564,11 @@ void stateMachine::save(int launchDetect, int sampleRateAirborneAscent, int samp
 
   _altitudeGround = _altitudeLiftoff / 2;
 
-  #ifdef DEBUG
+#ifdef DEBUG
   Serial.println(F("\t...state machine... saved state"));
   _displaySettings();
   Serial.println(F(""));
-  #endif
+#endif
 
   Serial.println(F("...state machine save successful."));
 }
@@ -567,11 +602,11 @@ void stateMachine::setup() {
 
   _altitudeGround = _altitudeLiftoff / 2;
 
-  #ifdef DEBUG
+#ifdef DEBUG
   Serial.println(F("\t...state machine settings..."));
   _displaySettings();
   Serial.println(F(""));
-  #endif
+#endif
 
   save(_altitudeLiftoff, _sampleRateAirborneAscent, _sampleRateAirborneDescent, _sampleRateGround);
 
@@ -611,4 +646,4 @@ void stateMachine::_displaySettings() {
   Serial.println(SAMPLE_RATE_GROUND);
 }
 
-stateMachine _stateMachine;
+stateMachine _stateMachine;  

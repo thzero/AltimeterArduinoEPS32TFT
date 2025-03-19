@@ -21,31 +21,118 @@ unsigned int msgChk(char * buffer, long length) {
   return (unsigned int) (checksum % 256);
 }
 
-String stringPad(float value, int width, char * format) {
-  char buffer[40];
-  // Serial.print("width: ");
+String stringPad(const char* value, int width) {
+  // Serial.print(F("\nwidth: "));
   // Serial.print(width);
-  // Convert float to string
-  sprintf(buffer, format, value); 
-  // Serial.print("\tvalue: ");
+  // Serial.print(F(","));
+  // Serial.print(F("value: "));
   // Serial.print(value);
-  int valueLength = strlen(buffer);
-  // Serial.print("\tlength: ");
+  // Serial.print(F(","));
+  int valueLength = strlen(value);
+  // Serial.print(F("length: "));
   // Serial.print(valueLength);
+  // Serial.print(F(","));
   valueLength = width - valueLength;
-  // Serial.print("\tlength2: ");
+  // Serial.print(F("length2: "));
   // Serial.print(valueLength);
+  // Serial.print(F(","));
   if (valueLength < 0)
     valueLength = 0;
   if (valueLength > width)
     valueLength = width;
-  // Serial.print("\tlength3: ");
+  // Serial.print(F("length3: "));
   // Serial.println(valueLength);
+  // Serial.print(F(","));
   
   char blank[valueLength + 1];
   snprintf(blank, sizeof(blank), "%*s", valueLength, ""); 
-  // Serial.print("blank: ");
-  // Serial.println(blank);
+  int lengthB = snprintf(blank, valueLength, "%*s", valueLength, "");
+  // Serial.print(F("lengthB: "));
+  // Serial.print(lengthB);
+  // Serial.print(F(","));
+  // Serial.print(F("blank: '"));
+  // Serial.print(blank);
+  // Serial.print(F("'"));
+  return blank;
+}
+
+String stringPad(float value, int width, char * format) {
+  char buffer[40];
+  // Serial.print(F("\nwidth: "));
+  // Serial.print(width);
+  // Serial.print(F(","));
+  // Serial.print(F("value: "));
+  // Serial.print(value);
+  // Serial.print(F(","));
+  // Convert float to string
+  sprintf(buffer, format, value); 
+  // Serial.print(F("buffer: "));
+  // Serial.print(buffer);
+  // Serial.print(F(","));
+  int valueLength = strlen(buffer);
+  // Serial.print(F("length: "));
+  // Serial.print(valueLength);
+  // Serial.print(F(","));
+  valueLength = width - valueLength;
+  // Serial.print(F("length2: "));
+  // Serial.print(valueLength);
+  // Serial.print(F(","));
+  if (valueLength < 0)
+    valueLength = 0;
+  if (valueLength > width)
+    valueLength = width;
+  // Serial.print(F("length3: "));
+  // Serial.print(valueLength);
+  // Serial.print(F(","));
+  
+  char blank[valueLength + 1];
+  int lengthB = snprintf(blank, valueLength, "%*s", valueLength, "");
+  // Serial.print(F("lengthB: "));
+  // Serial.print(lengthB);
+  // Serial.print(F(","));
+  // Serial.print(F("blank: '"));
+  // Serial.print(blank);
+  // Serial.print(F("'"));
+  return blank;
+}
+
+String stringPad(int value, int width) {
+  char buffer[40];
+  // Serial.print(F("\nwidth: "));
+  // Serial.print(width);
+  // Serial.print(F(","));
+  // Serial.print(F("value: "));
+  // Serial.print(value);
+  // Serial.print(F(","));
+  // Convert int to string
+  sprintf(buffer, "5d", value); 
+  // Serial.print(F("buffer: "));
+  // Serial.print(buffer);
+  // Serial.print(F(","));
+  int valueLength = strlen(buffer);
+  // Serial.print(F("length: "));
+  // Serial.print(valueLength);
+  // Serial.print(F(","));
+  valueLength = width - valueLength;
+  // Serial.print(F("length2: "));
+  // Serial.print(valueLength);
+  // Serial.print(F(","));
+  if (valueLength < 0)
+    valueLength = 0;
+  if (valueLength > width)
+    valueLength = width;
+  // Serial.print(F("length3: "));
+  // Serial.println(valueLength);
+  // Serial.print(F(","));
+  
+  char blank[valueLength + 1];
+  int lengthB = snprintf(blank, valueLength, "%*s", valueLength, "");
+  // Serial.print(F("lengthB: "));
+  // Serial.print(lengthB);
+  // Serial.print(F(","));
+  // Serial.print(F("blank: '"));
+  // Serial.print(blank);
+  // Serial.print(F("'"));
   return blank;
 }
 

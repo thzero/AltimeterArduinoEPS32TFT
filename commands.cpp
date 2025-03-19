@@ -54,27 +54,34 @@ void handleFlightsNumberNax(char *commandbuffer) {
 }
 
 void handleFlightOutputSerial(char *commandbuffer) {
-  char temp[3];
+  char temp[4];
   bool expanded = false;
+  int offset = 0;
   if (commandbuffer[1] == 'e') {
-  expanded = true;
-  temp[0] = commandbuffer[2];
-  if (commandbuffer[3] != '\0') {
-    temp[1] = commandbuffer[3];
+    expanded = true;
+    offset = 1;
+    temp[0] = commandbuffer[2];
+    if (commandbuffer[3] != '\0') {
+      temp[1] = commandbuffer[3];
+      temp[2] = '\0';
+    }
+    else
+      temp[1] = '\0';
+  }
+
+  temp[0] = commandbuffer[1 + offset];
+  if (commandbuffer[3 + offset] != '\0') {
+    temp[1] = commandbuffer[3 + offset];
+    temp[2] = commandbuffer[2 + offset];
+    temp[3] = '\0';
+  }
+  else if (commandbuffer[2 + offset] != '\0') {
+    temp[1] = commandbuffer[2 + offset];
     temp[2] = '\0';
   }
   else
     temp[1] = '\0';
-  }
-  else {
-  temp[0] = commandbuffer[1];
-  if (commandbuffer[2] != '\0') {
-    temp[1] = commandbuffer[2];
-    temp[2] = '\0';
-  }
-  else
-    temp[1] = '\0';
-  }
+    
   // Serial.print(F("Flight temp: "));
   // Serial.println(temp);
   // Serial.print(F("Flight expanded: "));
@@ -82,28 +89,28 @@ void handleFlightOutputSerial(char *commandbuffer) {
 
   long number = atol(temp);
   if (atol(temp) <= 0) {
-  Serial.print(F("Value '"));
-  Serial.print(temp);
-  Serial.println(F("' is an invalid flight number."));
-  return;
+    Serial.print(F("Value '"));
+    Serial.print(temp);
+    Serial.println(F("' is an invalid flight number."));
+    return;
   }
 
   int last = _flightLogger.instance.geFlightNbrsLast();
   // Serial.println(F("Last flight #"));
   // Serial.println(number);
   if (number > last) {
-  Serial.print(F("Flight #"));
-  Serial.print(number);
-  Serial.println(F(" is not a valid flight."));
-  return;
+    Serial.print(F("Flight #"));
+    Serial.print(number);
+    Serial.println(F(" is not a valid flight."));
+    return;
   }
 
   Serial.print(F("$start;\n"));
 
   if (!expanded)
-  _flightLogger.instance.outputSerial(number);
+    _flightLogger.instance.outputSerial(number);
   else
-  _flightLogger.instance.outputSerialExpanded(number);
+    _flightLogger.instance.outputSerialExpanded(number);
 
   Serial.print(F("$end;\n"));
 }
@@ -180,7 +187,8 @@ void interpretCommandBufferI2CScanner() {
   i2CScanner();
 }
 
-void interpretCommandBufferSimulation(char command1) {
+void interpretCommandBufferSimulation(char *commandbuffer) {
+  char command1 = commandbuffer[1];
   if (command1 == 'l') {
     _simulation.outputSerialList();
     return;
@@ -189,8 +197,33 @@ void interpretCommandBufferSimulation(char command1) {
     _simulation.stop();
     return;
   }
+  
+  int requestedNumber = 1;
+  if (command1 != '\0') {
+    char temp[4];
+    temp[0] = command1;
+    if (commandbuffer[3] != '\0') {
+      temp[1] = commandbuffer[2];
+      temp[2] = commandbuffer[3];
+      temp[3] = '\0';
+    }
+    else if (commandbuffer[2] != '\0') {
+      temp[1] = commandbuffer[2];
+      temp[2] = '\0';
+    }
+    else
+      temp[1] = '\0';
 
-  _simulation.start(_flightLogger.altitudeInitial);
+    requestedNumber = atol(temp);
+    if (atol(temp) <= 0) {
+      Serial.print(F("Value '"));
+      Serial.print(temp);
+      Serial.println(F("' is an invalid simulation config number."));
+      return;
+    }
+  }
+
+  _simulation.start(requestedNumber, _flightLogger.altitudeInitial, _flightLogger.altitudeInitial);
 }
 
 //  Available commands.
@@ -277,7 +310,7 @@ void interpretCommandBufferI() {
   // start simulation - DEV only
   // stop simulation - DEV only
   else if (command == 's') {
-    interpretCommandBufferSimulation(command1);
+    interpretCommandBufferSimulation(commandbuffer);
     return;
   }
 #endif

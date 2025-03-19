@@ -207,6 +207,19 @@ If following error message “ERROR: No port specified, check IDE menus“ is sh
 * Validate that the Tools->Port has been selected as the same one used to upload the Sketch with.
 * Retry the Upload tool
 
+### Issues
+
+Uploading files via the method will wipe out any stored flight logs.  This is due to the way the tool creates an file system image offline, then uploads
+the file system image in its entirity to the device.
+
+* Make sure to have downloaded any flight logs before doing an upload.
+
+### Potential Resolutions
+
+* Pull flight logs off device and include in the file system image.
+* Alternate way to upload files to device.
+  * Whether image updates are via browser or serial, file updates would need to be also uploadded.
+
 ## Load
 
 Click the Upload button to push the compiled code to the device.

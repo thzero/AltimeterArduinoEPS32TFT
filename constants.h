@@ -24,13 +24,13 @@
 // Based on Eggtimer Quantum documentation
 // https://eggtimerrocketry.com/wp-content/uploads/2024/02/Eggtimer-Quantum-1_09G.pdf, page 25
 #define SAMPLE_RATE_ABORTED 5
-#define SAMPLE_RATE_AIRBORNE_ASCENT 20
+#define SAMPLE_RATE_AIRBORNE_ASCENT 50
 #define SAMPLE_RATE_AIRBORNE_DESCENT 2
-#define SAMPLE_RATE_GROUND 10
+#define SAMPLE_RATE_GROUND 50
 #define SAMPLE_RATE_LANDED 5
 #define SAMPLE_MEASURES_ABORTED 20
 #define SAMPLE_MEASURES_APOGEE 5
-#define SAMPLE_MEASURES_LANDED 20
+#define SAMPLE_MEASURES_LANDED 10
 
 #define SAMPLE_RATE_MONITOR 1
 
@@ -56,8 +56,11 @@
 // #define DEBUG_ALTIMETER
 // #define DEBUG_SENSOR
 // #define DEBUG_SIM
+// #define DEBUG_SIM_CONFIG
+// #define DEBUG_SIM_OUTPUT
 
 #define DEV
+// #define DEV_NETWORK_START_ON_BOOTUP
 #define DEV_SIM
 
 #endif
