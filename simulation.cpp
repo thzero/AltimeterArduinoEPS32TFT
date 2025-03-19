@@ -235,14 +235,14 @@ void simulation::outputSerialList() {
   deserializeJson(doc, "[]");
   JsonArray configs = doc.to<JsonArray>();
   _fileSystem.instance.loadConfigSim(configs);
-#ifdef DEBUG_SIM
+#if defined(DEBUG_SIM_CONFIG)
   serializeJson(configs, Serial);
 #endif
   if (!configs || configs.size() <= 0) {
     Serial.println(F("\tFailed to load configuration."));
     return;
   }
-#ifdef DEBUG_SIM
+#if defined(DEBUG_SIM_CONFIG)
   Serial.println(F("\nOutput serial list of sim configs loaded."));
   serializeJson(configs, Serial);
   Serial.println();
@@ -381,7 +381,7 @@ void simulation::start(int requestedNumber, long altitudeInitial, long altitudeF
   JsonDocument doc;
   JsonArray configs = doc.to<JsonArray>();
   _fileSystem.instance.loadConfigSim(configs);
-#ifdef DEBUG_SIM
+#if defined(DEBUG_SIM_CONFIG)
   serializeJson(configs, Serial);
   Serial.println();
 #endif
@@ -405,7 +405,7 @@ void simulation::start(int requestedNumber, long altitudeInitial, long altitudeF
     Serial.println(F("."));
     return;
   }
-#ifdef DEBUG_SIM
+#if defined(DEBUG_SIM_CONFIG)
   serializeJson(config, Serial);
   Serial.println();
 #endif
@@ -509,7 +509,7 @@ double simulation::valueAltitude() {
   // Trace has the Earth Radius and Starting Altitude built into it.
   // Sensors only account for AGL so removing the EarthRadius.
   double altitude = _trace[0] - EarthRadius;
-#ifdef DEBUG_SIM
+#if defined(DEBUG_SIM) || defined(DEBUG_SIM_OUTPUT)
   debug("simulation.altitude", altitude);
 #endif
   return altitude;

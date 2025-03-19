@@ -56,6 +56,8 @@
 // #define DEBUG_ALTIMETER
 // #define DEBUG_SENSOR
 // #define DEBUG_SIM
+// #define DEBUG_SIM_CONFIG
+// #define DEBUG_SIM_OUTPUT
 
 #define DEV
 // #define DEV_NETWORK_START_ON_BOOTUP

@@ -11,7 +11,7 @@ fileSystemLFS::fileSystemLFS() {
 }
 
 void fileSystemLFS::loadConfigSim(JsonArray configs) {
-#ifdef DEBUG_SIM
+#if defined(DEBUG_SIM_CONFIG)
  Serial.println(F("\nLoad config - simulation..."));
 #endif
 
@@ -26,25 +26,25 @@ void fileSystemLFS::loadConfigSim(JsonArray configs) {
 
   DynamicJsonDocument doc(4096);
   deserializeJson(doc, file);
-#ifdef DEBUG_SIM
-  // serializeJson(doc, Serial);
-  // Serial.println();
+#if defined(DEBUG_SIM_CONFIG)
+  serializeJson(doc, Serial);
+  Serial.println();
 #endif
   JsonArray array = doc.as<JsonArray>();
   for (JsonObject obj : array) {
-#ifdef DEBUG_SIM
+#if defined(DEBUG_SIM_CONFIG)
     Serial.println("obj...");
     serializeJson(obj, Serial);
     Serial.println();
 #endif
     configs.add(obj);
-#ifdef DEBUG_SIM
+#if defined(DEBUG_SIM_CONFIG)
     Serial.println("configs...obj...");
     serializeJson(configs, Serial);
 #endif
   }
   
-#ifdef DEBUG_SIM
+#if defined(DEBUG_SIM_CONFIG)
   Serial.println("configs...");
   serializeJson(configs, Serial);
   Serial.println();
