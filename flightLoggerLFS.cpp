@@ -87,10 +87,9 @@ bool flightLoggerLFS::eraseLast() {
     return false;
   }
 
-  if (LittleFS.remove(flightName)) {
+  if (LittleFS.remove("/" + flightName)) {
     Serial.println(F("Flight deleted successfully"));
-    Serial.print(F("Failed to delete flight #"));
-    Serial.println(number);
+    reindexFlights();
     return true;
   }
 
@@ -98,6 +97,7 @@ bool flightLoggerLFS::eraseLast() {
   Serial.print(F("Failed to delete flight #"));
   Serial.println(number);
 #endif
+
   return false;
 }
 
