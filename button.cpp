@@ -2,6 +2,7 @@
 #include <driver/rtc_io.h>
 
 #include "button.h"
+#include "debug.h"
 #include "network.h"
 
 long _drawGraphCurveType = 0;
@@ -80,7 +81,15 @@ void handleButtonLongClick_Exit() {
 }
 
 void handleButtonLongClick_Network() {
-  Serial.println(F("handleButtonLongClick_Network!!!!"));
+  Serial.println(F("Button Command requests - network...."));
+  if (networkEnabled()) {
+    Serial.println(F("\tNetwork is currently enabled...."));
+  Serial.println(F("...disabling network."));
+    networkDisable();
+    return;
+  }
+
+  Serial.println(F("...enabling network."));
   networkStart();
 }
 
@@ -105,28 +114,29 @@ void handleButtonLongClick_FlightLogErase() {
 
 void handleButtonLongClick(Button2 button) {
   Serial.println(F("handleButtonLongClick!!!!"));
-     unsigned int time = button.wasPressedFor();
+  unsigned int time = button.wasPressedFor();
+  debug(F("time"), time);
 
-    // if (time >= 10000) {
-    //   // handleButtonLongClick_FlightLogErase();
-    //   return;
-    // }
+  // if (time >= 10000) {
+  //   // handleButtonLongClick_FlightLogErase();
+  //   return;
+  // }
 
-    if (time >= 10000) {
-      handleButtonLongClick_Exit();
-      return;
-    }
+  if (time >= 10000) {
+    handleButtonLongClick_Exit();
+    return;
+  }
 
-    // Exit
-    if (time >= 5000 & time < 10000) {
-      handleButtonLongClick_Network();
-      return;
-    }
+  // Exit
+  if (time >= 5000 & time < 10000) {
+    handleButtonLongClick_Network();
+    return;
+  }
 
-    if (time >= 1000 & time < 5000) {
-      handleButtonLongClick_Display();
-      return;
-    }
+  if (time >= 1000 & time < 5000) {
+    handleButtonLongClick_Display();
+    return;
+  }
 }
 
 void setupButton() {

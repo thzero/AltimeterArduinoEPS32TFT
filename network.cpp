@@ -10,6 +10,11 @@ void networkDisable() {
   _web.disable();
 }
 
+bool networkEnabled() {
+  // return _ble.enabled();
+  return _wifi.enabled();
+}
+
 void networkLoop() {
   // _ble.loop();
   // _wifi.loop();
