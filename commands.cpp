@@ -163,10 +163,11 @@ void interpretCommandBufferHelp() {
   Serial.println(F("lj;\toutput to seriali a list of all flight logs - json"));
 #endif
   Serial.println(F("n;\toutput to serial the number of recorded flight logs"));
-  Serial.println(F("r<#>;\toutput to serial data for flight log <#>"));
-  Serial.println(F("re<#>;\texpanded output to serial data for flight log <#>"));
+  Serial.println(F("r<#>;\toutput to serial data for flight log #"));
+  Serial.println(F("re<#>;\texpanded output to serial data for flight log #"));
 #ifdef DEV_SIM
-  Serial.println(F("s;\tsimulation"));
+  Serial.println(F("s;\tstart simulation with profile 1"));
+  Serial.println(F("s<#>;\tstart simulation with simulator profile #"));
   Serial.println(F("st;\tsimulation stop"));
 #endif
   // Serial.println(F("z;\ttoggle flight telemetry"));
@@ -230,15 +231,17 @@ void interpretCommandBufferSimulation(char *commandbuffer) {
 //  The commands can be used via the serial command line or via the Android console
 
 //  a   output to serial all flight logs
+//  ae  expanded output to serial all flight logs
 //  e   erase all recorded flight logs
 //  h   help
 //  i   i2c scanner - DEV only
 //  l   output to seriali a list of all flight logs
 //  lj  output to seriali a list of all flight logs - json - DEV only
 //  n   output to serial the number of recorded flight logs
-//  r<n>  followed by a number which is the flight number
-//      output to serial data for the specified flight log
+//  r<#>  output to serial data for the flight log #
+//  re<#> expanded output to serial data for flight log #
 //  s   start simulation - DEV only
+//  s<#> start simulation with simulator profile #
 //  st   stop simulation - DEV only
 //  t   toggle flight log telemetry
 //  x   delete last recorded flight log
