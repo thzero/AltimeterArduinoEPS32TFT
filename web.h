@@ -14,10 +14,16 @@ class web {
     void loop();
     void setup();
     void start();
+
+  protected:
+    void eraseFlightLogs();
     
   private:
+    bool _eraseFlightTaskStatus;
+    TaskHandle_t _eraseFlightsTaskHandle;
+    int _eraseFlightType;
+    File _fileLittleFS;
     AsyncWebServer *_server = NULL;
-    File fileLittleFS;
 
     void configure();
     void serverHandleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
@@ -33,6 +39,8 @@ class web {
     void jsonWifi(JsonObject root);
     int _chunkedRead(File file, uint8_t* buffer, size_t maxLen, size_t index);
     void _values(char *name, int values[], JsonArray valuesJson, int size);
+
+    static void eraseFlightLogsTaskW(void * parameter);
 };
 
 extern web _web;
