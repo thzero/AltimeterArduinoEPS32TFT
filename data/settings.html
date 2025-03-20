@@ -162,7 +162,7 @@ function reset() {
     return;
 
   requestPostJSON('/settings/reset', {}, () => {
-    requestGet('/settings/data', set);
+    requestGetJson('/settings/data', set);
     toast('Successfully reset.');
   }, () => {;
     toastError('Failed.');
@@ -186,7 +186,7 @@ function save() {
   }
 
   requestPostJSON('/settings/save', json, () => {
-    // requestGet('/settings/data', set);
+    // requestGetJson('/settings/data', set);
     toast('Successfully saved.');
   }, () => {;
     toastError('Failed.');
@@ -218,7 +218,7 @@ function init() {
   _wifiPasswordEl = document.getElementById('wifiPassword');
   _wifiSSIDEl = document.getElementById('wifiSSID');
 
-  requestGet('/settings/data', set);
+  requestGetJson('/settings/data', set);
 }
 init();
 </script>

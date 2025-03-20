@@ -15,6 +15,11 @@
 #include "web.h"
 #include "wifi.h"
 
+struct TaskParameters {
+    web instance;
+    char type[20];
+};
+
 web::web() {
 }
 
@@ -56,9 +61,9 @@ void web::configure() {
   });
 
   _server->on("/", HTTP_GET, [this](AsyncWebServerRequest * request) {
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...home"));
-    #endif
+#endif
     
     // if (server_authenticate(request)) {
     //   ESP_LOGD(TAG," Auth: Success");
@@ -72,18 +77,18 @@ void web::configure() {
   });
 
   _server->on("/script.js", HTTP_GET, [this](AsyncWebServerRequest * request) {
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...script.js"));
-    #endif
+#endif
 
     request->send(LittleFS, "/script.js", "text/javascript", false, NULL);
   });
 
   // Route to load data JSON
   _server->on("/data", HTTP_GET, [this](AsyncWebServerRequest *request) {
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...data"));
-    #endif
+#endif
 
     AsyncJsonResponse *response = new AsyncJsonResponse();
     JsonObject responseResult = response->getRoot().to<JsonObject>();
@@ -103,12 +108,12 @@ void web::configure() {
     String flightNbrStr = request->getParam("number")->value();
     int flightNbr;
     sscanf(flightNbrStr.c_str(), "%d", &flightNbr);
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.print(F("\twebserver request...flightLogs download #"));
       Serial.print(flightNbrStr);
       Serial.print(F(", "));
       Serial.println(flightNbr);
-    #endif
+#endif
 
     bool exists = _flightLogger.instance.exists(flightNbr);
     if (exists) {
@@ -116,12 +121,12 @@ void web::configure() {
       JsonObject responseResult = response->getRoot().to<JsonObject>();
       bool success = _flightLogger.instance.readFileAsJson(flightNbr, responseResult);
       responseResult["success"] = success;
-      #ifdef DEBUG
+#ifdef DEBUG
       Serial.print(F("\twebserver request...flightLogs download data #"));
       Serial.println(flightNbr);
       serializeJson(responseResult, Serial);
       Serial.println(F(""));
-      #endif
+#endif
       char szBuf[80];
       sprintf(szBuf, "attachment; filename=flight%s.json", flightNbr);
       response->addHeader("Content-Disposition", szBuf);
@@ -136,18 +141,73 @@ void web::configure() {
       request->send(400, "text/plain", "ERROR : no flight log found");
     }
     
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.print(F("\twebserver request...flightLogs download #"));
       Serial.print(flightNbr);
       Serial.println(F(" - finished"));
-    #endif
+#endif
   });
+
+  // _server->on("^\\/flightLogs\\/([0-9]+)$", HTTP_GET, [](AsyncWebServerRequest * request) {
+  _server->on("/flightLogs/erase/status", HTTP_GET, [this](AsyncWebServerRequest * request) {
+    AsyncJsonResponse *response = new AsyncJsonResponse();
+    JsonObject responseResult = response->getRoot().to<JsonObject>();
+    responseResult["status"] = _eraseFlightTaskStatus;
+    responseResult["success"] = true;
+    response->setLength();
+    request->send(response);
+  });
+
+  AsyncCallbackJsonWebHandler *handlerFlightLogsErase = new AsyncCallbackJsonWebHandler("/flightLogs/erase");
+  handlerFlightLogsErase->setMethod(HTTP_POST);
+  handlerFlightLogsErase->onRequest([this](AsyncWebServerRequest *request, JsonVariant &json) {
+#ifdef DEBUG
+      Serial.println(F("\twebserver request...flightlogs erase"));
+#endif
+
+    AsyncJsonResponse *response = new AsyncJsonResponse();
+    JsonObject responseResult = response->getRoot().to<JsonObject>();
+    responseResult["type"] = json["type"];
+
+    if (_eraseFlightTaskStatus) {
+      responseResult["message"] = "Erase action is still running";
+      responseResult["success"] = false;
+      response->setLength();
+      request->send(response);
+      return;
+    }
+
+    _eraseFlightTaskStatus = true;
+    _eraseFlightType = json["type"] == "all" ? 1 : json["type"] == "last" ? 2 : 0;
+    if (_eraseFlightType == 0) {
+      responseResult["message"] = "Unrecognized type.";
+      responseResult["success"] = false;
+      response->setLength();
+      request->send(response);
+      return;
+    }
+
+    BaseType_t xReturned = xTaskCreatePinnedToCore(
+      &web::eraseFlightLogsTaskW, /* Function to implement the task */
+      "eraseFlightLogsTask", /* Name of the task */
+      4000,  /* Stack size in words */
+      this,  /* Task input parameter */
+      0,  /* Priority of the task */
+      &_eraseFlightsTaskHandle,  /* Task handle. */
+      0 /* Core where the task should run */
+    );
+
+    responseResult["success"] = true;
+    response->setLength();
+    request->send(response);
+  });
+  _server->addHandler(handlerFlightLogsErase);
 
   // Route to load flightLogs JSON
   _server->on("/flightLogs", HTTP_GET, [this](AsyncWebServerRequest *request) {
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...flightLogs"));
-    #endif
+#endif
 
     Serial.println(F("\twebserver request...constructing response..."));
     AsyncJsonResponse *response = new AsyncJsonResponse();
@@ -156,24 +216,24 @@ void web::configure() {
     JsonArray flightLogs = responseResult.createNestedArray("flightLogs");
     _flightLogger.instance.listAsJson(flightLogs);
     responseResult["success"] = true;
-    #ifdef DEBUG
+#ifdef DEBUG
     Serial.println(F("\twebserver request...flightLogs data"));
     serializeJson(responseResult, Serial);
     Serial.println(F(""));
-    #endif
+#endif
     response->setLength();
     request->send(response);
     
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...flightLogs - finished"));
-    #endif
+#endif
   });
 
   // Route to load settings data JSON
   _server->on("/settings/data", HTTP_GET, [this](AsyncWebServerRequest *request) {
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...settings data"));
-    #endif
+#endif
 
     AsyncJsonResponse *response = new AsyncJsonResponse();
     JsonObject responseResult = response->getRoot().to<JsonObject>();
@@ -182,20 +242,20 @@ void web::configure() {
     this->jsonSamples(responseResult, true);
     this->jsonWifi(responseResult);
 
-    #ifdef DEBUG
+#ifdef DEBUG
     Serial.println(F(""));
     serializeJson(responseResult, Serial);
     Serial.println(F(""));
-    #endif
+#endif
 
     response->setLength();
     request->send(response);
   });
 
   _server->on("/settings", HTTP_GET, [this](AsyncWebServerRequest * request) {
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...settings"));
-    #endif
+#endif
 
     // if (server_authenticate(request)) {
     //   ESP_LOGD(TAG," Auth: Success");
@@ -208,24 +268,24 @@ void web::configure() {
   AsyncCallbackJsonWebHandler *handlerReset = new AsyncCallbackJsonWebHandler("/settings/reset");
   handlerReset->setMethod(HTTP_POST);
   handlerReset->onRequest([](AsyncWebServerRequest *request, JsonVariant &json) {
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...settings reset"));
-    #endif
+#endif
 
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...settings reset - state"));
-    #endif
+#endif
     _stateMachine.reset();
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...settings reset - state completed"));
-    #endif
-    #ifdef DEBUG
+#endif
+#ifdef DEBUG
       Serial.println(F("\twebserver request...settings reset - wifi"));
-    #endif
+#endif
     _wifi.reset();
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...settings reset - wifi completed"));
-    #endif
+#endif
 
     AsyncJsonResponse *response = new AsyncJsonResponse();
     JsonObject responseResult = response->getRoot().to<JsonObject>();
@@ -237,11 +297,11 @@ void web::configure() {
   AsyncCallbackJsonWebHandler *handlerSave = new AsyncCallbackJsonWebHandler("/settings/save");
   handlerSave->setMethod(HTTP_POST);
   handlerSave->onRequest([](AsyncWebServerRequest *request, JsonVariant &json) {
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...settings save - start"));
-    #endif
+#endif
 
-    #ifdef DEBUG
+#ifdef DEBUG
     Serial.println(F("\twebserver request...settings inbound data"));
     serializeJson(json, Serial);
     Serial.println(F(""));
@@ -258,22 +318,22 @@ void web::configure() {
     debug("samplesDescent", samplesDescent);
     int samplesGround = json["samplesGround"];
     debug("samplesGround", samplesGround);
-    #endif
+#endif
 
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...settings save - state"));
-    #endif
+#endif
     _stateMachine.save(launchDetect, samplesAscent, samplesDescent, samplesGround);
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...settings save - state completed"));
-    #endif
-    #ifdef DEBUG
+#endif
+#ifdef DEBUG
       Serial.println(F("\twebserver request...settings save - wifi"));
-    #endif
+#endif
     _wifi.save(wifiPassword, wifiSSID);
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...settings save - wifi completed"));
-    #endif
+#endif
 
     AsyncJsonResponse *response = new AsyncJsonResponse();
     JsonObject responseResult = response->getRoot().to<JsonObject>();
@@ -281,24 +341,24 @@ void web::configure() {
     response->setLength();
     request->send(response);
     
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...settings save - finished"));
-    #endif
+#endif
   });
   _server->addHandler(handlerSave);
 
   AsyncCallbackJsonWebHandler *handlerRequestTime = new AsyncCallbackJsonWebHandler("/settings/requestTime");
   handlerRequestTime->setMethod(HTTP_POST);
   handlerRequestTime->onRequest([](AsyncWebServerRequest *request, JsonVariant &json) {
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...requestTime - start"));
-    #endif
+#endif
 
-    #ifdef DEBUG
+#ifdef DEBUG
     Serial.println(F("\twebserver request...requestTime data"));
     serializeJson(json, Serial);
     Serial.println(F(""));
-    #endif
+#endif
 
     unsigned long epochS = json["epochS"];
     debug("epochS", epochS);
@@ -322,17 +382,17 @@ void web::configure() {
     AsyncJsonResponse *response = new AsyncJsonResponse();
     JsonObject responseResult = response->getRoot().to<JsonObject>();
     responseResult["success"] = true;
-    #ifdef DEBUG
+#ifdef DEBUG
     Serial.println(F("\twebserver request...requestTime data"));
     serializeJson(responseResult, Serial);
     Serial.println(F(""));
-    #endif
+#endif
     response->setLength();
     request->send(response);
     
-    #ifdef DEBUG
+#ifdef DEBUG
       Serial.println(F("\twebserver request...requestTime - finished"));
-    #endif
+#endif
   });
   _server->addHandler(handlerRequestTime);
 
@@ -431,13 +491,13 @@ void web::serverHandleUploadLittleFS(AsyncWebServerRequest *request, String file
       Serial.println(szBuf);
     }
 
-    fileLittleFS = LittleFS.open(filename, FILE_WRITE);
+    _fileLittleFS = LittleFS.open(filename, FILE_WRITE);
   }
 
   if (len) {
     // stream the incoming chunk to the opened file
     feedWatchdog();
-    fileLittleFS.write(data, len);
+    _fileLittleFS.write(data, len);
     sprintf(szBuf, "Writing file : %s, index = %d, len = %d", filename.c_str(), index, len);
     Serial.println(szBuf);
   }
@@ -447,7 +507,7 @@ void web::serverHandleUploadLittleFS(AsyncWebServerRequest *request, String file
     Serial.println(szBuf);
     
     // close the file handle after upload
-    fileLittleFS.close();
+    _fileLittleFS.close();
   } 
 }
 
@@ -625,6 +685,22 @@ void web::_values(char *name, int values[], JsonArray valuesJson, int size) {
     Serial.println(values[i]);
     valuesJson.add(values[i]);
   }
+}
+
+void web::eraseFlightLogs() {
+  if (_eraseFlightType == 1)
+    _flightLogger.instance.eraseFlights();
+  else if (_eraseFlightType == 2)
+    _flightLogger.instance.eraseLast();
+  _eraseFlightType = 0;
+  _eraseFlightTaskStatus = false;
+}
+
+void web::eraseFlightLogsTaskW(void * parameter) {
+  web* instance = reinterpret_cast<web*>(parameter); // obtain the instance pointer
+  instance->eraseFlightLogs();
+  // Delete the task...
+  vTaskDelete(NULL);
 }
 
 web _web;
