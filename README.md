@@ -12,6 +12,54 @@ An altimeter running on an ESP32 microcontroller, specially a TS-ESP32-S3.  The 
   * Y axis
   * Z axis
 
+## Features
+
+An altimeter running on an ESP32 microcontroller, specially a TS-ESP32-S3.  The altimeter can record the following:
+
+* Serial Interface
+   * Follows the [BearConsole2](https://github.com/bdureau/BearConsole2) standards.
+   * Implemented commands
+      * a - output to serial all flight logs
+      * e - erase all recorded flight logs
+      * l - output to seriali a list of all flight logs
+      * n - output to serial the number of recorded flight logs
+      * r<n> output to serial data for the specified flight log
+      * t - toggle flight log telemetry
+      * x - delete last recorded flight log
+   * Additional commands
+      * ae - expanded output to serial all flight logs
+      * h - help
+      * lj - output to seriali a list of all flight logs - json - DEV only
+      * re<#> expanded output to serial data for the flight log #
+      * z - reindex recorded flight log index
+   * DEV only commands
+      * i - i2c scanner
+      * s - start simulation with simulator profile 1
+      * s<#> - start simulation with simulator profile #
+      * st - stop simulation
+* WiFi Access Point
+   * A WiFi access point can be used to access the web interface
+* Web interface
+   * The web interface is acessible on 192.168.5.1.
+   * The web interface has the following features
+      * Device Information
+      * Settings Information
+      * Settings Updates
+         * Samples/second Ascent
+         * Samples/second Descent
+         * Samples/second Ground
+         * Launch Detect Height (meters)
+         * Samples/second Ascent
+         * WiFi SSID
+         * WiFi Password (forthcoming)
+      * Flight Logs
+      * Download of Flight Logs
+      * Erase Flight Logs (all or last)
+      * Upload of new device images (forthcoming)
+* TFT
+   * Display of Flight Log information (forthcoming)
+   * Graphs of Flight Log (forthcoming)
+
 # Development Environment
 
 ## Install Git
@@ -182,13 +230,24 @@ Click the Verify button to see that it compiles succesfully.
 
 * DEBUG
   * Toggle the debug output.
+  * DEBUG_COMMANDS
+    * Enable debug output for commands.
+  * DEBUG_FLIGHT_LOGGER
+    * Enable debug output for the flight logger.
   * DEBUG_INTERNAL
     * Enable internal debug output.
   * DEBUG_SENSOR
     * Enable sensor debug output.
+  * DEBUG_SIM
+    * Enable debug output for the simulator. Only available in DEV mode.
+  * DEBUG_SIM_CONFIG
+    * Enable debug output for the simulator configuration. Only available in DEV mode.
+  * DEBUG_SIM_OUTPUT
+    * Enable debug output for the simulator output. Only available in DEV mode.
 
 * DEV
   * Enable to build with dev utilities.
+    * Enables the WiFi network on startup.
   * DEV_SIM
     * Enables the "lightweight" flight simulation capability for testing.
 
@@ -223,6 +282,32 @@ the file system image in its entirity to the device.
 ## Load
 
 Click the Upload button to push the compiled code to the device.
+
+# DEV Mode
+
+Developer mode is enabled by uncommenting the DEV define in the constants.h file.  See Constants section for more detials.
+
+## Simulator
+
+A lightweigth simulator is including when building in DEV mode.   This is NOT a full fideltiy simulator, just enough to try and test the baseline state machine 
+under various rocketry conditions.
+
+### Enabling
+
+To enable the simulator, both the DEV and DEV_SIM defines in the constants.h file must be uncommented.
+
+### Simulator Profiles
+
+The simulator has a series of profiles that are stored in the /data/sim.json file.
+
+### Using the Simulator
+
+You can use the simualotor via the serial interface with the following commands.  The simulator will run and producer serial output and trigger flight events,
+based on altitude only, within the altimeter. 
+
+* s - start simulation with simulator profile 1
+* s<#> - start simulation with simulator profile #
+* st - stop simulation
 
 # Disclaimer
 

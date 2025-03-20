@@ -7,9 +7,9 @@
 #include "wifi.h"
 
 // Set your Static IP address
-IPAddress local_IP(192, 168, 1, 4);
+IPAddress local_IP(192, 168, 5, 1);
 // Set your Gateway IP address
-IPAddress gateway(192, 168, 1, 1);
+IPAddress gateway(192, 168, 5, 1);
 
 IPAddress subnet(255, 255, 255, 0);
 // IPAddress primaryDNS(8, 8, 8, 8);   // optional
