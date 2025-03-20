@@ -5,7 +5,7 @@
 #define BOARD_FIRMWARE "AltimeterEPS32TFT"
 
 #define COPYRIGHT "(C) thZero.com"
-#define COPYRIGHT_YEARS "2024-2024"
+#define COPYRIGHT_YEARS "2024-2025"
 
 #define MAJOR_VERSION 0
 #define MINOR_VERSION 1

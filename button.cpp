@@ -4,6 +4,7 @@
 #include "button.h"
 #include "debug.h"
 #include "network.h"
+#include "tft.h"
 
 long _drawGraphCurveType = 0;
 long _drawGraphFlightNbr = 0;
@@ -86,11 +87,13 @@ void handleButtonLongClick_Network() {
     Serial.println(F("\tNetwork is currently enabled...."));
   Serial.println(F("...disabling network."));
     networkDisable();
+    drawTftSplash();
     return;
   }
 
   Serial.println(F("...enabling network."));
   networkStart();
+  drawTftSplash();
 }
 
 void handleButtonLongClick_FlightLogErase() {
