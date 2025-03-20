@@ -37,9 +37,8 @@ An altimeter running on an ESP32 microcontroller, specially a TS-ESP32-S3.  The 
       * s - start simulation with simulator profile 1
       * s<#> - start simulation with simulator profile #
       * st - stop simulation
-* Wifi Access Point
+* WiFi Access Point
    * A WiFi access point can be used to access the web interface
-   * Wif
 * Web interface
    * The web interface is acessible on 192.168.5.1.
    * The web interface has the following features
