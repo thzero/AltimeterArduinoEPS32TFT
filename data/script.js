@@ -157,7 +157,7 @@ function wifi(json, editable) {
 
 function requestGet(url, callback, error) {
   /*
-  let jsonDebug = {"altitudeASL":1003.247,"pressureAbove":83.63346,"pressureAt":1003.247,"temperature":31.45951,"title":"AltimeterEPS32TFT","copyright":"(C) thZero.com","copyrightYears":"2024-2024","version":"0.1","launchDetect":20,"monitorBatteryStatus":false,"monitorBatteryVoltage":"3.5","monitorBatteryVoltageMax":"3.7","monitorMemoryFree":1628,"samplesAscent":21,"samplesDescent":3,"samplesGround":8,"wifiAddress":"192.168.1.4","wifiSSID":"F1F618"};
+  let jsonDebug = {"altitudeASL":1003.247,"pressureAbove":83.63346,"pressureAt":1003.247,"temperature":31.45951,"title":"AltimeterEPS32TFT","copyright":"(C) thZero.com","copyrightYears":"2024-2025","version":"0.1","launchDetect":20,"monitorBatteryStatus":false,"monitorBatteryVoltage":"3.5","monitorBatteryVoltageMax":"3.7","monitorMemoryFree":1628,"samplesAscent":21,"samplesDescent":3,"samplesGround":8,"wifiAddress":"192.168.1.4","wifiSSID":"F1F618"};
   set(jsonDebug);
   */
   
