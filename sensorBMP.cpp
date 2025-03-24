@@ -2,7 +2,9 @@
 #include "constants.h"
 #include "sensor.h"
 #include "sensorBMP.h"
+#ifdef DEV_SIM
 #include "simulation.h"
+#endif
 #include "utilities.h"
 
 sensorBMP::sensorBMP() {
