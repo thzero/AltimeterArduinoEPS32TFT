@@ -10,7 +10,9 @@
 #include "neoPixel.h"
 #include "network.h"
 #include "sensor.h"
+#ifdef DEV_SIM
 #include "simulation.h"
+#endif
 #include "stateMachine.h"
 #include "time.h"
 #include "tft.h"
@@ -107,7 +109,7 @@ void stateMachine::loopStateAIRBORNEToABORTED(char message1[], char message2[]) 
   _flightLogger.recording = false;
   _flightLogger.touchdown = false;
 
-#ifdef DEV
+#ifdef DEV_SIM
   if (_simulation.isRunning()) 
     _simulation.stop();
 #endif
@@ -374,7 +376,7 @@ void stateMachine::loopStateLANDED(unsigned long timestamp, unsigned long deltaE
 }
 
 void stateMachine::loopStateLANDEDToGROUND() {
-#ifdef DEV
+#ifdef DEV_SIM
   if (_simulation.isRunning()) 
     _simulation.stop();
 #endif

@@ -6,9 +6,13 @@
 #include "fileSystem.h"
 #include "flightLogger.h"
 #include "flightLoggerData.h"
+#ifdef DEV
 #include "i2cscanner.h"
+#endif
 #include "sensor.h"
+#ifdef DEV_SIM
 #include "simulation.h"
+#endif
 #include "utilities.h"
 
 int _readIndex;
@@ -184,10 +188,13 @@ void interpretCommandBufferHelp() {
 #endif
 }
 
+#ifdef DEV
 void interpretCommandBufferI2CScanner() {
   i2CScanner();
 }
+#endif
 
+#ifdef DEV_SIM
 void interpretCommandBufferSimulation(char *commandbuffer) {
   char command1 = commandbuffer[1];
   if (command1 == 'l') {
@@ -226,6 +233,7 @@ void interpretCommandBufferSimulation(char *commandbuffer) {
 
   _simulation.start(requestedNumber, _flightLogger.altitudeInitial, _flightLogger.altitudeInitial);
 }
+#endif
 
 //  Available commands.
 //  The commands can be used via the serial command line or via the Android console
