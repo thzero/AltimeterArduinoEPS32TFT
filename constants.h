@@ -46,8 +46,8 @@
 // #define KALMAN_PRESSURE
 // #define KALMAN_TEMPERATURE
 
-#define MONITOR_MEMORY;
-// #define MONITOR_VOLTAGE;
+#define MONITOR_MEMORY
+// #define MONITOR_VOLTAGE
 
 #define DEBUG
 // #define DEBUG_COMMANDS

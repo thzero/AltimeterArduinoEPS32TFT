@@ -30,6 +30,7 @@ class stateMachine {
     void setup();
 
     int launchDetect();
+    void preferencesOutput();
     int sampleRateAirborneAscent();
     int sampleRateAirborneDescent();
     int sampleRateGround();

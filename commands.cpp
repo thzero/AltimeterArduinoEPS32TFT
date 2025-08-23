@@ -13,6 +13,7 @@
 #ifdef DEV_SIM
 #include "simulation.h"
 #endif
+#include "stateMachine.h"
 #include "utilities.h"
 
 int _readIndex;
@@ -140,6 +141,14 @@ void handleFightsOutputSerial(char *commandbuffer) {
   Serial.print(F("$end;\n"));
 }
 
+void handlesPreferenceOutput(char *commandbuffer) {
+  Serial.print(F("$start;\n"));
+
+  _stateMachine.preferencesOutput();
+  
+  Serial.print(F("$end;\n"));
+}
+
 void interpretCommandBufferHelp() {
   Serial.println(F(""));
   Serial.print(BOARD_NAME);
@@ -162,9 +171,9 @@ void interpretCommandBufferHelp() {
 #ifdef DEV
   Serial.println(F("i;\tI2C scanner"));
 #endif
-  Serial.println(F("l;\toutput to seriali a list of all flight logs"));
+  Serial.println(F("l;\toutput to serial a list of all flight logs"));
 #ifdef DEV
-  Serial.println(F("lj;\toutput to seriali a list of all flight logs - json"));
+  Serial.println(F("lj;\toutput to serial a list of all flight logs - json"));
 #endif
   Serial.println(F("n;\toutput to serial the number of recorded flight logs"));
   Serial.println(F("r<#>;\toutput to serial data for flight log #"));
@@ -263,9 +272,9 @@ void interpretCommandBufferI() {
   debug(F("interpretCommandBufferI.command"), command);
   Serial.print(F("interpretCommandBufferI.commandBuffer="));
   for (int i = 0; i < _readIndex; i++) {
-  Serial.print(commandbuffer[i]);
-  // Serial.printf("%c", commandbuffer[i]);
-  // Serial.printf("%d", commandbuffer[i]);
+    Serial.print(commandbuffer[i]);
+    // Serial.printf("%c", commandbuffer[i]);
+    // Serial.printf("%d", commandbuffer[i]);
   }
   Serial.println(F(""));
 #endif  
@@ -312,6 +321,10 @@ void interpretCommandBufferI() {
     handleFlightsNumberNax(commandbuffer);
     return;
   }
+  if (command == 'p') {
+    handlesPreferenceOutput(commandbuffer);
+    return;
+  }
   // output to serial data for the specified flight log
   if (command == 'r') {
     handleFlightOutputSerial(commandbuffer);
@@ -327,13 +340,8 @@ void interpretCommandBufferI() {
 #endif
   // toggle flight log telemetry
   if (command == 't') {
-  // not implemented
-  return;
-  }
-  // recording
-  if (command == 'w') {
-  // readSensorAltitude();
-  return;
+    // not implemented
+    return;
   }
   // delete last recorded flight log
   if (command == 'x') {
@@ -401,7 +409,7 @@ bool readSerial(unsigned long timestamp, unsigned long delta) {
 // #if defined(DWBUG) && defined(DEBUG_COMMAND)
     // debug(F("readSerial._readIndex="), _readIndex);
 // #endif
-      if (_readIndex >= sizeof(commandbuffer)) {
+      if (((unsigned int)_readIndex) >= sizeof(commandbuffer)) {
         Serial.println(F("Command buffer overflow, resetting..."));
         resetCommandBuffer();
         return false;

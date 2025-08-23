@@ -80,7 +80,7 @@ void sleepDevice() {
   esp_deep_sleep_start();
 }
 
-loopThrottle _throttleMnitor;
+loopThrottle _throttleMonitor;
 void loop() {
   // put your main code here, to run repeatedly
 
@@ -88,10 +88,10 @@ void loop() {
   unsigned long delta = current - _timestamp;
 
   // Determine the monitor loop time delay based on sampling rate.
-  int deltaMonitor = _throttleMnitor.determine(delta, (int)SAMPLE_RATE_MONITOR);
+  int deltaMonitor = _throttleMonitor.determine(delta, (int)SAMPLE_RATE_MONITOR);
   if (deltaMonitor > 0) {
     _monitor.loop();
-    // Serial.print(F("_throttleMnitor..."));
+    // Serial.print(F("_throttleMonitor..."));
     // Serial.println(deltaMonitor);
   }
 

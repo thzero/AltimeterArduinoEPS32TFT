@@ -14,14 +14,14 @@ An altimeter running on an ESP32 microcontroller, specially a TS-ESP32-S3.  The 
 
 ## Features
 
-An altimeter running on an ESP32 microcontroller, specially a TS-ESP32-S3.  The altimeter can record the following:
+An altimeter running on an ESP32 microcontroller, specially a TS-ESP32-S3.
 
 * Serial Interface
    * Follows the [BearConsole2](https://github.com/bdureau/BearConsole2) standards.
    * Implemented commands
       * a - output to serial all flight logs
       * e - erase all recorded flight logs
-      * l - output to seriali a list of all flight logs
+      * l - output to serial a list of all flight logs
       * n - output to serial the number of recorded flight logs
       * r<n> output to serial data for the specified flight log
       * t - toggle flight log telemetry
@@ -285,7 +285,7 @@ Click the Upload button to push the compiled code to the device.
 
 # DEV Mode
 
-Developer mode is enabled by uncommenting the DEV define in the constants.h file.  See Constants section for more detials.
+Developer mode is enabled by uncommenting the DEV define in the constants.h file.  See Constants section for more details.
 
 ## Simulator
 

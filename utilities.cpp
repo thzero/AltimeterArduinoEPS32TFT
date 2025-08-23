@@ -105,7 +105,7 @@ String stringPad(int value, int width) {
   // Serial.print(value);
   // Serial.print(F(","));
   // Convert int to string
-  sprintf(buffer, "5d", value); 
+  sprintf(buffer, "%d", value); 
   // Serial.print(F("buffer: "));
   // Serial.print(buffer);
   // Serial.print(F(","));

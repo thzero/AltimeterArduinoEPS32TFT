@@ -498,6 +498,44 @@ void stateMachine::loopStateGROUNDToAIRBORNE_ASCENT(unsigned long timestamp) {
   _loopState.current = AIRBORNE_ASCENT;
 }
 
+void stateMachine::preferencesOutput() {
+  Preferences preferences;
+  preferences.begin(PREFERENCE_KEY, false);
+  int altitudeLiftoff = preferences.getInt(PREFERENCE_KEY_LAUNCH_DETECT, (int)ALTITUDE_LIFTOFF);
+  int sampleRateAirborneAscent = preferences.getInt(PREFERENCE_KEY_ALTITUDE_AIRBORNE_ASCENT, (int)SAMPLE_RATE_AIRBORNE_ASCENT);
+  int sampleRateAirborneDescent = preferences.getInt(PREFERENCE_KEY_ALTITUDE_AIRBORNE_DESCENT, (int)SAMPLE_RATE_AIRBORNE_DESCENT);
+  int sampleRateGround = preferences.getInt(PREFERENCE_KEY_ALTITUDE_GROUND, (int)SAMPLE_RATE_GROUND);
+  preferences.end();
+  
+  char intFormat[3] = "%i";
+  char preferencesOutput[80] = "";
+  char temp[9] = "";
+  strcat(preferencesOutput, "$ALTITUDE_LIFTOFF,");
+  sprintf(temp, intFormat, altitudeLiftoff);
+  strcat(preferencesOutput, temp);
+  strcat(preferencesOutput, ";\n");
+
+  preferencesOutput[0] = '\0';
+  strcat(preferencesOutput, "$ALTITUDE_AIRBORNE_ASCENT,");
+  sprintf(temp, intFormat, sampleRateAirborneAscent);
+  strcat(preferencesOutput, temp);
+  strcat(preferencesOutput, ";\n");
+
+  preferencesOutput[0] = '\0';
+  strcat(preferencesOutput, "$ALTITUDE_AIRBORNE_DESCENT,");
+  sprintf(temp, "%,", sampleRateAirborneDescent);
+  strcat(preferencesOutput, temp);
+  strcat(preferencesOutput, ";\n");
+  
+  preferencesOutput[0] = '\0';
+  strcat(preferencesOutput, "$ALTITUDE_GROUND,");
+  sprintf(temp, intFormat, sampleRateGround);
+  strcat(preferencesOutput, temp);
+  strcat(preferencesOutput, ";\n");
+
+  Serial.print(preferencesOutput);
+}
+
 void stateMachine::reset() {
   Serial.println(F("Reset state machine..."));
 
@@ -648,4 +686,4 @@ void stateMachine::_displaySettings() {
   Serial.println(SAMPLE_RATE_GROUND);
 }
 
-stateMachine _stateMachine;  
+stateMachine _stateMachine;    
